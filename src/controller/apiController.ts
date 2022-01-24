@@ -146,7 +146,6 @@ export async function extraerDatosLectura(keyLectura: string) {
         } else {
             return result.data;
         }
-
     } catch (error) {
         throw conectionError(error);
     }
@@ -191,6 +190,7 @@ async function validarDatosLectura(data: any) {
             throw LecturaMenor;
         }
     }
+    //REVIEW: Esto creo que no es necesario
     if (tipoLectura == 3) {
         let anioSeleccionado = arrayAnios[data.indexAnio - 1].anio;
         //mayor 
@@ -804,4 +804,39 @@ export async function buscarPorMedidor(busqueda:string){
     }catch(error){
         throw conectionError(error);
     }
+}
+function verificarDatosCoutaFija( consumoData: string ){
+    //NOTE: Verificamos que el consumo sea valido
+    let consumo = parseInt(consumoData);
+    if(!isNaN(consumo)){
+        if(consumo < 0 ){
+            throw LecturaMenor;
+        }else{
+            return true;
+        }
+    }else{
+        throw LecturaNull;
+    }
+}
+export async function guardarCuotaFija(data:any){
+    try{
+        //NOTE: Verificamos los datos del consumo
+        if( verificarDatosCoutaFija(data.Consumo)){
+            //Enviamo los datoa a la API
+            let basicData = obtenerDatosCliente();
+            let token = basicData.token;
+            //NOTE: damos formato a los datos en la interfaz
+            let result = await service.capturarCoutaFija(data,String(token));
+            if(result.data.Code == 200){
+                return true;
+            }else if(result.data.Code == 404){
+                throw noRowSelect;
+            }else if(result.data.Code == 423){
+                throw mesRegistrado;
+            }
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+
 }

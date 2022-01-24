@@ -56,7 +56,6 @@ const FormDatosTomaPage: React.FC = () => {
   const [busqueda, setBusqueda] = useState(false);
   const [filtro,setFiltro] = useState(1);
   const [placeHolder,setPlaceHolder] = useState("Buscar por contrato");
-  const [cuentaPapa,setCuentasPapas] = useState("");
   const alertButtons = [
     {
       text: "Reintentar", handler: () => {
@@ -171,17 +170,16 @@ const FormDatosTomaPage: React.FC = () => {
       .finally(() => { setLoading(false) })
   }
   const abrirCapturaDatos = async (idLectura: string, contribuyente: string, contratoVigente: string, medidor: string,metodo:number,esPapa:boolean)=> {
-    if(metodo == 2 || metodo == 3) { 
-      if(!esPapa){
-       setContribuyenteBuscado(serched);
-       let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
-       if (result === true) {
-         setActivarMenu(false);
-         //Redireccion a toma de lectura
-         history.push('/captura-de-lectura.page');
-       }
+    console.log(metodo);
+    if(!esPapa){
+      setContribuyenteBuscado(serched);
+      let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
+      if (result === true) {
+        setActivarMenu(false);
+        //Redireccion a toma de lectura
+        history.push('/captura-de-lectura.page');
       }
-    }
+     }
    }
   const buscarPalabraClave = async () => {
 

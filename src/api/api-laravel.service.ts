@@ -179,4 +179,12 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/buscarPorMedidor`,data,{headers})
     }
+    capturarCoutaFija(data:object,token:string){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/consumo`,data,{headers})
+    }
 }
+

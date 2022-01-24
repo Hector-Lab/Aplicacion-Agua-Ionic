@@ -32,7 +32,7 @@ import {
 import { camera, checkmarkCircle, saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
 import './captura-de-lectura.page.css';
 import MenuLeft from '../../components/left-menu';
-import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo } from '../../controller/apiController';
+import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija} from '../../controller/apiController';
 import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas } from '../../utilities';
 import { getDatosLecturaStorage, verifyingSession, contribuyenteBuscado, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
 import { useHistory } from 'react-router';
@@ -79,6 +79,7 @@ const CapturaDeLectura: React.FC = () => {
     const [bloqueoAnomalias, setBloqueoAnomalias] = useState(false);
     const [consumoMinimo,setConsumoMinimo] = useState(20);
     const [activarMenu,setActivarMenu] = useState(true);
+    const [ fija, setFija ] = useState(false);
     const alertButtons = [
         {
             text: "Reintentar", handler: () => {
@@ -97,6 +98,7 @@ const CapturaDeLectura: React.FC = () => {
     }
     useEffect(() => { isSessionValid(); }, [refreshControl])
     useEffect(() => {
+        //FIXME: obtenemos los datos actuales
         if (refreshControl) {
             setConsumo(0)
         }
@@ -121,18 +123,22 @@ const CapturaDeLectura: React.FC = () => {
     useIonViewDidEnter(()=>{setActivarMenu(true)});
     const cargarContribuyente = async () => {
         let result = getDatosLecturaStorage();
+        if(result.contribuyente == "null"){
+            result.contribuyente = "";
+        }
         setDatosContribuyente(result);
         extraerLectura(result.idLectura);
         setRefreshControl(false);
     }
     const extraerLectura = async (idLectura: any) => {
         //Extrallendo el consumo promedio del contribuyente
-        let promedio = await obtenerPromedioConsumo();
-        promedio = parseFloat(promedio).toFixed(2);
-        setPromedioLectura(promedio);
-        //Fin de extraer Consumo promedio del contribuyente
-        await extraerDatosLectura(idLectura)
+        let promedio = await obtenerPromedioConsumo(); //FIXME: aqui tenemos un bug cuando no hay conexion a internet
+        await obtenerPromedioConsumo().then( async (result)=>{
+            promedio = parseFloat(promedio).toFixed(2);
+            setPromedioLectura(promedio);
+            await extraerDatosLectura(idLectura)
             .then((result) => {
+                setFija(result.Mensaje[0].M_etodoCobro == "1");
                 if(result.Mensaje != 300){
                     setToma(result.Mensaje[0].Toma)
                     setMunicipio(result.Mensaje[0].Municipio);
@@ -143,7 +149,7 @@ const CapturaDeLectura: React.FC = () => {
                     setMesLectura(mesLectura);
                     setAnioLectura(data);
                     cargarFechas(data, result.ValorLectura[0].Valor, mesLectura);
-                    setLecturaAnterior(result.Mensaje[0].LecturaActual);
+                    setLecturaAnterior(result.Mensaje[0].LecturaActual != null ? result.Mensaje[0].LecturaActual : 0 );
                 }else{
                     cargarFechas(fecha.getFullYear(), "1" , fecha.getMonth());
                 }
@@ -153,14 +159,18 @@ const CapturaDeLectura: React.FC = () => {
                 setConsumo(0);
             })
             .catch((err) => {
-                console.log(err);
+                console.log("aqui esta el error");
                 let errorMessage = err.message + "";
                 if (errorMessage.includes("API")) {
                     setEnbleButtons(true);
                 }
                 setMessage(err.message);
             })
-            .finally(() => { setLoading(false) })
+            .finally(() => { setLoading(false) });
+        }).catch((error)=>{
+
+        }).finally(()=>{setLoading(false)})
+        //Fin de extraer Consumo promedio del contribuyente
     }
     const cambiarFotoActiva = (foto: string, index: number) => {
         setFotoActiva(foto);
@@ -379,50 +389,79 @@ const CapturaDeLectura: React.FC = () => {
                 if (loading) {
                     throw 0;
                 }
-            }, 20000)
+            }, 20000);
             if (!(fotosEvidencia.length == 0 && activarGaleria)) {
                 let mes = fecha.getMonth() + 1;
                 let anio = fecha.getFullYear();
                 let coords = await obtenerCoordenadas();
                 let validarConsumo = procesoConsumo(); // Falta la validacion del consumo
-                console.log(validarConsumo);
-                let datosCapturados = {
-                    route: anio + "" + mes + "/",
-                    lecturaAnterior:  lecturaAnterior,
-                    lecturaActual: bloqueoAnomalias ? lecturaAnterior : lecturaActual,
-                    consumoFinal: validarConsumo,
-                    mesCaptura: indexMes,
-                    anhioCaptura: anioActual,
-                    fechaCaptura: fecha,
-                    anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
-                    tipoCoordenada: 1,
-                    arregloFotos: fotosCodificadas,
-                    comparaMes: comparaMes,
-                    comparaAnio: comparaAnio,
-                    lectura: 1,
-                    arrayAnios: listaAnios,
-                    indexAnio: indexAnioActual,
-                    mesLectura: mesLectura,
-                    nCliente: datosContribuyente.nCliente,
-                    token: datosContribuyente.token,
-                    idUsuario: datosContribuyente.idUsuario,
-                    idToma: datosContribuyente.idLectura,
-                    Latidude:  String(coords.latitude) ,
-                    Longitude: String(coords.longitude),
+                //NOTE: Verificamos la cuotafija
+                if( !fija ){
+                    let datosCapturados = {
+                        route: anio + "" + mes + "/",
+                        lecturaAnterior:  lecturaAnterior,
+                        lecturaActual: bloqueoAnomalias ? lecturaAnterior : lecturaActual,
+                        consumoFinal: validarConsumo,
+                        mesCaptura: indexMes,
+                        anhioCaptura: anioActual,
+                        fechaCaptura: fecha,
+                        anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
+                        tipoCoordenada: 1,
+                        arregloFotos: fotosCodificadas,
+                        comparaMes: comparaMes,
+                        comparaAnio: comparaAnio,
+                        lectura: 1,
+                        arrayAnios: listaAnios,
+                        indexAnio: indexAnioActual,
+                        mesLectura: mesLectura,
+                        nCliente: datosContribuyente.nCliente,
+                        token: datosContribuyente.token,
+                        idUsuario: datosContribuyente.idUsuario,
+                        idToma: datosContribuyente.idLectura,
+                        Latidude:  String(coords.latitude) ,
+                        Longitude: String(coords.longitude),
+                    }
+                    await guardarCaptura(datosCapturados)
+                        .then((result) => { mensajeConsumoCero(); })
+                        .catch((err) => { setLoading(false); setMessage(err.message) });
+                }else{
+                    guardarDatosCuotaFija(validarConsumo);
                 }
-                await guardarCaptura(datosCapturados)
-                    .then((result) => { mensajeConsumoCero(); })
-                    .catch((err) => { setLoading(false); setMessage(err.message) });
             } else {
                 setMessage("Debe capturar almenos 1 foto")
                 setLoading(false);
             }
         } catch (err) {
+            console.log(err);
             setLoading(false);
             setMessage(`Tiempo de espera agotado.
             Asegúrese de activar la ubicación del dispositivo`)
         }
     }
+    //NOTE: metodo para enviar los datos de la cuotafija
+    const guardarDatosCuotaFija = async ( consumo:Number ) => {
+        //NOTE: creamos el formato de los datos
+        let datos = {
+            Cliente: datosContribuyente.nCliente,
+            Consumo: consumo,
+            Anio: anioActual,
+            padron: datosContribuyente.idLectura,
+            mes: indexMes,
+            anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
+            idUsuario: datosContribuyente.idUsuario,
+            Fotos: fotosCodificadas
+        };
+        await guardarCuotaFija(datos)
+        .then(()=>{
+            mensajeConsumoCero();
+        })
+        .catch(( error )=>{
+            setLoading(false); setMessage(error.message);
+        }).finally(()=>{
+            setLoading(false);
+        })
+    }
+
     const handleSelectAnio = (value: number) => {
         listaAnios.map((item, index) => {
             if (item.id == value) {
