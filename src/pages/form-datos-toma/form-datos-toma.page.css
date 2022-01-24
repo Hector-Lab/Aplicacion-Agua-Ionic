@@ -1,0 +1,30 @@
+.buttonTab{
+margin-top: -20px;
+}
+.box {
+    border-radius: 10px;
+}
+.input{
+    margin-top: 7px;
+}
+.button{
+    margin-bottom: 20px;
+}
+.elevation{
+    float: inline-end;
+}
+.center{
+    text-align: center;
+}
+.btnMenu{
+    height: 20px;
+    width: 20px;
+    margin-top: 15px;
+}
+.btnSerch{
+    border-radius: 30%;
+}
+.cuotaFija{
+    background-color: lightcoral;
+    border-radius: 5px;
+}

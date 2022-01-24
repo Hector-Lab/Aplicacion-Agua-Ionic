@@ -1,0 +1,30 @@
+ion-item.selected {
+    --color: var(--ion-color-primary);
+    --background: #D2FFE2 ;
+    border-radius: 5px;
+}
+ion-item{
+    margin-bottom: 1px;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+.menuLeft{
+    margin-bottom: 5%;
+}
+ion-img {
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+.center {
+    text-align: center;
+    align-items: center;
+    align-content: center;
+}
+.spinerItem {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}

@@ -1,0 +1,25 @@
+.btnMenu{
+    height: 20px;
+    width: 10%;
+    margin-top: 15px;
+}
+.centrar{
+    align-items: center;
+    text-align: center;
+}
+.disabledInput{
+    color: #808080af;
+}
+ion-input {
+    margin-left: 5px;
+}
+.imgFormat {
+    height: 70px;
+    width: 70px;
+}
+ion-text {
+    padding: 2%;
+}
+.btnDanger{
+    color: red;
+}
