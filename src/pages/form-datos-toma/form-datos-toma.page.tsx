@@ -33,7 +33,7 @@ import "./form-datos-toma.page.css";
 import MenuLeft from '../../components/left-menu';
 import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor} from '../../controller/apiController';
 import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda, setPaginasBusqueda,getCuentasPapas } from '../../controller/storageController';
-import { searchCircle, arrowForwardOutline, arrowBackOutline } from 'ionicons/icons'
+import { searchCircle, arrowForwardOutline, arrowBackOutline, cogSharp } from 'ionicons/icons'
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');

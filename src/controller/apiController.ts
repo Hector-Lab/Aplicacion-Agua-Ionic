@@ -140,6 +140,7 @@ export async function extraerDatosLectura(keyLectura: string) {
             idLectura: keyLectura
         }
         let result = await service.extraesDatosLectura(datos, basicData.token + "");
+        console.log(result);
         let tipoLectura = result.data.ValorLectura[0].Valor;
         if (tipoLectura != '1' && tipoLectura != '2' && tipoLectura != '3') {
             throw lecturaCodeError
@@ -545,7 +546,8 @@ export async function lecturasPorSectorPage(sector: string, offset: number,) {
             Offset: offset
         }
         let result = await service.buscarLecturasPorSector(datosConsulta, basicData.token + "");
-        let mensaje = result.data.mensaje;
+        let mensaje = result.data.mensaje;        
+        setCuentasPapas(result.data.Papas);
         guardarContratos(JSON.stringify(mensaje));
         if (mensaje.legth === 0 || mensaje === "No se encontraron registros") {
             throw noRowSelect;
@@ -764,7 +766,7 @@ export async function buscarContrato(busqueda:string){
         };
         let result = await service.buscarPorContrato(datos,String(token));
         let data = result.data.Mensaje;
-        console.log(result.data.consulta);
+        console.log(result.data);
         setCuentasPapas(result.data.Papas);
         console.log(result.data.Papas);
         let isArray = Array.isArray(data);

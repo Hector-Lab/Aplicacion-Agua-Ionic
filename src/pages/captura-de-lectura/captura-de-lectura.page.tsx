@@ -131,9 +131,8 @@ const CapturaDeLectura: React.FC = () => {
         setRefreshControl(false);
     }
     const extraerLectura = async (idLectura: any) => {
-        //Extrallendo el consumo promedio del contribuyente
-        let promedio = await obtenerPromedioConsumo(); //FIXME: aqui tenemos un bug cuando no hay conexion a internet
-        await obtenerPromedioConsumo().then( async (result)=>{
+        //Extrallendo el consumo promedio del contribuyente //FIXME: aqui tenemos un bug cuando no hay conexion a internet
+        await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
             setPromedioLectura(promedio);
             await extraerDatosLectura(idLectura)
