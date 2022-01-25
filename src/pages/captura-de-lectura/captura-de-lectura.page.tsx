@@ -131,10 +131,10 @@ const CapturaDeLectura: React.FC = () => {
         setRefreshControl(false);
     }
     const extraerLectura = async (idLectura: any) => {
-        //Extrallendo el consumo promedio del contribuyente //FIXME: aqui tenemos un bug cuando no hay conexion a internet
         await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
             setPromedioLectura(promedio);
+            console.log(idLectura);
             await extraerDatosLectura(idLectura)
             .then((result) => {
                 setFija(result.Mensaje[0].M_etodoCobro == "1");
@@ -143,8 +143,12 @@ const CapturaDeLectura: React.FC = () => {
                     setMunicipio(result.Mensaje[0].Municipio);
                     setLocalidad(result.Mensaje[0].Localidad);
                     setDireccion(result.Mensaje[0].Direccion);
+                    //FIXED: hay un bug para los contraros sin lecturas y estatus de letura 1
                     let data = parseInt(result.Mensaje[0]['A_no']);
                     let mesLectura = parseInt(result.Mensaje[0].Mes);
+                    //NOTE: si todo es NaN seleccionamos la fecha actual
+                    isNaN(data) ? data = fecha.getFullYear() : data = data;
+                    isNaN( mesLectura ) ? mesLectura = fecha.getMonth() : mesLectura = mesLectura;
                     setMesLectura(mesLectura);
                     setAnioLectura(data);
                     cargarFechas(data, result.ValorLectura[0].Valor, mesLectura);
@@ -211,7 +215,6 @@ const CapturaDeLectura: React.FC = () => {
             setlistaMeses(result[0].Meses);
             setListaAnios(result[1].Anios);
             // Se debe separar por casos
-            //TESTING: 
             switch (tipoLectura) {
                 case '1':
                     lecturaCasoUno(anioDefault, mes, result[0].Meses);
@@ -424,7 +427,7 @@ const CapturaDeLectura: React.FC = () => {
                         .then((result) => { mensajeConsumoCero(); })
                         .catch((err) => { setLoading(false); setMessage(err.message) });
                 }else{
-                    guardarDatosCuotaFija(validarConsumo);
+                    guardarDatosCuotaFija(validarConsumo,coords);
                 }
             } else {
                 setMessage("Debe capturar almenos 1 foto")
@@ -438,7 +441,7 @@ const CapturaDeLectura: React.FC = () => {
         }
     }
     //NOTE: metodo para enviar los datos de la cuotafija
-    const guardarDatosCuotaFija = async ( consumo:Number ) => {
+    const guardarDatosCuotaFija = async ( consumo:Number, coords: any ) => {
         //NOTE: creamos el formato de los datos
         let datos = {
             Cliente: datosContribuyente.nCliente,
@@ -448,8 +451,12 @@ const CapturaDeLectura: React.FC = () => {
             mes: indexMes,
             anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
             idUsuario: datosContribuyente.idUsuario,
-            Fotos: fotosCodificadas
+            Fotos: fotosCodificadas,
+            tipoCoordenada: 1,
+            Latidude:  String(coords.latitude),
+            Longitude: String(coords.longitude),
         };
+        console.log(datos);
         await guardarCuotaFija(datos)
         .then(()=>{
             mensajeConsumoCero();

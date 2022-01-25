@@ -829,12 +829,13 @@ export async function guardarCuotaFija(data:any){
             let token = basicData.token;
             //NOTE: damos formato a los datos en la interfaz
             let result = await service.capturarCoutaFija(data,String(token));
+            console.log(result);
             if(result.data.Code == 200){
                 return true;
             }else if(result.data.Code == 404){
                 throw noRowSelect;
             }else if(result.data.Code == 423){
-                throw mesRegistrado;
+                throw mesMayor;
             }
         }
     }catch(error){
