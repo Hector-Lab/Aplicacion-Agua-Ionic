@@ -766,9 +766,7 @@ export async function buscarContrato(busqueda:string){
         };
         let result = await service.buscarPorContrato(datos,String(token));
         let data = result.data.Mensaje;
-        console.log(result.data);
         setCuentasPapas(result.data.Papas);
-        console.log(result.data.Papas);
         let isArray = Array.isArray(data);
         if (isArray) {
             return data;

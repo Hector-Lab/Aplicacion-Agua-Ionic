@@ -1,6 +1,6 @@
 
 import './left-menu.css';
-import { create, logOut, reader, water, newspaper, construct } from 'ionicons/icons'
+import { create, logOut, reader, water, newspaper, construct, cutOutline } from 'ionicons/icons'
 import { IonMenu, IonContent, IonImg, IonItemDivider, IonMenuToggle, IonRouterOutlet, IonItem, IonLabel, IonIcon, IonSpinner } from '@ionic/react'
 import { useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom'
@@ -22,7 +22,7 @@ const MenuLeft: React.FC<ContainerProps> = () => {
             selects: ['historial-lecturas.page','editar-lecturas-agua.page'],
             icon: reader,
             path: '/historial-lecturas.page'
-        }, {
+        }, /*{
 
             title: 'Fallos en infraestructura',
             selects: ['reportes.page'],
@@ -34,6 +34,12 @@ const MenuLeft: React.FC<ContainerProps> = () => {
             selects: ['historial-reportes.page', 'detalles-reportes.page'],
             path: '/historial-reportes.page',
             icon: newspaper
+        },*/
+        {
+            title: 'Cortes',
+            selects: ['buscar-contrato'],
+            path: '/buscar-contrato',
+            icon: cutOutline
         },
         /*{
             title: 'Inspecciones',
