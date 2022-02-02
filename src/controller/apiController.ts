@@ -17,7 +17,9 @@ import {
     obtnerCliente,
     obtenerToken,
     extraerDatosEditarLectura,
-    setCuentasPapas
+    setCuentasPapas,
+    getContratoCorte,
+    getIdUsuario,
 } from '../controller/storageController';
 const service = new APIservice();
 const date = new Date();
@@ -40,6 +42,7 @@ const APIError = new Error("Error del servidor");
 const atrasError = new Error("El mes seleccionada debe se mayor a la actual");
 const adelanteError = new Error("El mes de la lectura debe ser menor al actual");
 const PermissionsError = new Error("Para poder hacer uso de todas las funciones de la aplicaciòn por favor acepta los permisos solicitados por la misma");
+const errorCarga = new Error("Error al obtener los datos del contrato 403");
 export async function Login(user: string, password: string, remerber: boolean) {
     const acceso = {
         usuario: user,
@@ -780,7 +783,6 @@ export async function buscarContrato(busqueda:string){
 }
 export async function buscarPorMedidor(busqueda:string){
     try{
-        console.log("Buscando por medidor");
         let { cliente,token } = obtenerDatosCliente();
         let mes = date.getMonth() + 1;
         let anio = date.getFullYear();
@@ -840,4 +842,29 @@ export async function guardarCuotaFija(data:any){
         throw conectionError(error);
     }
 
+}
+export async function obtenerDatosCorte(){
+    try {
+        let { cliente,token } = obtenerDatosCliente(); 
+        let padron = getContratoCorte();
+        let Usuario = getIdUsuario();
+        let datos = {
+            'Padron': padron,
+            'Cliente': cliente,
+            'Usuario': Usuario
+        };
+        let result = await service.obtenerDatosContratoCorte(datos,String(token));
+        let DatosContrato = [];
+        if( result.data.code == 200 ){
+            DatosContrato.push(result.data.Mensaje[0])
+            DatosContrato.push(result.data.Usuario[0])
+            return DatosContrato;
+        }else if ( result.data.code == 403 ){
+            throw errorCarga;
+        }else if ( result.data.code == 404 ){
+            throw noRowSelect;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
 }

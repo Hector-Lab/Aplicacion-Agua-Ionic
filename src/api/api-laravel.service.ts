@@ -186,5 +186,13 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/consumo`,data,{headers})
     }
+    obtenerDatosContratoCorte( data: object, token: string){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/DatosTomaCorte`,data,{headers});
+    }
+    
 }
 

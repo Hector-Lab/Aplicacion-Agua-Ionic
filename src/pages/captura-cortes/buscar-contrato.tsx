@@ -1,13 +1,14 @@
 import { IonButton, IonCard, IonCardHeader, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonItem, IonItemDivider, IonLabel, IonList, IonLoading, IonNote, IonPage, IonRow, IonSelect, IonSelectOption } from "@ionic/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import MenuLeft from '../../components/left-menu';
 import { IonHeader,IonToolbar,IonTitle,IonButtons,IonMenuButton } from '@ionic/react';
 import { buscarContrato, solicitarPermisos, verifyGPSPermission,verifyCameraPermission } from '../../controller/apiController';
 import { searchCircle } from "ionicons/icons";
-import { getCuentasPapas, getUsuario } from "../../controller/storageController";
-
+import { getCuentasPapas, getUsuario, setContratoCorte } from "../../controller/storageController";
+import { useHistory } from 'react-router-dom';
 
 const PrincipalCortes: React.FC = () => {
+    const history = useHistory();
     const [ activarMenu,setActivarMenu ] = useState(true);
     const [ tipoFiltro , setTipoFiltro ] = useState(1);
     const [user, setUser ] = useState("Prueba");
@@ -15,6 +16,10 @@ const PrincipalCortes: React.FC = () => {
     const [ contrato, setContrato ] = useState("");
     const [ loading, setLoading ] = useState(false);
     const [ listaContratos, setListaContratos ] = useState<any[]>([]);
+
+    useEffect(()=>{
+      prepararPantalla();
+    });
 
     const BuscarLectura = (  ) =>{
         setLoading(true);
@@ -82,12 +87,12 @@ const PrincipalCortes: React.FC = () => {
     const prepararPantalla = async () => {
         await solicitarPermisos()
           .then(async (err) => {
+            console.log("Solicitando persmisos");
             let camera = await verifyCameraPermission();
             let gps = await verifyGPSPermission();
             if (camera && gps) {
               let storageUser = getUsuario();
               setUser(storageUser + "");
-              console.log(storageUser);
             } else {
             }
           }).catch(() => {
@@ -96,11 +101,18 @@ const PrincipalCortes: React.FC = () => {
             setUser(storageUser + "");
           })
         /**
-       * Activar el metodo solo para la version web de prueba
-       */
-    
-        //setMessage("EL IOIOA")
+        * Activar el metodo solo para la version web de prueba
+        */        
+    }
+    const mostrarDatosContrato = async (item:any ,esPapa:boolean) =>{
+      //NOTE: Verificamos si es una cuenta papa
+      if(!esPapa){
+        //INDEV: guardamos los datos en el storage para mostrar en la pantalla
+        setContratoCorte(item.id);
+        console.log(item.id);
+        history.push("/realizar-corte");
       }
+    }
 
     return (
         <IonPage>
@@ -140,15 +152,17 @@ const PrincipalCortes: React.FC = () => {
                             </IonCol>
                         </IonRow>
                         <IonRow>
-                            <IonCol size="10">
-                            <IonItem>
-                                <IonInput type="number" placeholder = { `Ingrese el ${tipoFiltro == 1 ?  "contrato" : "medidor"}` } onIonChange={e => { setContrato(String(e.detail.value)) }}></IonInput>
-                            </IonItem>
-                            </IonCol>
-                            <IonCol size="2" class="btnSerch">
-                            <IonButton color="danger" size="large" shape="round" onClick={ BuscarLectura }><IonIcon icon={searchCircle} color="light" size="large"></IonIcon></IonButton>
+                            <IonCol size="12">
+                              <IonItem>
+                                  <IonInput type="number" placeholder = { `Ingrese el ${tipoFiltro == 1 ?  "contrato" : "medidor"}` } onIonChange={e => { setContrato(String(e.detail.value)) }}></IonInput>
+                              </IonItem>
                             </IonCol>
                         </IonRow>
+                        <br />
+                        <IonButton color="danger" expand = "block" onClick={ BuscarLectura }>
+                            <IonIcon icon={searchCircle} color="light" size="large"></IonIcon>
+                            
+                            </IonButton>
                         <IonItem>
                             <IonLabel className="center" color="">Contrato</IonLabel>
                         </IonItem>
@@ -163,7 +177,7 @@ const PrincipalCortes: React.FC = () => {
                                 if(cuentaPapa){
                                   arrayData[0] += "Desarrollo";  
                                 }
-                                return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => {  }}>
+                                return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => { mostrarDatosContrato( item, cuentaPapa ); }}>
                                   <IonItem detail={true} >
                                     <IonList>
                                       <IonLabel>{item.Contribuyente}</IonLabel>

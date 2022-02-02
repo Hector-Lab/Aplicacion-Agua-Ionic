@@ -13,6 +13,7 @@ import DatosContribuyente from './pages/datos-contribuyente/datos-del-contribuye
 import ContribuyenteInspeccion from './pages/inspecciones/inspeccciones.page';
 import AgregarInspeccion from './pages/inspeccion-agregar/inspeccion-agregar.page';
 import PrincipalCortes from './pages/captura-cortes/buscar-contrato';
+import RealizarCorte from './pages/realizar-corte/realizar-corte';
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -74,6 +75,9 @@ const App: React.FC = () => (
         </Route>
         <Route exact path = "/buscar-contrato">
           <PrincipalCortes/>
+        </Route>
+        <Route exact path = "/realizar-corte">
+          <RealizarCorte />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>

@@ -169,7 +169,7 @@ const FormDatosTomaPage: React.FC = () => {
       })
       .finally(() => { setLoading(false) })
   }
-  const abrirCapturaDatos = async (idLectura: string, contribuyente: string, contratoVigente: string, medidor: string,metodo:number,esPapa:boolean)=> {
+  const abrirCapturaDatos = async (idLectura: string, contribuyente: string, contratoVigente: string, medidor: string,metodo:number,esPapa:boolean) => {
     console.log(metodo);
     if(!esPapa){
       setContribuyenteBuscado(serched);
