@@ -1,0 +1,21 @@
+.centrarCarousel {
+    align-items: center;
+    text-align: center;
+    padding-top: 45px;
+}
+.inputBorder {
+    border: solid 1px #3880ff40;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+.bloquearCorte {
+    font-weight: bold;
+}
+.inputBorderError {
+    border: solid 1px  red;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+.selected {
+  background-color: #3880ff40;
+}

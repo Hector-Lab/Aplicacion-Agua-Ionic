@@ -1,4 +1,4 @@
-import { IonButton, IonCard, IonCardHeader, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonItem, IonItemDivider, IonLabel, IonList, IonLoading, IonNote, IonPage, IonRow, IonSelect, IonSelectOption } from "@ionic/react"
+import { IonButton, IonCard, IonCardHeader, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonItem, IonItemDivider, IonLabel, IonList, IonLoading, IonNote, IonPage, IonRow, IonSelect, IonSelectOption, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react"
 import { useEffect, useState } from "react"
 import MenuLeft from '../../components/left-menu';
 import { IonHeader,IonToolbar,IonTitle,IonButtons,IonMenuButton } from '@ionic/react';
@@ -20,14 +20,14 @@ const PrincipalCortes: React.FC = () => {
     useEffect(()=>{
       prepararPantalla();
     });
-
+    useIonViewWillEnter(()=>{setActivarMenu(false)});
+    useIonViewDidEnter(()=>{setActivarMenu(true)});
     const BuscarLectura = (  ) =>{
         setLoading(true);
         if(contrato != ""){
             tipoFiltro == 1 ? PorContrato( contrato ) : porMedidor( contrato );
         }else{
             setLoading(false);
-            
         }
     }
     const PorContrato = async ( contrato: string ) =>{
@@ -109,7 +109,6 @@ const PrincipalCortes: React.FC = () => {
       if(!esPapa){
         //INDEV: guardamos los datos en el storage para mostrar en la pantalla
         setContratoCorte(item.id);
-        console.log(item.id);
         history.push("/realizar-corte");
       }
     }
@@ -136,7 +135,7 @@ const PrincipalCortes: React.FC = () => {
                         <div>
                         <h3>Realizar Corte</h3>
                         <IonLabel >Puedes realizar busquedas por:</IonLabel>
-                        <p>Contrato y Medidor</p>
+                        <p>Contrato o Medidor</p>
                         <br/>
                         </div>
                         <IonGrid>

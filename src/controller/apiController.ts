@@ -1,4 +1,6 @@
+import { Motion } from '@capacitor/core';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
+import { thermometer } from 'ionicons/icons';
 import { Console } from 'node:console';
 import { _private } from 'workbox-core';
 import { APIservice } from '../api/api-laravel.service';
@@ -21,6 +23,7 @@ import {
     getContratoCorte,
     getIdUsuario,
 } from '../controller/storageController';
+import DatosContribuyente from '../pages/datos-contribuyente/datos-del-contribuyente';
 const service = new APIservice();
 const date = new Date();
 //INDEV: Errores del sistema
@@ -43,6 +46,7 @@ const atrasError = new Error("El mes seleccionada debe se mayor a la actual");
 const adelanteError = new Error("El mes de la lectura debe ser menor al actual");
 const PermissionsError = new Error("Para poder hacer uso de todas las funciones de la aplicaciòn por favor acepta los permisos solicitados por la misma");
 const errorCarga = new Error("Error al obtener los datos del contrato 403");
+const errorImagenes = new Error("Corte realizado\nHubo un error al subir las imagenes");
 export async function Login(user: string, password: string, remerber: boolean) {
     const acceso = {
         usuario: user,
@@ -836,6 +840,8 @@ export async function guardarCuotaFija(data:any){
                 throw noRowSelect;
             }else if(result.data.Code == 423){
                 throw mesMayor;
+            }else if(result.data.Code == 424){
+                throw mesRegistrado;
             }
         }
     }catch(error){
@@ -856,8 +862,9 @@ export async function obtenerDatosCorte(){
         let result = await service.obtenerDatosContratoCorte(datos,String(token));
         let DatosContrato = [];
         if( result.data.code == 200 ){
-            DatosContrato.push(result.data.Mensaje[0])
-            DatosContrato.push(result.data.Usuario[0])
+            DatosContrato.push(result.data.Mensaje[0]);
+            DatosContrato.push(result.data.Usuario[0]);
+            console.log(DatosContrato);
             return DatosContrato;
         }else if ( result.data.code == 403 ){
             throw errorCarga;
@@ -868,3 +875,31 @@ export async function obtenerDatosCorte(){
         throw conectionError(error);
     }
 }
+export async function RealizarCorteAPI( datos: {Evidencia:any,Motivo:string, Padron: number, Persona:number, Estado: number, Usuario: number, Longitud:string, Latitud: string, Ejercicio: number} ){
+    try {
+        let { cliente, token } = obtenerDatosCliente();
+        let datosCorte = {
+            Cliente: cliente,
+            Motivo: datos.Motivo,
+            Padron: datos.Padron,
+            Persona: datos.Persona,
+            Usuario: datos.Usuario,
+            Estado: datos.Estado,
+            Longitud:datos.Longitud,
+            Latitud: datos.Latitud,
+            Ejercicio: datos.Ejercicio,
+            Evidencia:datos.Evidencia
+        };
+        let resultCorte = await service.realizarCorteTomaSuinpac( datosCorte, String(token));
+        if(resultCorte.data.Code == 200){
+            return ("OK");
+        }else if(resultCorte.data.Code == 206){
+            throw errorImagenes;
+        }else if(resultCorte.data.Code == 400){
+            let jsonError = JSON.parse(resultCorte.data.Mensaje);
+            throw new Error(`Error ${jsonError.Code}:\n${jsonError.Mensaje}`);
+        }
+    }catch( error ){
+        throw conectionError(error);
+    }
+} 

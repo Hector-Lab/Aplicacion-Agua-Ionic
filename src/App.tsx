@@ -10,8 +10,6 @@ import Reportes from './pages/reportes/reportes.page';
 import HistorialReportes from './pages/historial-reportes/historial-reportes.page';
 import DetallesHistorial from './pages/detalle-reporte/detalle-reporte.page';
 import DatosContribuyente from './pages/datos-contribuyente/datos-del-contribuyente';
-import ContribuyenteInspeccion from './pages/inspecciones/inspeccciones.page';
-import AgregarInspeccion from './pages/inspeccion-agregar/inspeccion-agregar.page';
 import PrincipalCortes from './pages/captura-cortes/buscar-contrato';
 import RealizarCorte from './pages/realizar-corte/realizar-corte';
 /* Core CSS required for Ionic components to work properly */
@@ -55,23 +53,8 @@ const App: React.FC = () => (
         <Route exact path = "/editar-lecturas-agua.page">
           <EditarLectura/>
         </Route>
-        <Route exact path = "/reportes.page">
-          <Reportes/>
-        </Route>
-        <Route exact path = "/historial-reportes.page">
-          <HistorialReportes/>
-        </Route>
-        <Route exact path = "/detalles-reportes.page">
-          <DetallesHistorial/>
-        </Route>
         <Route exact path = "/datos-contribuyente.page">
           <DatosContribuyente/>
-        </Route>
-        <Route exact path = "/inspeccciones.page">
-        <ContribuyenteInspeccion/>
-        </Route>
-        <Route exact path = "/inspeccion-agregar.page">
-          <AgregarInspeccion/>
         </Route>
         <Route exact path = "/buscar-contrato">
           <PrincipalCortes/>

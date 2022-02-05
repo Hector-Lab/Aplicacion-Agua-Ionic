@@ -1,12 +1,12 @@
 import { useCamera, } from '@capacitor-community/react-hooks/camera';
 import { CameraResultType, CameraSource, Geolocation } from '@capacitor/core'
-export function useTakePhoto() {
+export function useTakePhoto( ) {
   const { getPhoto } = useCamera();
   const takePhoto = async () => {
     const cameraPhoto = await getPhoto({
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
-      quality: 50
+      quality: 50,
     });
     return cameraPhoto;
   }
@@ -14,6 +14,7 @@ export function useTakePhoto() {
     takePhoto
   }
 }
+
 export async function generarFechas(anio: number) {
   let result = new Array;
   let listaMeses = new Array;
@@ -108,8 +109,6 @@ export function generarAnios(defaultAnio: number) {
 export async function obtenerCoordenadas() {
   try {
     let coords = await Geolocation.getCurrentPosition();
-
-  // return coords.coords.latitude;
   return coords.coords;
   } catch (err) {
     throw err;

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { returnUpBackOutline } from 'ionicons/icons';
 export class APIservice {
     //llamada a la api en la
     getAuth(data: object) {
@@ -193,6 +194,12 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/DatosTomaCorte`,data,{headers});
     }
-    
+    realizarCorteTomaSuinpac( data: object ,token: string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/RealizarCorte`,data,{headers});
+    }
 }
 
