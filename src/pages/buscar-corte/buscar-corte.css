@@ -1,0 +1,10 @@
+.bordeFecha {
+    text-align: center;
+    border-radius: 20px;
+    font-weight: bold;
+    border: solid #3880ff40 1px;
+}
+.labelCalendario{
+    text-align: center;
+    align-self: center;
+}

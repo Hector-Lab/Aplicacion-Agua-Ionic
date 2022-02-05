@@ -6,12 +6,14 @@ import TomaDatos from './pages/form-datos-toma/form-datos-toma.page'
 import CapturaLectura from './pages/captura-de-lectura/captura-de-lectura.page'
 import HistorialLecturas from './pages/historial-lecturas/historial-lecturas.page'
 import EditarLectura from './pages/editar-lecturas-agua/editar-lecturas-agua.page'
-import Reportes from './pages/reportes/reportes.page';
-import HistorialReportes from './pages/historial-reportes/historial-reportes.page';
-import DetallesHistorial from './pages/detalle-reporte/detalle-reporte.page';
+//import Reportes from './pages/reportes/reportes.page';
+//import HistorialReportes from './pages/historial-reportes/historial-reportes.page';
+//import DetallesHistorial from './pages/detalle-reporte/detalle-reporte.page';
 import DatosContribuyente from './pages/datos-contribuyente/datos-del-contribuyente';
 import PrincipalCortes from './pages/captura-cortes/buscar-contrato';
 import RealizarCorte from './pages/realizar-corte/realizar-corte';
+import HistorialCorte from './pages/historial-cortes/historial-corte';
+import BuscarCorte from './pages/buscar-corte/buscar-corte';
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -61,6 +63,12 @@ const App: React.FC = () => (
         </Route>
         <Route exact path = "/realizar-corte">
           <RealizarCorte />
+        </Route>
+        <Route exact path = "/historial-cortes">
+          <HistorialCorte />
+        </Route>
+        <Route exact path = "/buscar-corte" >
+          <BuscarCorte />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>
