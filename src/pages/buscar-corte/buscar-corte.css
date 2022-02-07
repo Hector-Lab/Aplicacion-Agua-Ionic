@@ -3,8 +3,12 @@
     border-radius: 20px;
     font-weight: bold;
     border: solid #3880ff40 1px;
+    margin-top: 2%;
 }
 .labelCalendario{
     text-align: center;
     align-self: center;
+}
+.selectedItemBold{
+    font-weight: bold;
 }
