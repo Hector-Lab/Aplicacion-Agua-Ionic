@@ -288,7 +288,7 @@ const RealizarCorte: React.FC = () => {
                         </IonItem>
                         <br/>
                         <IonItem >
-                            <IonLabel color = {bloquearCorte ? "danger" : "primary"} className = "bloquearCorte" > { ` Estado:  ${listaEstados[ parseInt(datosContrato.Estatus)-1 ]}` } </IonLabel>
+                            <IonLabel color = {bloquearCorte ? "danger" : "primary"} className = "bloquearCorte" > { ` Estado:  ${listaEstados[ parseInt(datosContrato.Estatus)-1 ]} ${modoPruebas ? " Modo Pruebas " :"" }` } </IonLabel>
                         </IonItem>
                         <br/>
                         <IonItem>

@@ -397,6 +397,7 @@ const CapturaDeLectura: React.FC = () => {
                 let anio = fecha.getFullYear();
                 let coords = await obtenerCoordenadas();
                 let validarConsumo = procesoConsumo(); // Falta la validacion del consumo
+                console.log(lecturaActual);
                 //NOTE: Verificamos la cuotafija
                 if( !fija ){
                     let datosCapturados = {
@@ -489,16 +490,17 @@ const CapturaDeLectura: React.FC = () => {
         setDefaultAnomalia(seleccionAnomalia);
         setConsumo(promedioLectura);
         setBloqueoAnomalias(seleccionAnomalia != 0);
+        console.log(defaultLectura);
         anomalias.map((item, index) => {
             if (item.id == seleccionAnomalia) {
                     setActivarGaleria(true);
                     console.log(item.ActualizarAdelante + " - " + item.ActualizarAtras + " Se activa: " + (parseInt(item.ActualizarAdelante) == 0 || parseInt(item.ActualizarAtras) == 0));
                     if(parseInt(item.ActualizarAdelante) == 1 || parseInt(item.ActualizarAtras) == 1 ){
                         setBloqueoAnomalias(false);
-                        setLecturaActual(defaultLectura);
+                        setLecturaActual( defaultLectura );
                     }else{
                         setBloqueoAnomalias(true);
-                        setLecturaActual(lecturaAnterior);
+                        setLecturaActual( defaultLectura );
                     }
                     setConsumoMinimo(item.Minima);
                     if(defaultLectura != 0){
@@ -644,7 +646,7 @@ const CapturaDeLectura: React.FC = () => {
                     <IonCardHeader className="headerData">
                         <div className="datosContribuyete">
                             <h3>{datosContribuyente.contribuyente}</h3>
-                            <p>Contrato: {datosContribuyente.contratoVigente}, &nbsp;&nbsp; Medidor: {datosContribuyente.medidor}, &nbsp;&nbsp; Toma: {toma}</p>
+                            <p>Contrato: {datosContribuyente.contratoVigente}, &nbsp;&nbsp; Medidor: {datosContribuyente.medidor == "null" ? "S/N" : datosContribuyente.medidor }, &nbsp;&nbsp; Toma: {toma}</p>
                             <p>Municipio: {municipio}, &nbsp;&nbsp; Localidad: {localidad}</p>
                             <p>{`Dirección: ${direccion}`}</p>
                             <IonGrid>

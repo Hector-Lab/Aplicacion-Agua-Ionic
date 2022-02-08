@@ -1,8 +1,8 @@
-import { IonButton, IonCard, IonCardHeader, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonItem, IonItemDivider, IonLabel, IonList, IonLoading, IonNote, IonPage, IonRow, IonSelect, IonSelectOption, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react"
+import { IonAlert, IonButton, IonCard, IonCardHeader, IonCol, IonContent, IonGrid, IonIcon, IonInput, IonItem, IonItemDivider, IonLabel, IonList, IonLoading, IonNote, IonPage, IonRow, IonSelect, IonSelectOption, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react"
 import { useEffect, useState } from "react"
 import MenuLeft from '../../components/left-menu';
 import { IonHeader,IonToolbar,IonTitle,IonButtons,IonMenuButton } from '@ionic/react';
-import { buscarContrato, solicitarPermisos, verifyGPSPermission,verifyCameraPermission } from '../../controller/apiController';
+import { buscarContrato, solicitarPermisos, verifyGPSPermission,verifyCameraPermission, buscarPorMedidor } from '../../controller/apiController';
 import { searchCircle } from "ionicons/icons";
 import { getCuentasPapas, getUsuario, setContratoCorte } from "../../controller/storageController";
 import { useHistory } from 'react-router-dom';
@@ -16,10 +16,11 @@ const PrincipalCortes: React.FC = () => {
     const [ contrato, setContrato ] = useState("");
     const [ loading, setLoading ] = useState(false);
     const [ listaContratos, setListaContratos ] = useState<any[]>([]);
+    const [ tipoMensaje, setTipoMensaje ] = useState("Mensaje");
+    const [ mensaje, setMensaje ] = useState("");
+    const [ sesionValida, setSessionValida ] = useState( true );
 
-    useEffect(()=>{
-      prepararPantalla();
-    });
+    useEffect(()=>{ prepararPantalla(); });
     useIonViewWillEnter(()=>{setActivarMenu(false)});
     useIonViewDidEnter(()=>{setActivarMenu(true)});
     const BuscarLectura = (  ) =>{
@@ -35,13 +36,35 @@ const PrincipalCortes: React.FC = () => {
         .then(( result )=>{
         setListaContratos(result);
         }).catch((error)=>{
-            console.log(error);
+          let errorMessage = String(error.message);
+          let expired = errorMessage.includes("Sesion no valida");
+          
+          if (!expired) {
+            setTipoMensaje("Error");
+            setMensaje(error.message)
+          }
         })
         setLoading(false);
     }
-    const porMedidor = ( contrato: string ) =>{
-        console.log( zeroFill(contrato) );
-        setLoading(false);
+    const porMedidor = async (medidor: string) =>{ 
+      setLoading(true);
+      await buscarPorMedidor(zeroFill(medidor,10))
+      .then(result =>{
+        setListaContratos(result);
+      }).catch(err=>{
+        
+        let errorMessage = String(err.message);
+        let expired = errorMessage.includes("Sesion no valida");
+        setSessionValida(expired);
+        if (!expired) {
+          setTipoMensaje("Error");
+          setMensaje(err.message)
+        }else{
+          setMensaje(err.message+"\nRegresando...");
+        }
+      }).finally(
+       ()=>{setLoading(false);} 
+      )
     }
     function zeroFill( number:string,width:number = 9)
     {
@@ -200,6 +223,15 @@ const PrincipalCortes: React.FC = () => {
                     isOpen={loading}
                     onDidDismiss={() => { setLoading(false); }}
                     message="Por favor espere"
+                />
+                <IonAlert
+                    cssClass="my-custom-class"
+                    header={tipoMensaje}
+                    message={mensaje}
+                    onDidDismiss = {()=>{if(!sesionValida){ history.replace("./home");}}}
+                    isOpen={mensaje.length > 0}
+                    backdropDismiss={false}
+                    buttons={ [{ text: 'Aceptar', handler: () => { setMensaje("") } }] }
                 />
             </IonContent>
         </IonPage>

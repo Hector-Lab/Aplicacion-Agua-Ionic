@@ -161,6 +161,7 @@ export async function extraerDatosLectura(keyLectura: string) {
 export async function guardarCaptura(datosCaptura: any) {
     try {
         let result = await validarDatosLectura(datosCaptura);
+        console.log(result);
         if (result === true) {
             //NOTE: se manda a llamar al metodo de guardado
             let result = await enviarDatosLectura(datosCaptura);
@@ -184,7 +185,7 @@ async function validarDatosLectura(data: any) {
         anomalia = NaN;
     }
     //Validamos que la lectura no este vacia
-    if (data.lecturaActual == "" || data.lecturaActual == null) {
+    if (data.lecturaActual == null) {
         throw LecturaNull;
     }
     //Validamos que el consumo no sea menor a 0 
@@ -603,7 +604,17 @@ export async function obtenerDatosContribuyente() {
         }
         let data = await service.extraerContactoContribuyente(datos, String(token));
         let result = data.data.Mensaje[0];
-        setContribuyente(result.Contribuyente);
+        if( data.data.Code == 200 ){
+            if(data.data.Mensaje.length > 0){
+                setContribuyente(result.Contribuyente);
+            }else{
+                console.log("Mensaje de prueba");
+                throw noRowSelect;
+            }
+        }else{
+
+        }
+        
         return result;
     } catch (error) {
         throw conectionError(error);
@@ -902,4 +913,23 @@ export async function RealizarCorteAPI( datos: {Evidencia:any,Motivo:string, Pad
     }catch( error ){
         throw conectionError(error);
     }
-} 
+}
+export async function ListaCortes(Mes: string, Anio: number){
+    try{
+        let { cliente ,idUsuario, token } = obtenerDatosCliente();
+        let data = {
+            "Cliente": cliente,
+            "Usuario": idUsuario,
+            "Ejercicio": Anio,
+            "Mes": Mes
+        };
+        let cortes = await service.listarCortesUsuario( data,String(token) );
+        if(cortes.data.Code == 200){
+            return cortes.data.Mensaje;
+        }else if(cortes.data.Code == 404){
+            throw noRowSelect;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}

@@ -563,7 +563,7 @@ const FormDatosTomaPage: React.FC = () => {
                   if(cuentaPapa){
                     arrayData[0] += "Desarrollo";  
                   }
-                  return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => { abrirCapturaDatos(item.id, item.Contribuyente, item.ContratoVigente, item.Medidor,item.M_etodoCobro,cuentaPapa) }}>
+                  return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => {  abrirCapturaDatos(item.id, item.Contribuyente, item.ContratoVigente, item.Medidor,item.M_etodoCobro,cuentaPapa) }}>
                     <IonItem detail={true} >
                       <IonList>
                         <IonLabel>{item.Contribuyente}</IonLabel>

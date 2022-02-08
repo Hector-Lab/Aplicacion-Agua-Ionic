@@ -11,6 +11,9 @@ const MenuLeft: React.FC<ContainerProps> = () => {
     const history = useHistory();
     let [selectedIndex, setSelectedIndex] = useState(-1);
     const [logo,setLogo] = useState("");
+    useEffect(()=>{
+
+    },[])
     const appPages = [
         {
             title: 'Toma de agua',
@@ -93,9 +96,11 @@ const MenuLeft: React.FC<ContainerProps> = () => {
         }
     }
     const cargarLogo = async ()=>{
-        await getLogoStorage().then((result)=>{
-            setLogo(String(result));
-        })
+        if(logo == ""){
+            await getLogoStorage().then((result)=>{
+                setLogo(String(result));
+            });
+        }
     }
     return (
         <div>
