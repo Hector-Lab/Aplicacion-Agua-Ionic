@@ -48,7 +48,7 @@ const RealizarCorte: React.FC = () => {
         {
             text: "Cancelar"
         }]
-    const modoPruebas = true; //INDEV: modo de pruebas 
+    const modoPruebas = false; //INDEV: modo de pruebas 
     const fecha = new Date();
     useEffect(()=>{
         extraerDatos();
