@@ -772,15 +772,17 @@ export async function  obtenerPromedioEditar(padron: number){
 
 export async function buscarContrato(busqueda:string){
     try{
-        console.log("Buscando por contrato");
         let { cliente,token } = obtenerDatosCliente();
+        let idUsuario = getIdUsuario();
+        console.log(idUsuario);
         let mes = date.getMonth() + 1;
         let anio = date.getFullYear();
         let datos = {
             Cliente: cliente,
             Contrato: busqueda,
             mes: mes,
-            a_no: anio
+            a_no: anio,
+            usuario: idUsuario
         };
         let result = await service.buscarPorContrato(datos,String(token));
         let data = result.data.Mensaje;
@@ -801,11 +803,13 @@ export async function buscarPorMedidor(busqueda:string){
         let { cliente,token } = obtenerDatosCliente();
         let mes = date.getMonth() + 1;
         let anio = date.getFullYear();
+        let idUsuario = getIdUsuario();
         let datos = {
             Cliente: cliente,
             Contrato: busqueda,
             mes: mes,
-            a_no: anio
+            a_no: anio,
+            usuario: idUsuario
         };
         let result = await service.buscarPorMedidor(datos,String(token));
         let data = result.data.Mensaje;
@@ -933,3 +937,21 @@ export async function ListaCortes(Mes: string, Anio: number){
         throw conectionError(error);
     }
 }
+export async function ContratosListaContratoReporte( contrato: string ){
+    try{
+        let { cliente, token } = obtenerDatosCliente();
+        let datos = {
+            Cliente: cliente,
+            Contrato: contrato 
+        };
+        let result = await service.buscarContratoReporte(datos,String(token));
+        if(result.data.Code == 200){
+            //NOTE: retornamos la lista de los contratos
+            return result.data.Mensaje;
+        }else{
+            //Error del servidor
+        }
+    }catch(error){
+        console.log(error);
+    }
+}   

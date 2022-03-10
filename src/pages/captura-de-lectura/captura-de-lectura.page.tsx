@@ -424,6 +424,7 @@ const CapturaDeLectura: React.FC = () => {
                         Latidude:  String(coords.latitude) ,
                         Longitude: String(coords.longitude),
                     }
+                    console.log(datosCapturados);
                     await guardarCaptura(datosCapturados)
                         .then((result) => { mensajeConsumoCero(); })
                         .catch((err) => { setLoading(false); setMessage(err.message) });
@@ -623,6 +624,13 @@ const CapturaDeLectura: React.FC = () => {
         }
         if(seleccionAnomalia == 24){
             consumoProcesado = promedioLectura;
+        }
+        if(seleccionAnomalia == 40){ //Nuevo forma de anomalia
+            if(lecturaActual < consumoMinimo){
+                consumoProcesado = consumoMinimo;
+            }else{
+                consumoProcesado = lecturaActual;
+            }
         }
         setConsumo(consumoProcesado);
         return consumoProcesado;

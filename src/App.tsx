@@ -6,7 +6,8 @@ import TomaDatos from './pages/form-datos-toma/form-datos-toma.page'
 import CapturaLectura from './pages/captura-de-lectura/captura-de-lectura.page'
 import HistorialLecturas from './pages/historial-lecturas/historial-lecturas.page'
 import EditarLectura from './pages/editar-lecturas-agua/editar-lecturas-agua.page'
-//import Reportes from './pages/reportes/reportes.page';
+import Reportes from './pages/reportes/reportes.page';
+import ReportesContrato from './pages/buscar-contrato-reporte/buscar-contrato-reporte';
 //import HistorialReportes from './pages/historial-reportes/historial-reportes.page';
 //import DetallesHistorial from './pages/detalle-reporte/detalle-reporte.page';
 import DatosContribuyente from './pages/datos-contribuyente/datos-del-contribuyente';
@@ -65,6 +66,12 @@ const App: React.FC = () => (
         </Route>
         <Route exact path = "/buscar-corte" >
           <BuscarCorte />
+        </Route>
+        <Route exact path = "/reportes.page">
+          <Reportes />
+        </Route>
+        <Route exact path = "/ContratosReportes" >
+          <ReportesContrato />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>

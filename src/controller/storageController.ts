@@ -289,3 +289,9 @@ export function getContratoCorte(){
 export function getIdUsuario(){
     return localStorage.getItem("@Storage:idUsuario") != null ? localStorage.getItem("@Storage:idUsuario") : 0;
 }
+export function setContratoReporte(idContrato:string){
+    localStorage.setItem("@Storage:reporteContrato", idContrato );
+}
+export function getContratoReporte( ){
+    return localStorage.getItem("@Storage:reporteContrato");
+}

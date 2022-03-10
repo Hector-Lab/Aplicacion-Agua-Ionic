@@ -14,7 +14,6 @@ export function useTakePhoto( ) {
     takePhoto
   }
 }
-
 export async function generarFechas(anio: number) {
   let result = new Array;
   let listaMeses = new Array;
@@ -113,4 +112,10 @@ export async function obtenerCoordenadas() {
   } catch (err) {
     throw err;
   }
+}
+export function zeroFill( number:string,width:number = 9){
+  while(number.length < width){
+    number = "0"+number;
+  }
+  return number;
 }

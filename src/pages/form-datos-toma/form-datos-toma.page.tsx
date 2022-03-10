@@ -104,7 +104,7 @@ const FormDatosTomaPage: React.FC = () => {
         if (camera && gps) {
           let storageUser = getUsuario();
           setUser(storageUser + "");
-          cargarSectores()
+          cargarSectores();
         } else {
           setHideAlertbuttons(true);
           setMessage("Debe otorgar permisos para usar la aplicación");
