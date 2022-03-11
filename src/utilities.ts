@@ -1,5 +1,6 @@
 import { useCamera, } from '@capacitor-community/react-hooks/camera';
-import { CameraResultType, CameraSource, Geolocation } from '@capacitor/core'
+import { CameraResultType, CameraSource} from '@capacitor/core';
+import { Geolocation, Geoposition } from '@ionic-native/geolocation';
 export function useTakePhoto( ) {
   const { getPhoto } = useCamera();
   const takePhoto = async () => {

@@ -47,6 +47,7 @@ const adelanteError = new Error("El mes de la lectura debe ser menor al actual")
 const PermissionsError = new Error("Para poder hacer uso de todas las funciones de la aplicaciòn por favor acepta los permisos solicitados por la misma");
 const errorCarga = new Error("Error al obtener los datos del contrato 403");
 const errorImagenes = new Error("Corte realizado\nHubo un error al subir las imagenes");
+const ErrorInsertar = new Error("Error al insertar el registro");
 export async function Login(user: string, password: string, remerber: boolean) {
     const acceso = {
         usuario: user,
@@ -954,4 +955,35 @@ export async function ContratosListaContratoReporte( contrato: string ){
     }catch(error){
         console.log(error);
     }
-}   
+}
+export async function guardarReporteV2 (Reporte:any){
+    try{
+        let { cliente , token, idUsuario } = obtenerDatosCliente();
+        console.log(token);
+        let datos = {
+            'Padron': Reporte.Padron,
+            'Cliente':cliente,
+            'Calle':Reporte.Calle,
+            'Colonia':Reporte.Colonia,
+            'Numero':Reporte.Numero,
+            'Descripcion':Reporte.Descripcion,
+            'Latitud':Reporte.Latitud,
+            'Longitud':Reporte.Longitud,
+            'Usuario':idUsuario,
+            'Fotos':Reporte.Fotos,
+            'FallaAdministrativa':Reporte.FallaAdministrativa,
+            'Estatus':Reporte.Estatus
+        }
+        let result = await service.realizarReporteContrato(datos, String(token));
+        if( result.data.Mensaje.Code == 200 ){
+            return true;
+        }else if( result.data.Mensaje.Code == 423 ){
+            throw errorImagenes;
+        }else if( result.data.Mensaje.Code == 403 ){
+            throw ErrorInsertar;
+        }
+        return result.data.Mensaje;
+    }catch(error){
+        throw conectionError(error);
+    }
+}

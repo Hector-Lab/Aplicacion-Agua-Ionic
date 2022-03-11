@@ -1,16 +1,15 @@
 import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCheckbox, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonText, IonTextarea, IonTitle, IonToolbar } from '@ionic/react'
 import { useEffect, useState } from 'react'
 import LeftMenu from '../../components/left-menu';
-import { crearReporte } from '../../controller/apiController';
-import { verifyingSession, cerrarSesion } from '../../controller/storageController';
-import { useTakePhoto, obtenerBase64} from '../../utilities';
+import { crearReporte, guardarReporteV2 } from '../../controller/apiController';
+import { verifyingSession, cerrarSesion, getContratoReporte } from '../../controller/storageController';
+import { useTakePhoto, obtenerBase64, obtenerCoordenadas } from '../../utilities';
 import { useHistory } from 'react-router';
 import './reportes.page.css';
 import { checkmarkCircle } from 'ionicons/icons';
 
 const Reportes: React.FC = () => {
     const history = useHistory();
-    const [descripcion, setDescripcion] = useState(String);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(String);
     const [tipoMensaje, setTipoMensaje] = useState(String);
@@ -30,6 +29,7 @@ const Reportes: React.FC = () => {
     const [colonia, setColonia] = useState(String);
     const [calle, setCalle] = useState(String);
     const [numero, setNumero] = useState(String);
+    const [ descripcion, setDescripcion ] = useState( String );
 
     const { takePhoto } = useTakePhoto();
     //Verificando la session
@@ -203,12 +203,58 @@ const Reportes: React.FC = () => {
         })
     }
     const validarDatos = () =>{
+        setMessage("");
         let error = "";
-    }
-    const ubicacion = () =>{
-        
-    }
+        if( calle.trim().length == 0 ){
+            error += "Cl,";
+        }
+        if( colonia.trim().length == 0 ){
+            error += "C,";
+        }
+        if( numero.trim().length == 0 ){
+            error += "N,";
+        }
+        if ( descripcion.trim().length == 0 ){
+            error += "D,";
+        }
+        //NOTE: validamos que los datos no esten en 0
+        error.length == 0 ? enviarReporte() : lanzarMensaje("Mensaje","Favor de ingresar los campos requeridos", error);
 
+    }
+    const enviarReporte = async () =>{
+        //NOTE: Recolectamos los datos
+        setLoading(true);
+        let Padron = getContratoReporte()
+        await obtenerCoordenadas().then( async ( coordenadas )=>{
+            let datos = {
+                'Calle':calle,
+                'Colonia':colonia,
+                'Numero':numero,
+                'Descripcion':descripcion,
+                'Latitud':String(coordenadas.latitude),
+                'Longitud':String(coordenadas.longitude),
+                'FallaAdministrativa':0,
+                'Estatus':1,
+                'Fotos':fotosCodificadas,
+                'Padron':String(Padron),
+            };
+            await guardarReporteV2(datos)
+            .then(( result )=>{
+                console.log(result);
+            })
+            .catch(( error )=>{
+                setTipoMensaje("Mensaje");
+                setMessage(error.mensaje);
+            }).finally(()=>{
+                setLoading(false);
+            })
+        })
+    }
+    const lanzarMensaje = ( tipoMensaje: string, mensaje: string, error = "") =>{
+        setTipoMensaje( tipoMensaje );
+        setMessage( mensaje );
+        setErrorUI( error );
+    }
     return (
         <IonPage >
             <LeftMenu />
@@ -224,46 +270,46 @@ const Reportes: React.FC = () => {
                 {/*INDEV: Pantalla de para el reporte */  }
                 <div style={{paddingLeft:10, paddingRight:10}} >
                     <br></br>
-                    <IonGrid className = 'centerInput' >
+                    <IonGrid className = {'centerInput ' + ( ErrorUI.includes("C,") ? "errorInput" : "" )} >
                         <IonRow>
                             <IonCol size='3' className = 'centerItems' >
-                                <IonLabel className='inputLabel' > Colonia: </IonLabel>
+                                <IonLabel className = {'inputLabel'} > Colonia: </IonLabel>
                             </IonCol>
                             <IonCol size='9' >
-                                <IonInput>  </IonInput>
+                                <IonInput value={colonia} onIonChange = { text => { setColonia(String(text.detail.value))} } ></IonInput>
                             </IonCol>
                         </IonRow>
                     </IonGrid>
                     <br></br>
-                    <IonGrid className = 'centerInput' >
+                    <IonGrid className = {'centerInput ' + ( ErrorUI.includes("Cl,") ? "errorInput" : "" ) } >
                         <IonRow>
                             <IonCol size='3' className = 'centerItems' >
                                 <IonLabel className='inputLabel' > Calle: </IonLabel>
                             </IonCol>
                             <IonCol size='9' >
-                                <IonInput>  </IonInput>
+                                <IonInput value={calle} onIonChange = { text => { setCalle( String(text.detail.value) )}} >  </IonInput>
                             </IonCol>
                         </IonRow>
                     </IonGrid>
                     <br></br>
-                    <IonGrid className = 'centerInput' >
+                    <IonGrid className = {'centerInput ' + ( ErrorUI.includes("N,") ? "errorInput" : "" ) } >
                         <IonRow>
                             <IonCol size='3' className = 'centerItems' >
-                                <IonLabel className='inputLabel' > Calle: </IonLabel>
+                                <IonLabel className='inputLabel' > Numero: </IonLabel>
                             </IonCol>
                             <IonCol size='9' >
-                                <IonInput>  </IonInput>
+                                <IonInput value = { numero } onIonChange = { text => {setNumero( String(text.detail.value))}} >  </IonInput>
                             </IonCol>
                         </IonRow>
                     </IonGrid>
                     <br/><br/>
-                    <IonGrid className = 'centerInput' >
+                    <IonGrid className = {'centerInput ' + ( ErrorUI.includes("D,") ? "errorInput" : "" ) } >
                         <IonRow>
                             <IonCol size='12' className='centrado descrip' >
                                 <IonLabel > Descripción </IonLabel>
                             </IonCol>
                             <IonCol size='12' >
-                                <IonTextarea ></IonTextarea>
+                                <IonTextarea value = { descripcion } onIonChange = { text => { setDescripcion(String(text.detail.value))}}></IonTextarea>
                             </IonCol>
                         </IonRow>
                     </IonGrid>
@@ -285,29 +331,29 @@ const Reportes: React.FC = () => {
                     }
                     <IonGrid >
                         <IonRow>
-                            <IonCol size='6' className='centrado' >
-                                <IonButton color='primary' onClick={ handleAbrirCamera } > Evidencia </IonButton>
+                            <IonCol size='12' className='centrado' >
+                                <IonButton color='primary' expand='block'  onClick={ handleAbrirCamera } > Evidencia </IonButton>
                                 <IonRippleEffect></IonRippleEffect>
-                            </IonCol>
-                            <IonCol size='6' class='centrado' >
-                                <IonButton color='primary' onClick = { ()=>{} } > Ubicaciòn </IonButton>
                             </IonCol>
                         </IonRow>
                     </IonGrid>
                     <IonGrid>
                         <IonRow>
-                            <IonCol size='12' >
-                                <IonButton color='danger' expand='block' onClick={()=>{}}> Guardar Reporte </IonButton>
+                            <IonCol size='6' >
+                                <IonButton color='primary' expand='block' onClick={ validarDatos }> Regresar </IonButton>
+                            </IonCol>
+                            <IonCol size='6' >
+                                <IonButton color='danger' expand='block' onClick={ validarDatos }> Guardar</IonButton>
                             </IonCol>
                         </IonRow>
                     </IonGrid>
                 </div>
                 <IonAlert
                     cssClass="my-custom-class"
-                    header={tipoMensaje}
-                    message={message}
-                    isOpen={message.length > 0}
-                    backdropDismiss={false}
+                    header={ tipoMensaje }
+                    message={ message }
+                    isOpen={ message.length > 0 }
+                    backdropDismiss={ false }
                     buttons={connectionError ? buttonsErrorConnection : [{ text: "Aceptar", handler: () => { setMessage(""); console.log("Cancelando") } }]}
                 />
                 <IonLoading
