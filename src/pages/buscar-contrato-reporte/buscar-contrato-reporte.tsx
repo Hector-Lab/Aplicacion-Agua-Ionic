@@ -48,7 +48,6 @@ const ListaContratoReportes : React.FC = () => {
     const [ botonReintentar, setBotonReintentar ] = useState( false );
     const [ tipoError , setTipoError ] = useState( String );
     const [ cargando, setCargando ] = useState(false);
-    const [ permisos, setPermisos ] = useState( false );
     const [ listaContratos, setListaContratos ] = useState<any[]>([]);
     const listaEstatus = ["Activo","Cortado","Baja Temporal","Baja Permanente","Inactivo","Nueva","","","Sin Toma","Multada"];
     const history = useHistory();
@@ -93,7 +92,7 @@ const ListaContratoReportes : React.FC = () => {
             }, 2500);
           }
     }
-    const prepararPantalla = async () =>{
+    const prepararPantalla = async () => {
         await solicitarPermisos()
         .then( async (  )=>{
             let camera = await verifyCameraPermission();
@@ -106,12 +105,7 @@ const ListaContratoReportes : React.FC = () => {
                     history.replace("/home")
                 }, 2500)
             }
-        })
-        .catch((error)=>{
-        //Quitar antes de la vercion final (solo sirve en web)
-        setPermisos(true);
-        setUsuario(String( getUsuario()) );
-        })
+        });
     }
     const handleSelectFiltro = (filtro: number) => {
         setTipoFiltro(filtro);
@@ -257,12 +251,6 @@ const ListaContratoReportes : React.FC = () => {
             isOpen={cargando}
             onDidDismiss={() => { setCargando( false ); }}
             message="Por favor espere"
-          />
-          <IonAlert
-            cssClass="my-custom-class"
-            header={"ERROR"}
-            message={'Para poder hacer uso de todas las funciones de la aplicaciòn por favor acepta los permisos solicitados por la misma'}
-            isOpen={ !permisos }
           />
         </IonContent>
       </IonPage>

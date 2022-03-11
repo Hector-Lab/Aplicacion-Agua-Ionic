@@ -288,10 +288,10 @@ const Reportes: React.FC = () => {
                     <br></br>
                     <IonGrid className = {'centerInput ' + ( ErrorUI.includes("C,") ? "errorInput" : "" )} >
                         <IonRow>
-                            <IonCol size='3' className = 'centerItems' >
+                            <IonCol size='2' className = 'centerItems' >
                                 <IonLabel className = {'inputLabel'} > Colonia: </IonLabel>
                             </IonCol>
-                            <IonCol size='9' >
+                            <IonCol size='10' >
                                 <IonInput value={colonia} onIonChange = { text => { setColonia(String(text.detail.value))} } ></IonInput>
                             </IonCol>
                         </IonRow>
@@ -299,10 +299,10 @@ const Reportes: React.FC = () => {
                     <br></br>
                     <IonGrid className = {'centerInput ' + ( ErrorUI.includes("Cl,") ? "errorInput" : "" ) } >
                         <IonRow>
-                            <IonCol size='3' className = 'centerItems' >
+                            <IonCol size='2' className = 'centerItems' >
                                 <IonLabel className='inputLabel' > Calle: </IonLabel>
                             </IonCol>
-                            <IonCol size='9' >
+                            <IonCol size='10' >
                                 <IonInput value={calle} onIonChange = { text => { setCalle( String(text.detail.value) )}} >  </IonInput>
                             </IonCol>
                         </IonRow>
@@ -310,10 +310,10 @@ const Reportes: React.FC = () => {
                     <br></br>
                     <IonGrid className = {'centerInput ' + ( ErrorUI.includes("N,") ? "errorInput" : "" ) } >
                         <IonRow>
-                            <IonCol size='3' className = 'centerItems' >
+                            <IonCol size='2' className = 'centerItems' >
                                 <IonLabel className='inputLabel' > Numero: </IonLabel>
                             </IonCol>
-                            <IonCol size='9' >
+                            <IonCol size='10' >
                                 <IonInput value = { numero } onIonChange = { text => {setNumero( String(text.detail.value))}} >  </IonInput>
                             </IonCol>
                         </IonRow>
