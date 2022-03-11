@@ -255,6 +255,9 @@ const Reportes: React.FC = () => {
         setMessage( mensaje );
         setErrorUI( error );
     }
+    const btnRegresar = () {
+        
+    }
     return (
         <IonPage >
             <LeftMenu />
