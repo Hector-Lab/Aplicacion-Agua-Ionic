@@ -222,5 +222,13 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/crearReporteV2`,data,{headers});
     }
+    realizarReporteMedidor( data:object, token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ReporteBuscarMedidor`, data , {headers});
+    }
+
 }
 

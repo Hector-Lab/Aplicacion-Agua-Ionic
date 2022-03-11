@@ -987,3 +987,22 @@ export async function guardarReporteV2 (Reporte:any){
         throw conectionError(error);
     }
 }
+export async function buscarMedidorSinFiltro( clave:string ){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let datos = {
+            'Cliente': cliente,
+            'Contrato': clave
+        };
+        let result = await service.realizarReporteMedidor(datos,String(token));
+        console.log(result.data);
+        if( result.data.Code == 200 ){
+            return result.data.Mensaje;
+        }else{
+            //NOTE: manejador de errores
+            
+        }
+    }catch( error ){
+        throw conectionError(error);
+    }
+}

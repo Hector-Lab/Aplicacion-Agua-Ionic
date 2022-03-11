@@ -29,7 +29,7 @@ import {
 } from "@ionic/react";
 import MenuLeft from "../../components/left-menu";
 import { obtenerDatosCliente, verifyingSession, getClienteNombreCorto, cerrarSesion, getUsuario, setContratoReporte } from "../../controller/storageController";
-import { solicitarPermisos, verifyCameraPermission, verifyGPSPermission, ContratosListaContratoReporte } from "../../controller/apiController";
+import { solicitarPermisos, verifyCameraPermission, verifyGPSPermission, ContratosListaContratoReporte, buscarMedidorSinFiltro } from "../../controller/apiController";
 import { zeroFill } from '../../utilities';
 import { searchCircle } from 'ionicons/icons';
 import { useHistory } from 'react-router-dom';
@@ -41,7 +41,7 @@ const ListaContratoReportes : React.FC = () => {
     const [ tipoMensaje, setTipoMensaje ] = useState( String );
     const [ mensaje, setMensaje ] = useState(String);
     const [ usuario, setUsuario ] = useState("");
-    const [ tipoFiltro, setTipoFiltro ] = useState(Number);
+    const [ tipoFiltro, setTipoFiltro ] = useState(1);
     const [ placeHolderFiltro, setPlaceHolderFiltro ] = useState("Buscar por contrato");
     const [ palabraClave, setPalabraClave ] = useState(String);
     const [ botonReintentar, setBotonReintentar ] = useState( false );
@@ -107,6 +107,7 @@ const ListaContratoReportes : React.FC = () => {
         })
         .catch((error)=>{
         //Quitar antes de la vercion final (solo sirve en web)
+        setPermisos(true);
         setUsuario(String( getUsuario()) );
         })
     }
@@ -118,10 +119,10 @@ const ListaContratoReportes : React.FC = () => {
     const irReportar = ( item:any ) =>{
         //INDEV: aqui ingresamos el id del contrato 
         setContratoReporte(item.id);
-        setCargando(false);
+        setCargando( true );
         setTimeout(()=>{
             setCargando( false );
-            history.replace("/reportes.page");
+            history.push("/reportes.page");
         },500)
     }
     //INDEV: metodo para la busqueda de contratos sin filtros
@@ -130,16 +131,47 @@ const ListaContratoReportes : React.FC = () => {
         console.log(zeroFill( pablabraClave ));
         await ContratosListaContratoReporte(zeroFill( pablabraClave ))
         .then(( result )=>{
-            console.log(result);
+          if(result.length == 0){
+            setTipoError("Mensaje");
+            setMensaje("Sin resultados");
+            setBotonReintentar(false);
+          }
             setListaContratos(result);
         })
         .catch((error)=>{
             console.log(error);
-        });
-
+        })
+        .finally(()=>{
+          setCargando(false);
+        })
     } 
-    
-
+    const buscarMedidor = async ( palabraClave: string ) => {
+      await buscarMedidorSinFiltro(zeroFill( palabraClave ))
+      .then(( result ) => {
+        if(result.length == 0){
+          setTipoError("Mensaje");
+          setMensaje("Sin resultados");
+          setBotonReintentar(false);
+        }
+        setListaContratos( result );
+      })
+      .catch(( error )=>{
+        console.log(error.message);
+      }).finally(()=>{
+        setCargando( false );
+      })
+    }
+    const realizarBusqueda = async() =>  {
+      if( palabraClave.trim().length == 0 ){
+        setTipoMensaje("Mensaje");
+        setMensaje("Ingrese un contrato o medidor");
+        setBotonReintentar( true );
+      }else{
+        setCargando(true);
+        tipoFiltro == 1 ? buscarContrato( palabraClave ) : buscarMedidor( palabraClave );
+      }
+      
+    }
     return (
         <IonPage>
         {
@@ -158,7 +190,7 @@ const ListaContratoReportes : React.FC = () => {
           <IonCard class="ion-text-center" className="box">
             <IonCardHeader>
               <div>
-                <h3> Buscar Contrato </h3>
+                <h3> Buscar contrato </h3>
                 <IonLabel>Puedes realizar busquedas por:</IonLabel>
                 <p>Contrato o Medidor</p>
                 <br />
@@ -184,7 +216,7 @@ const ListaContratoReportes : React.FC = () => {
                 </IonRow>
                 <IonRow>
                     <IonCol size="12" > 
-                        <IonButton color="danger" expand="block" onClick={ ()=>{buscarContrato( palabraClave )} } ><IonIcon icon={searchCircle} color="light" ></IonIcon></IonButton>
+                        <IonButton color="danger" expand="block" onClick={ realizarBusqueda } ><IonIcon icon={searchCircle} color="light" ></IonIcon></IonButton>
                     </IonCol>
                 </IonRow>
               </IonGrid>

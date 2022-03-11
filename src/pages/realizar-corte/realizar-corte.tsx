@@ -335,14 +335,13 @@ const RealizarCorte: React.FC = () => {
                         }
                             <IonGrid>
                                 <IonRow>
-                                    <IonCol size="4">
+                                    <IonCol size="6">
                                             <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                         <IonButton color="secondary" onClick = {regresar}>
                                             Regresar
                                         </IonButton>
                                     </IonCol>
-                                    <IonCol size="4" ></IonCol>
-                                    <IonCol size="4" >
+                                    <IonCol size="6">
                                         <IonButton disabled = {bloquearCorte} color="danger" onClick={validarCampos}>
                                             Guardar
                                             <IonIcon icon={saveOutline} slot="end"></IonIcon>

@@ -156,10 +156,10 @@ const PrincipalCortes: React.FC = () => {
                 <IonCard class="ion-text-center" className="box" >
                     <IonCardHeader >
                         <div>
-                        <h3>Realizar Corte</h3>
-                        <IonLabel >Puedes realizar busquedas por:</IonLabel>
-                        <p>Contrato o Medidor</p>
-                        <br/>
+                          <h3>Realizar corte</h3>
+                          <IonLabel >Puedes realizar busquedas por:</IonLabel>
+                          <p>Contrato o Medidor</p>
+                          <br/>
                         </div>
                         <IonGrid>
                         <IonRow>

@@ -659,7 +659,7 @@ const CapturaDeLectura: React.FC = () => {
                             <p>{`Dirección: ${direccion}`}</p>
                             <IonGrid>
                                 <IonRow>
-                                    <IonCol size="11">
+                                    <IonCol size="10">
                                     </IonCol>
                                     <IonCol size="1">
                                         <IonChip color="danger" onClick={btnDetallesContribuyente}>
@@ -746,14 +746,13 @@ const CapturaDeLectura: React.FC = () => {
                         <div className="centrar">
                             <IonGrid>
                                 <IonRow>
-                                    <IonCol size="4">
+                                    <IonCol size="6">
                                         <IonButton color="secondary" onClick = {btnRegresar}>
                                             <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                             Regresar
                                         </IonButton>
                                     </IonCol>
-                                    <IonCol size="4" ></IonCol>
-                                    <IonCol size="4" >
+                                    <IonCol size="6">
                                         <IonButton color="danger" onClick={handleBtnGuardar} disabled={btnInactivo}>
                                             Guardar
                                             <IonIcon icon={saveOutline} slot="end"></IonIcon>

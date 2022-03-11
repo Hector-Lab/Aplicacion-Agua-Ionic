@@ -1,4 +1,4 @@
-import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCheckbox, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonText, IonTextarea, IonTitle, IonToolbar } from '@ionic/react'
+import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCheckbox, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonText, IonTextarea, IonTitle, IonToolbar, IonIcon } from '@ionic/react'
 import { useEffect, useState } from 'react'
 import LeftMenu from '../../components/left-menu';
 import { crearReporte, guardarReporteV2 } from '../../controller/apiController';
@@ -6,7 +6,7 @@ import { verifyingSession, cerrarSesion, getContratoReporte } from '../../contro
 import { useTakePhoto, obtenerBase64, obtenerCoordenadas } from '../../utilities';
 import { useHistory } from 'react-router';
 import './reportes.page.css';
-import { checkmarkCircle } from 'ionicons/icons';
+import { checkmarkCircle, chevronBackCircleOutline, saveOutline } from 'ionicons/icons';
 
 const Reportes: React.FC = () => {
     const history = useHistory();
@@ -255,8 +255,9 @@ const Reportes: React.FC = () => {
         setMessage( mensaje );
         setErrorUI( error );
     }
-    const btnRegresar = () {
-        
+    const btnRegresar = () => {
+        history.goBack();
+        //history.push("/ContratosReportes");
     }
     return (
         <IonPage >
@@ -343,10 +344,12 @@ const Reportes: React.FC = () => {
                     <IonGrid>
                         <IonRow>
                             <IonCol size='6' >
-                                <IonButton color='primary' expand='block' onClick={ validarDatos }> Regresar </IonButton>
+                                <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
+                                <IonButton color='secondary' expand='block' onClick={ btnRegresar }> Regresar </IonButton>
                             </IonCol>
                             <IonCol size='6' >
                                 <IonButton color='danger' expand='block' onClick={ validarDatos }> Guardar</IonButton>
+                                <IonIcon icon={saveOutline} slot="end"></IonIcon>
                             </IonCol>
                         </IonRow>
                     </IonGrid>
