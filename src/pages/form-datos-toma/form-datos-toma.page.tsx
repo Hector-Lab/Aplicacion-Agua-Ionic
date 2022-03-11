@@ -170,14 +170,19 @@ const FormDatosTomaPage: React.FC = () => {
       .finally(() => { setLoading(false) })
   }
   const abrirCapturaDatos = async (idLectura: string, contribuyente: string, contratoVigente: string, medidor: string,metodo:number,esPapa:boolean) => {
-    console.log(metodo);
     if(!esPapa){
-      setContribuyenteBuscado(serched);
-      let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
-      if (result === true) {
-        setActivarMenu(false);
-        //Redireccion a toma de lectura
-        history.push('/captura-de-lectura.page');
+      if( metodo != 1 ){
+        setContribuyenteBuscado(serched);
+        let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
+        if (result === true) {
+          //Redireccion a toma de lectura
+          history.push('/captura-de-lectura.page');
+          setHideAlertbuttons(true);
+        }
+      }else{
+        setHideAlertbuttons(true);
+          setTipoMessage("Mensaje");
+          setMessage("Temporamemte desabilitado");   
       }
      }
    }
@@ -485,7 +490,7 @@ const FormDatosTomaPage: React.FC = () => {
             <div>
               <h3>Lectura de agua potable</h3>
               <IonLabel>Puedes realizar busquedas por:</IonLabel>
-              <p>Contrato, Medidor, Nombre comercial o nombre del propietario</p>
+              <p>Contrato y Medidor</p>
               <br />
             </div>
             <IonGrid>
@@ -501,7 +506,7 @@ const FormDatosTomaPage: React.FC = () => {
                 </IonCol>
               </IonRow>
               <IonRow>
-                <IonCol size="10">
+                <IonCol size="9">
                   <IonItem>
                     <IonInput type="number" placeholder = {placeHolder} onIonChange={e => { handleInputSerh(String(e.detail.value)) }}></IonInput>
                   </IonItem>

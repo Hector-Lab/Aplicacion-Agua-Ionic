@@ -26,6 +26,7 @@ import {
     IonLoading,
     useIonViewWillEnter,
     IonNote,
+    useIonViewDidLeave,
 } from "@ionic/react";
 import MenuLeft from "../../components/left-menu";
 import { obtenerDatosCliente, verifyingSession, getClienteNombreCorto, cerrarSesion, getUsuario, setContratoReporte } from "../../controller/storageController";
@@ -69,6 +70,7 @@ const ListaContratoReportes : React.FC = () => {
       ]
     //NOTE: Session de los hooks
     useIonViewWillEnter(()=>{setActivarMenu( true )});
+    useIonViewDidLeave(()=>{setActivarMenu( false )});
     useEffect(()=>{ verificarSession(); },[]);
     useEffect(()=>{ tokenExpirado ? logOut( tokenExpirado ) : prepararPantalla()  },[tokenExpirado])
     //NOTE: seccion de los metodos

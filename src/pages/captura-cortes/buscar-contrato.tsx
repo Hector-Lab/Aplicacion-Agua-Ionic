@@ -2,7 +2,7 @@ import { IonAlert, IonButton, IonCard, IonCardHeader, IonCol, IonContent, IonGri
 import { useEffect, useState } from "react"
 import MenuLeft from '../../components/left-menu';
 import { IonHeader,IonToolbar,IonTitle,IonButtons,IonMenuButton } from '@ionic/react';
-import { buscarContrato, solicitarPermisos, verifyGPSPermission,verifyCameraPermission, buscarPorMedidor } from '../../controller/apiController';
+import { buscarContrato, solicitarPermisos, verifyGPSPermission,verifyCameraPermission, buscarPorMedidor, buscarMedidorSinFiltro, ContratosListaContratoReporte } from '../../controller/apiController';
 import { searchCircle } from "ionicons/icons";
 import { getCuentasPapas, getUsuario, setContratoCorte } from "../../controller/storageController";
 import { useHistory } from 'react-router-dom';
@@ -23,7 +23,7 @@ const PrincipalCortes: React.FC = () => {
     useEffect(()=>{ prepararPantalla(); });
     useIonViewWillEnter(()=>{setActivarMenu(false)});
     useIonViewDidEnter(()=>{setActivarMenu(true)});
-    const BuscarLectura = (  ) =>{
+    const BuscarLectura = (  ) => {
         setLoading(true);
         if(contrato != ""){
             tipoFiltro == 1 ? PorContrato( contrato ) : porMedidor( contrato );
@@ -32,13 +32,12 @@ const PrincipalCortes: React.FC = () => {
         }
     }
     const PorContrato = async ( contrato: string ) =>{
-        await buscarContrato(zeroFill(contrato))
+        await ContratosListaContratoReporte(zeroFill(contrato))
         .then(( result )=>{
         setListaContratos(result);
         }).catch((error)=>{
           let errorMessage = String(error.message);
           let expired = errorMessage.includes("Sesion no valida");
-          
           if (!expired) {
             setTipoMensaje("Error");
             setMensaje(error.message)
@@ -48,7 +47,7 @@ const PrincipalCortes: React.FC = () => {
     }
     const porMedidor = async (medidor: string) =>{ 
       setLoading(true);
-      await buscarPorMedidor(zeroFill(medidor,10))
+      await buscarMedidorSinFiltro(zeroFill(medidor,10))
       .then(result =>{
         setListaContratos(result);
       }).catch(err=>{

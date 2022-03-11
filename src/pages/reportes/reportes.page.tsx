@@ -1,4 +1,4 @@
-import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCheckbox, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonText, IonTextarea, IonTitle, IonToolbar, IonIcon } from '@ionic/react'
+import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCheckbox, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonText, IonTextarea, IonTitle, IonToolbar, IonIcon, useIonViewWillEnter } from '@ionic/react'
 import { useEffect, useState } from 'react'
 import LeftMenu from '../../components/left-menu';
 import { crearReporte, guardarReporteV2 } from '../../controller/apiController';
@@ -7,22 +7,23 @@ import { useTakePhoto, obtenerBase64, obtenerCoordenadas } from '../../utilities
 import { useHistory } from 'react-router';
 import './reportes.page.css';
 import { checkmarkCircle, chevronBackCircleOutline, saveOutline } from 'ionicons/icons';
+import MenuLeft from '../../components/left-menu';
 
 const Reportes: React.FC = () => {
     const history = useHistory();
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState(String);
-    const [tipoMensaje, setTipoMensaje] = useState(String);
-    const [block, setBlock] = useState(false);
-    const [tokenExpired, setTokenExpired] = useState(false);
-    const [connectionError, setConnectionError] = useState(false);
-    const [contrato,setContrato] = useState(String);
-    const [fallaAdministrativa, setFallaAdministrativa] = useState(false);
+    const [ loading, setLoading ] = useState(false);
+    const [ message, setMessage ] = useState(String);
+    const [ tipoMensaje, setTipoMensaje ] = useState(String);
+    const [ block, setBlock ] = useState(false);
+    const [ tokenExpired, setTokenExpired ] = useState(false);
+    const [ connectionError, setConnectionError ] = useState(false);
+    const [ contrato,setContrato ] = useState(String);
+    const [ fallaAdministrativa, setFallaAdministrativa ] = useState(false);
     const [ arregloFotos, setArregloFotos ] = useState<string[]>([]);
     const [ fotoActiva, setFotoActiva ] = useState('');
     const [ indexFoto, setIndexFoto ] = useState(Number);
     const [ fotosCodificadas, setFotosCodificadas ] = useState<any[]>([]);
-    const [pressentToast, dismissToast] = useIonToast();
+    const [pressentToast, dismissToast ] = useIonToast();
     const [ activarGalaria, setActivarGaleria ] = useState(false);
     const [ ErrorUI, setErrorUI ] = useState("");
     //NOTE: manejadores de los inputs
@@ -30,6 +31,7 @@ const Reportes: React.FC = () => {
     const [calle, setCalle] = useState(String);
     const [numero, setNumero] = useState(String);
     const [ descripcion, setDescripcion ] = useState( String );
+    const [activarMenu,setActivarMenu] = useState(false);
 
     const { takePhoto } = useTakePhoto();
     //Verificando la session
@@ -42,6 +44,7 @@ const Reportes: React.FC = () => {
         setTokenExpired(!valid);
         setBlock(!valid);
     }
+    useIonViewWillEnter(()=>{setActivarMenu(true)});
     useEffect(() => { isSessionValid() }, []);
     useEffect(() => { logOut() }, [tokenExpired]);
     useEffect(()=>{
@@ -60,18 +63,6 @@ const Reportes: React.FC = () => {
                     })
             }, 2500)
         }
-    }
-    const handleColonia = (data: string) => {
-        setColonia(data)
-    }
-    const handleCalle = (data: string) => {
-        setCalle(data)
-    }
-    const handleNumero = (data: string) => {
-        setNumero(data);
-    }
-    const handledescripcion = (data: string) => {
-        setDescripcion(data);
     }
     const handleBtnCrearReporte = async () => {
         setLoading(true);
@@ -103,19 +94,6 @@ const Reportes: React.FC = () => {
             }).finally(() => {
                 setLoading(false);
             })
-    }
-    const limpiarPantalla = () => {
-        setColonia("");
-        setCalle("");
-        setNumero("");
-        setDescripcion("");
-        setContrato("");
-    }
-    const handleContrato = (data: string) =>{
-        setContrato(data);
-    }
-    const handleCheckAdminstraivo = (value: boolean) =>{
-        setFallaAdministrativa(value)
     }
     const generarGaleria = () => {
         if ( activarGalaria ) {
@@ -224,31 +202,45 @@ const Reportes: React.FC = () => {
     const enviarReporte = async () =>{
         //NOTE: Recolectamos los datos
         setLoading(true);
-        let Padron = getContratoReporte()
-        await obtenerCoordenadas().then( async ( coordenadas )=>{
-            let datos = {
-                'Calle':calle,
-                'Colonia':colonia,
-                'Numero':numero,
-                'Descripcion':descripcion,
-                'Latitud':String(coordenadas.latitude),
-                'Longitud':String(coordenadas.longitude),
-                'FallaAdministrativa':0,
-                'Estatus':1,
-                'Fotos':fotosCodificadas,
-                'Padron':String(Padron),
-            };
-            await guardarReporteV2(datos)
-            .then(( result )=>{
-                console.log(result);
+        if(fotosCodificadas.length > 0 && fotosCodificadas.length < 4 ){
+            let Padron = getContratoReporte()
+            await obtenerCoordenadas().then( async ( coordenadas )=>{
+                let datos = {
+                    'Calle':calle,
+                    'Colonia':colonia,
+                    'Numero':numero,
+                    'Descripcion':descripcion,
+                    'Latitud':String(coordenadas.latitude),
+                    'Longitud':String(coordenadas.longitude),
+                    'FallaAdministrativa':0,
+                    'Estatus':1,
+                    'Fotos':fotosCodificadas,
+                    'Padron':String(Padron),
+                };
+                await guardarReporteV2(datos)
+                .then(( result )=>{
+                    limpiarPantalla();
+                })
+                .catch(( error )=>{
+                    setTipoMensaje("Mensaje");
+                    setMessage(error.mensaje);
+                }).finally(()=>{
+                    setLoading(false);
+                })
             })
-            .catch(( error )=>{
+        }else{
+            setLoading(false);
+            if(fotosCodificadas.length == 0){
                 setTipoMensaje("Mensaje");
-                setMessage(error.mensaje);
-            }).finally(()=>{
-                setLoading(false);
-            })
-        })
+                setMessage(" Debes capturar almenos una evidencia ");
+                setConnectionError(false);
+            }
+            if(fotosCodificadas.length >= 4){
+                setTipoMensaje("Mensaje");
+                setMessage(" Solo se permiten 3 evidencias maximo ");
+                setConnectionError(false);
+            }
+        }
     }
     const lanzarMensaje = ( tipoMensaje: string, mensaje: string, error = "") =>{
         setTipoMensaje( tipoMensaje );
@@ -257,11 +249,31 @@ const Reportes: React.FC = () => {
     }
     const btnRegresar = () => {
         history.goBack();
-        //history.push("/ContratosReportes");
+    }
+    const limpiarPantalla = () =>{
+        
+        setColonia("");
+        setCalle("");
+        setNumero("");
+        setDescripcion("");
+        setContrato("");
+        setFotoActiva("");
+        setFotosCodificadas([]);
+        setArregloFotos([]);
+        setTipoMensaje("Mensaje");
+        setMessage("Reporte guardado\nRegresando");
+        setTimeout(()=>{
+            history.goBack();
+        }, 1000);
+
     }
     return (
         <IonPage >
             <LeftMenu />
+            {
+                activarMenu ? 
+                <MenuLeft />: <></>
+            }
             <IonHeader>
                 <IonToolbar color="danger" >
                     <IonTitle>Reportar</IonTitle>
