@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.suinpac.lecturaDeAgua3" version="3.1.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>Lectura de agua V2</name>
+<widget id="com.suinpac.lecturaDeAgua3" version="3.2.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Lectura de agua V3</name>
     <description>Apliacion de lectura de agua </description>
-    <author email="hi@ionicframework.com" href="http://ionicframework.com/">Suinpac</author>
+    <author email="hectorramirezrch@gmail.com" href="http://ionicframework.com/">Suinpac</author>
     <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />

@@ -26,6 +26,7 @@ import {
   IonCol,
   useIonViewWillEnter,
   IonNote,
+  useIonViewWillLeave,
   
 } from "@ionic/react";
 import { useHistory } from 'react-router-dom'
@@ -141,6 +142,7 @@ const FormDatosTomaPage: React.FC = () => {
       })
   }
   useIonViewWillEnter(()=>{setActivarMenu(true)});
+  useIonViewWillLeave(()=>{setActivarMenu(false)});
   const buscarPorSector = async (idSector:string) => {
     setBusqueda(false)
     setLoading(true);
@@ -194,7 +196,7 @@ const FormDatosTomaPage: React.FC = () => {
             }else{              
               setHideAlertbuttons(true);
               setTipoMessage("Mensaje");
-              setMessage("Temporamemte desabilitado");   
+              setMessage("Temporalmente deshabilitado");   
             }
         })
         .catch((error)=>{
