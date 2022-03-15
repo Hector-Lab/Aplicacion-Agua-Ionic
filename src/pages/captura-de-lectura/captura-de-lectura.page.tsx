@@ -446,6 +446,8 @@ const CapturaDeLectura: React.FC = () => {
     const guardarDatosCuotaFija = async ( consumo:Number, coords: any ) => {
         //NOTE: creamos el formato de los datos
         let datos = {
+            LecturaActual: lecturaActual,
+            LecturaAnterior: lecturaAnterior,
             Cliente: datosContribuyente.nCliente,
             Consumo: consumo,
             Anio: anioActual,
@@ -462,7 +464,7 @@ const CapturaDeLectura: React.FC = () => {
         await guardarCuotaFija(datos)
         .then(()=>{
             mensajeConsumoCero();
-        })
+        }) 
         .catch(( error )=>{
             setLoading(false); setMessage(error.message);
         }).finally(()=>{

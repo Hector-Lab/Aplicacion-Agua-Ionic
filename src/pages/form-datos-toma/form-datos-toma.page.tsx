@@ -31,9 +31,10 @@ import {
 import { useHistory } from 'react-router-dom'
 import "./form-datos-toma.page.css";
 import MenuLeft from '../../components/left-menu';
-import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor} from '../../controller/apiController';
+import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija} from '../../controller/apiController';
 import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda, setPaginasBusqueda,getCuentasPapas } from '../../controller/storageController';
-import { searchCircle, arrowForwardOutline, arrowBackOutline, cogSharp } from 'ionicons/icons'
+import { searchCircle, arrowForwardOutline, arrowBackOutline, cogSharp, server } from 'ionicons/icons'
+import { Console } from "node:console";
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');
@@ -46,7 +47,7 @@ const FormDatosTomaPage: React.FC = () => {
   const [permissions, setPermissons] = useState(true);
   const [hideAlertButons, setHideAlertbuttons] = useState(false);
   const [block, setBlock] = useState(false);
-  const [tipoMessage, setTipoMessage] = useState("ERROR");
+  const [tipoMessage, setTipoMessage] = useState("Mensaje");
   const [tokenExpired, setTokenExpired] = useState(false);
   const [textoBusqueda, setTextoBusqueda] = useState(String);
   const [serched, setSerched] = useState(false);
@@ -163,7 +164,7 @@ const FormDatosTomaPage: React.FC = () => {
         setTokenExpired(expired);
         if (!expired) {
           setHideAlertbuttons(true)
-          setTypeError("Error");
+          setTypeError("Mensaje");
           setMessage(err.message)
         }
       })
@@ -180,12 +181,28 @@ const FormDatosTomaPage: React.FC = () => {
           setHideAlertbuttons(true);
         }
       }else{
-        setHideAlertbuttons(true);
-          setTipoMessage("Mensaje");
-          setMessage("Temporamemte desabilitado");   
+        //INDEV: obtenemo la configuracion de los clie 
+        await configuracionCuotaFija()
+        .then((result)=>{
+            //NOTE: si el valor del result es 1 se inserta
+            if(result == "1"){
+              let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
+              if(result === true){
+                history.push('/captura-de-lectura.page');
+                setHideAlertbuttons(true);
+              }
+            }else{              
+              setHideAlertbuttons(true);
+              setTipoMessage("Mensaje");
+              setMessage("Temporamemte desabilitado");   
+            }
+        })
+        .catch((error)=>{
+          //Mandamos un error al usuario
+        })
       }
      }
-   }
+  }
   const buscarPalabraClave = async () => {
 
     if(idSector == ""){
@@ -269,7 +286,7 @@ const FormDatosTomaPage: React.FC = () => {
         setTokenExpired(expired);
         if (!expired) {
           setHideAlertbuttons(true)
-          setTypeError("Error");
+          setTypeError("Mensaje");
           setMessage(err.message)
         }
       })
@@ -322,7 +339,7 @@ const FormDatosTomaPage: React.FC = () => {
         let sessionValid = errorMessage.includes("Sesion no valida");
         if (!sessionValid) {
           setHideAlertbuttons(true);
-          setTipoMessage("ERROR");
+          setTipoMessage("Mensaje");
           setMessage(errorMessage);
         } else {
           setTokenExpired(true);
@@ -390,7 +407,7 @@ const FormDatosTomaPage: React.FC = () => {
       setTokenExpired(expired);
       if (!expired) {
         setHideAlertbuttons(true)
-        setTypeError("Error");
+        setTypeError("Mensaje");
         setMessage(err.message)
       }
     }).finally(
@@ -413,7 +430,7 @@ const FormDatosTomaPage: React.FC = () => {
       setTokenExpired(expired);
       if (!expired) {
         setHideAlertbuttons(true)
-        setTypeError("Error");
+        setTypeError("Mensaje");
         setMessage(err.message)
       }
     }).finally(

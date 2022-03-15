@@ -849,7 +849,6 @@ export async function guardarCuotaFija(data:any){
             let token = basicData.token;
             //NOTE: damos formato a los datos en la interfaz
             let result = await service.capturarCoutaFija(data,String(token));
-            console.log(result);
             if(result.data.Code == 200){
                 return true;
             }else if(result.data.Code == 404){
@@ -1004,5 +1003,18 @@ export async function buscarMedidorSinFiltro( clave:string ){
         }
     }catch( error ){
         throw conectionError(error);
+    }
+}
+export async function configuracionCuotaFija(  ){
+    try{
+        let { cliente, token } = obtenerDatosCliente();
+        let datos = {
+            'Cliente':cliente
+        };
+        let rawConfiguracion = await service.obtenerConfiguracion(datos,String(token));
+        console.log(rawConfiguracion.data);
+        return rawConfiguracion.data.Configuracion;
+    }catch(error){
+        throw conectionError( error );
     }
 }
