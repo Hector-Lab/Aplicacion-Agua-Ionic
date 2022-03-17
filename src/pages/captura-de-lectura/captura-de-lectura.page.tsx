@@ -133,8 +133,8 @@ const CapturaDeLectura: React.FC = () => {
     const extraerLectura = async (idLectura: any) => {
         await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
-            setPromedioLectura(promedio);
-            console.log(idLectura);
+            setPromedioLectura(parseInt(String(promedio)));
+            console.log(promedio);
             await extraerDatosLectura(idLectura)
             .then((result) => {
                 setFija(result.Mensaje[0].M_etodoCobro == "1");
@@ -152,7 +152,7 @@ const CapturaDeLectura: React.FC = () => {
                     setMesLectura(mesLectura);
                     setAnioLectura(data);
                     cargarFechas(data, result.ValorLectura[0].Valor, mesLectura);
-                    setLecturaAnterior(result.Mensaje[0].LecturaActual != null ? result.Mensaje[0].LecturaActual : 0 );
+                    setLecturaAnterior(result.Mensaje[0].LecturaActual != null ? parseInt(result.Mensaje[0].LecturaActual) : 0 );
                 }else{
                     cargarFechas(fecha.getFullYear(), "1" , fecha.getMonth());
                 }
@@ -403,7 +403,7 @@ const CapturaDeLectura: React.FC = () => {
                     let datosCapturados = {
                         route: anio + "" + mes + "/",
                         lecturaAnterior:  lecturaAnterior,
-                        lecturaActual: bloqueoAnomalias ? lecturaAnterior : lecturaActual,
+                        lecturaActual: bloqueoAnomalias ? lecturaAnterior : parseInt(String(lecturaActual)),
                         consumoFinal: validarConsumo,
                         mesCaptura: indexMes,
                         anhioCaptura: anioActual,
@@ -505,7 +505,7 @@ const CapturaDeLectura: React.FC = () => {
                         setBloqueoAnomalias(true);
                         setLecturaActual( defaultLectura );
                     }
-                    setConsumoMinimo(item.Minima);
+                    setConsumoMinimo( parseInt(item.Minima) );
                     if(defaultLectura != 0){
                         console.log("Procesando Consumo");
                         setConsumo(procesoConsumo());
@@ -595,7 +595,7 @@ const CapturaDeLectura: React.FC = () => {
         let consumoProcesado = 0;
         if(seleccionAnomalia != 0){
             if(bloqueoAnomalias){ // este es el proceso de las anomalias sin capturas
-                if (promedioLectura < consumoMinimo){
+                if ( promedioLectura < consumoMinimo ){
                     consumoProcesado = consumoMinimo;
                 }else{
                     consumoProcesado = promedioLectura;
