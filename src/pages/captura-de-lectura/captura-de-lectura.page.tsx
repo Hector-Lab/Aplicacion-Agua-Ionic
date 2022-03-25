@@ -32,7 +32,7 @@ import {
 import { camera, checkmarkCircle, saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
 import './captura-de-lectura.page.css';
 import MenuLeft from '../../components/left-menu';
-import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija} from '../../controller/apiController';
+import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija, ConfiguracionEvidencias} from '../../controller/apiController';
 import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas } from '../../utilities';
 import { getDatosLecturaStorage, verifyingSession, contribuyenteBuscado, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
 import { useHistory } from 'react-router';
@@ -70,7 +70,7 @@ const CapturaDeLectura: React.FC = () => {
     const [defaultLectura, setDefaultLectura] = useState(Number);
     const [defaultAnomalia, setDefaultAnomalia] = useState(Number);
     const [enbleButtons, setEnbleButtons] = useState(false);
-    const [tipoMessage, setTipoMessage] = useState("ERROR");
+    const [tipoMessage, setTipoMessage] = useState("MENSAJE");
     const [promedioLectura, setPromedioLectura] = useState(Number);
     const [toma, setToma] = useState(String);
     const [municipio, setMunicipio] = useState(String);
@@ -131,6 +131,9 @@ const CapturaDeLectura: React.FC = () => {
         setRefreshControl(false);
     }
     const extraerLectura = async (idLectura: any) => {
+
+
+        await ConfiguracionEvidencias().then(ConfiguracionAnomalia=>{setActivarGaleria(ConfiguracionAnomalia=="1")})
         await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
             setPromedioLectura(parseInt(String(promedio)));

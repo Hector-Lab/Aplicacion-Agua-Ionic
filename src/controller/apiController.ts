@@ -139,6 +139,24 @@ export async function lecturasPorSector(sector: string) {
         throw conectionError(error);
     }
 }
+export async function ConfiguracionEvidencias(){
+    try{
+    let{cliente,token}= obtenerDatosCliente();
+    const datosConsulta = {
+        Cliente: cliente 
+    }
+    let result = await service.obtenerConfiguracionFotografia(datosConsulta,  String(token));
+    let mensaje = result.data.Mensaje;
+    if (mensaje.length === 0 || mensaje === "No se encontraron registros"){
+        throw noRowSelect;
+    }else {
+        return mensaje;
+    }
+    }catch (error){
+        throw conectionError(error);
+    }
+}
+
 export async function extraerDatosLectura(keyLectura: string) {
     try {
         //Extrallendo los datos de la lectura
