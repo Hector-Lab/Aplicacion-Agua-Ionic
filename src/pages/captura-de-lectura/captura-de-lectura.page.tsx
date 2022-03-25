@@ -406,7 +406,7 @@ const CapturaDeLectura: React.FC = () => {
                     let datosCapturados = {
                         route: anio + "" + mes + "/",
                         lecturaAnterior:  lecturaAnterior,
-                        lecturaActual: bloqueoAnomalias ? lecturaAnterior : parseInt(String(lecturaActual)),
+                        lecturaActual: bloqueoAnomalias ? lecturaAnterior : lecturaActual,
                         consumoFinal: validarConsumo,
                         mesCaptura: indexMes,
                         anhioCaptura: anioActual,
