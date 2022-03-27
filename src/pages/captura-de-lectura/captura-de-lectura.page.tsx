@@ -27,7 +27,8 @@ import {
     useIonToast,
     IonChip,
     useIonViewWillEnter,
-    useIonViewDidEnter
+    useIonViewDidEnter,
+    IonRippleEffect
 } from '@ionic/react'
 import { camera, checkmarkCircle, saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
 import './captura-de-lectura.page.css';
@@ -44,12 +45,7 @@ const CapturaDeLectura: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [anomalias, setAnomalias] = useState<any[]>([])
     const [consumo, setConsumo] = useState(Number);
-    const [activarGaleria, setActivarGaleria] = useState(false);
-    const [fotoActiva, setFotoActiva] = useState('');
-    const [fotosEvidencia, setFotosEvidencia] = useState<any[]>([]);
-    const [indexFoto, setIndexFoto] = useState(-1);
     const [pressentToast, dismissToast] = useIonToast();
-    const [fotosCodificadas, setFotosCodificadas] = useState<any[]>([]);
     const [listaMeses, setlistaMeses] = useState<any[]>([]);
     const [mesDefautl, setMesDefault] = useState('');
     const [indexMes, setIndexMes] = useState(Number);
@@ -80,6 +76,19 @@ const CapturaDeLectura: React.FC = () => {
     const [consumoMinimo,setConsumoMinimo] = useState(20);
     const [activarMenu,setActivarMenu] = useState(true);
     const [ fija, setFija ] = useState(false);
+    const sinFoto = "https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=";
+
+    //INDEV: Bloque de fotos para tomas
+    const [ fotoMedidorEncode, setFotoMedidorEncode ] =  useState(String);
+    const [ fotoMedidorPreview, setFotoMedidorPreview ] = useState(String);
+    //NOTE: Foto de la facha
+    const [ fotoFachadaEncode, setFotoFachadaEncode ] = useState(String);
+    const [ fotoFachadaPreview, setFotoFachadaPreview ] = useState(String);
+    //NOTE: Foto perspectiva amplia
+    const [ fotoCalleEncode, setFotoCalleEncode ] = useState(String);
+    const [ fotoCallePreview, setFotoCallePreview ] = useState(String);
+
+
     const alertButtons = [
         {
             text: "Reintentar", handler: () => {
@@ -90,7 +99,7 @@ const CapturaDeLectura: React.FC = () => {
         },
         {
             text: "Cancelar"
-        }]
+        }];
     const fecha = new Date();
     const isSessionValid = () => {
         let valid = verifyingSession();
@@ -131,13 +140,9 @@ const CapturaDeLectura: React.FC = () => {
         setRefreshControl(false);
     }
     const extraerLectura = async (idLectura: any) => {
-
-
-        await ConfiguracionEvidencias().then(ConfiguracionAnomalia=>{setActivarGaleria(ConfiguracionAnomalia=="1")})
         await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
             setPromedioLectura(parseInt(String(promedio)));
-            console.log(promedio);
             await extraerDatosLectura(idLectura)
             .then((result) => {
                 setFija(result.Mensaje[0].M_etodoCobro == "1");
@@ -177,38 +182,6 @@ const CapturaDeLectura: React.FC = () => {
 
         }).finally(()=>{setLoading(false)})
         //Fin de extraer Consumo promedio del contribuyente
-    }
-    const cambiarFotoActiva = (foto: string, index: number) => {
-        setFotoActiva(foto);
-        setIndexFoto(index);
-    }
-    const borrarFotoEvidencia = () => {
-        let fotosTemporal = new Array;
-        let fotosEncoded = new Array;
-        fotosEvidencia.map((item, index) => {
-            if (index != indexFoto) {
-                fotosTemporal.push(item);
-            }
-        });
-        fotosCodificadas.map((item, index) => {
-            if (index != indexFoto) {
-                fotosEncoded.push(item);
-            }
-        })
-        setFotosEvidencia(fotosTemporal);
-        setFotosCodificadas(fotosEncoded);
-        setFotoActiva('');
-        pressentToast({
-            message: "Se elimino la foto de la lista'",
-            duration: 2000,
-            position: 'top',
-            buttons: [
-                {
-                    side: 'start',
-                    icon: checkmarkCircle,
-                }
-            ]
-        })
     }
     const cargarFechas = async (anioDefault: number, tipoLectura: string, mes: number) => {
         const mesActual = (parseInt(fecha.getMonth().toString()));
@@ -395,8 +368,7 @@ const CapturaDeLectura: React.FC = () => {
                     throw 0;
                 }
             }, 20000);
-            if (!(fotosEvidencia.length == 0 && activarGaleria)) {
-                let mes = fecha.getMonth() + 1;
+            let mes = fecha.getMonth() + 1;
                 let anio = fecha.getFullYear();
                 let coords = await obtenerCoordenadas();
                 let validarConsumo = procesoConsumo(); // Falta la validacion del consumo
@@ -413,7 +385,7 @@ const CapturaDeLectura: React.FC = () => {
                         fechaCaptura: fecha,
                         anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
                         tipoCoordenada: 1,
-                        arregloFotos: fotosCodificadas,
+                        //arregloFotos: fotosCodificadas, INDEV: cambiar por tipo de foto
                         comparaMes: comparaMes,
                         comparaAnio: comparaAnio,
                         lectura: 1,
@@ -434,10 +406,6 @@ const CapturaDeLectura: React.FC = () => {
                 }else{
                     guardarDatosCuotaFija(validarConsumo,coords);
                 }
-            } else {
-                setMessage("Debe capturar almenos 1 foto")
-                setLoading(false);
-            }
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -458,7 +426,7 @@ const CapturaDeLectura: React.FC = () => {
             mes: indexMes,
             anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
             idUsuario: datosContribuyente.idUsuario,
-            Fotos: fotosCodificadas,
+            //Fotos: fotosCodificadas, INDEV: cambiar por tipo de foto
             tipoCoordenada: 1,
             Latidude:  String(coords.latitude),
             Longitude: String(coords.longitude),
@@ -474,7 +442,6 @@ const CapturaDeLectura: React.FC = () => {
             setLoading(false);
         })
     }
-
     const handleSelectAnio = (value: number) => {
         listaAnios.map((item, index) => {
             if (item.id == value) {
@@ -499,7 +466,6 @@ const CapturaDeLectura: React.FC = () => {
         console.log(defaultLectura);
         anomalias.map((item, index) => {
             if (item.id == seleccionAnomalia) {
-                    setActivarGaleria(true);
                     console.log(item.ActualizarAdelante + " - " + item.ActualizarAtras + " Se activa: " + (parseInt(item.ActualizarAdelante) == 0 || parseInt(item.ActualizarAtras) == 0));
                     if(parseInt(item.ActualizarAdelante) == 1 || parseInt(item.ActualizarAtras) == 1 ){
                         setBloqueoAnomalias(false);
@@ -520,22 +486,16 @@ const CapturaDeLectura: React.FC = () => {
         });
     }
     const handleCancelAnomalia = () => { 
-        setActivarGaleria(false);
         setDefaultAnomalia(0);
         setBloqueoAnomalias(false);
     }
-    const handleAbrirCamera = async () => {
+    //NOTE: 1 = Medidor, 2 = Fachada, 3 = Calle( )  
+    const handleAbrirCamera = async ( tipoFoto: number  ) => {
         setLoading(true);
         await takePhoto()
             .then(async (result) => {
-                if (fotosEvidencia.length <= 2) {
-                    setLoading(true);
-                    agregarImagenEncode(result.webPath + "");
-                }
-                else {
-                    setLoading(false)
-                    setMessage("Solo se permiten 3 fotos como máximo")
-                }
+                setLoading(true);
+                agregarImagenEncode(result.webPath + "", tipoFoto);
             })
             .catch((err) => {
                 let errorType = err.message + "";
@@ -545,38 +505,24 @@ const CapturaDeLectura: React.FC = () => {
             }).finally(() => { setLoading(false) })
     }
     //llamada al metodo de convercion
-    const agregarImagenEncode = async (imgDir: string) => {
+    const agregarImagenEncode = async (imgDir: string, tipoFoto:number) => {
         await obtenerBase64(imgDir).then((result) => {
-            setFotoActiva(imgDir);
-            setFotosEvidencia(fotosEvidencia => [...fotosEvidencia, imgDir]);
-            setIndexFoto(fotosEvidencia.length);
-            setFotosCodificadas(fotosCodificadas => [...fotosCodificadas, result])
+            switch (tipoFoto) {
+                case 1:
+                    setFotoMedidorEncode(String(result));
+                    setFotoMedidorPreview(imgDir);
+                    break;
+                case 2:
+                    setFotoFachadaEncode(String(result));
+                    setFotoFachadaPreview(imgDir);
+                    break;
+                case 3: 
+                    setFotoCalleEncode(String(result));
+                    setFotoCallePreview(imgDir);
+                    break;
+            }
+
         }).finally(() => { setLoading(false) })
-    }
-    //METODOS PARA GENERAR ETIQUETAS DE LA INTERFAZ
-    const generarGaleria = () => {
-        if (activarGaleria) {
-            let data =
-                <div>
-                    <IonItem>
-                        <IonLabel >Adjuntar evidencia (maximo 3 fotos)</IonLabel>
-                        <IonIcon icon={camera} className="iconStyle" onClick={handleAbrirCamera}></IonIcon>
-                    </IonItem>
-                    {
-                        fotosEvidencia.length > 0 ?
-                            <IonItem>
-                                <IonRow>
-                                    {
-                                        fotosEvidencia.map((item, index) => {
-                                            return <IonCol key={index}><IonImg src={item} onClick={() => { cambiarFotoActiva(item, index) }} className="imgFormat"></IonImg></IonCol>
-                                        })
-                                    }
-                                </IonRow>
-                            </IonItem> : <></>
-                    }
-                </div>;
-            return data;
-        }
     }
     const formatindex = (index: string) => {
         let result = "";
@@ -639,6 +585,17 @@ const CapturaDeLectura: React.FC = () => {
         }
         setConsumo(consumoProcesado);
         return consumoProcesado;
+    }
+    //INDEV: Bloque para lanzar la camara dependiendo del tipo de foto
+    const FotoToma = () =>{
+        //NOTE: lanzamos la camara con el tipo 1
+        handleAbrirCamera(1);
+    } 
+    const FotoFachada = () =>{
+        handleAbrirCamera(2);
+    }
+    const FotoCalle = () =>{
+        handleAbrirCamera(3);
     }
     return (
         <IonPage>
@@ -710,23 +667,31 @@ const CapturaDeLectura: React.FC = () => {
                             </IonSelect>
                         </IonItem>
                         <br />
-                        {
-                            generarGaleria()
-                        }
-                        {
-                            fotoActiva != '' ?
-                                <IonItem>
-                                    <IonCard className="centrar">
-                                        <IonImg src={fotoActiva} />
-                                        <IonCardContent >
-                                            <IonButtons>
-                                                <IonButton color="secondary" onClick={() => { setFotoActiva('') }}>Cerrar</IonButton>
-                                                <IonButton color="danger" onClick={() => { borrarFotoEvidencia() }} >Eliminar</IonButton>
-                                            </IonButtons>
-                                        </IonCardContent>
-                                    </IonCard>
-                                </IonItem> : <></>
-                        }
+                        <IonGrid>
+                                <IonRow>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Toma </IonLabel>
+                                        <IonCard onClick = { FotoToma } >
+                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
+                                            <IonRippleEffect></IonRippleEffect>
+                                        </IonCard>
+                                    </IonCol>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Facha </IonLabel>
+                                        <IonCard onClick = { FotoFachada } >
+                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
+                                        </IonCard>
+                                        <IonRippleEffect></IonRippleEffect>
+                                    </IonCol>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Calle </IonLabel>
+                                        <IonCard onClick = { FotoCalle } >
+                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
+                                        </IonCard>
+                                        <IonRippleEffect></IonRippleEffect>
+                                    </IonCol>
+                                </IonRow>
+                        </IonGrid>
                         <IonItem>
                             <IonLabel>Mes: </IonLabel>
                             <IonSelect interface="action-sheet" value={indexMes} selectedText={`${mesDefautl}`} disabled={bloquearCampos} onIonChange={e => handleSelectMes(e.detail.value)}>
