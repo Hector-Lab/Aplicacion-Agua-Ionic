@@ -35,6 +35,19 @@ const RealizarCorte: React.FC = () => {
     const [ errorCarga, setErrorCarga ] = useState(false);
     const [ errorCampos, setErrorCampos ] = useState(false);
     const [pressentToast, dismissToast] = useIonToast();
+    const sinFoto = "https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=";
+
+
+     //INDEV: Bloque de fotos para tomas
+     const [ fotoMedidorEncode, setFotoMedidorEncode ] =  useState(String);
+     const [ fotoMedidorPreview, setFotoMedidorPreview ] = useState(String);
+     //NOTE: Foto de la facha
+     const [ fotoFachadaEncode, setFotoFachadaEncode ] = useState(String);
+     const [ fotoFachadaPreview, setFotoFachadaPreview ] = useState(String);
+     //NOTE: Foto perspectiva amplia
+     const [ fotoCalleEncode, setFotoCalleEncode ] = useState(String);
+     const [ fotoCallePreview, setFotoCallePreview ] = useState(String);
+
     const alertButtons = [
         {
             text: "Reintentar", handler: () => {
@@ -89,66 +102,63 @@ const RealizarCorte: React.FC = () => {
         formatoFecha += anio;
         return formatoFecha;
     }
-    const handleAbrirCamara = async () =>{
-        if(!bloquearCorte){
-            console.log("Abriendo Camara...");
-            setLoading(true);
-            await takePhoto()
-            .then((result)=>{
-                agregarImagenEncode( String(result.webPath) );
-                //NOTE: Verificamos que aun tenga fotos disponible
-            }).catch((erro)=>{
-                let errorType = erro.message + "";
+    const handleAbrirCamera = async (tipoFoto: number) =>{
+        setLoading(true);
+        await takePhoto()
+            .then(async (result) => {
+                setLoading(true);
+                agregarImagenEncode(result.webPath + "", tipoFoto);
+            })
+            .catch((err) => {
+                let errorType = err.message + "";
                 if (errorType.includes("denied")) {
-                    setMensaje("La aplicación no tiene permisos para usar la cámara");
+                    setMensaje("La aplicación no tiene permisos para usar la cámara")
                 }
-            }).finally(()=>{
-                setLoading(false);
-            });
-        }
+            }).finally(() => { setLoading(false) })
+    
     }
-    const agregarImagenEncode = async ( direccion: string ) =>{
-        await obtenerBase64(direccion)
-        .then(( base64Encode )=>{
-            setFotoActiva(direccion);
-            setArregloFotosVista(arregloFotosVista => [...arregloFotosVista, direccion]);
-            setIndexFoto(arregloFotosVista.length);
-            setArregloFotos( arregloFotos => [...arregloFotos,String(base64Encode)] );
-            setActivarGaleria(true);
-        }).catch((error)=>{
+    const agregarImagenEncode = async ( imgDir: string, tipoFoto: number ) =>{
+        await obtenerBase64(imgDir).then((result) => {
+            switch (tipoFoto) {
+                case 1:
+                    setFotoMedidorEncode(String(result));
+                    setFotoMedidorPreview(imgDir);
+                    break;
+                case 2:
+                    setFotoFachadaEncode(String(result));
+                    setFotoFachadaPreview(imgDir);
+                    break;
+                case 3: 
+                    setFotoCalleEncode(String(result));
+                    setFotoCallePreview(imgDir);
+                    break;
+            }
 
-        }).finally(()=>{
-            setLoading(false);;
-        })
+        }).finally(() => { setLoading(false) })
         
     }
-    const generarGaleria = () => {
-        if (activarGaleria) {
-            let data =
-                <div>
-                    {
-                        arregloFotosVista.length > 0 ?
-                            <IonItem>
+                        <IonGrid>
                                 <IonRow>
-                                    {
-                                        arregloFotosVista.map((item, index) => {
-                                            return <IonCol key={index} className = {"ion-activatable ripple-parent " + ( indexFoto == index ? "selected" : "")} >
-                                                        <IonImg src={item} onClick={() => { cambiarFotoActiva(item, index) }} className="imgFormat"></IonImg>
-                                                        <IonRippleEffect></IonRippleEffect>
-                                                    </IonCol>
-                                        })
-                                    }
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Toma </IonLabel>
+                                        <IonCard>
+                                            <IonImg className="imagenViwer"  src="https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=" >  </IonImg>
+                                        </IonCard>
+                                    </IonCol>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Facha </IonLabel>
+                                        <IonCard>
+                                            <IonImg className="imagenViwer"  src="https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=" >  </IonImg>
+                                        </IonCard>
+                                    </IonCol>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Calle </IonLabel>
+                                        <IonCard>
+                                            <IonImg className="imagenViwer"  src="https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=" >  </IonImg>
+                                        </IonCard>
+                                    </IonCol>
                                 </IonRow>
-                            </IonItem> : <></>
-                    }
-                </div>;
-            return data;
-        }
-    }
-    const cambiarFotoActiva = (foto: string, index: number) => {
-        setFotoActiva(foto);
-        setIndexFoto(index);
-    }
+                        </IonGrid>
     const guardarInspeccion = async(  ) =>{
         try {
             setLoading(true);
@@ -255,6 +265,17 @@ const RealizarCorte: React.FC = () => {
         setErrorCampos(false);
         setErrorCarga(false);
     } 
+    //INDEV: Bloque para lanzar la camara dependiendo del tipo de foto
+    const FotoToma = () =>{
+        //NOTE: lanzamos la camara con el tipo 1
+        handleAbrirCamera(1);
+    } 
+    const FotoFachada = () =>{
+        handleAbrirCamera(2);
+    }
+    const FotoCalle = () =>{
+        handleAbrirCamera(3);
+    }
     return (
         <IonPage>
             {
@@ -309,15 +330,32 @@ const RealizarCorte: React.FC = () => {
                             <IonTextarea disabled = {bloquearCorte} placeholder = "Motivo del corte" className = {errorCampos ? "inputBorderError":"inputBorder"} onIonChange = {e=>{setMotivoInspeccion(String(e.detail.value))}} > </IonTextarea>   
                         </IonItem>
                         <br/>
+                        <IonGrid>
+                                <IonRow>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Toma </IonLabel>
+                                        <IonCard onClick = { FotoToma } >
+                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
+                                            <IonRippleEffect></IonRippleEffect>
+                                        </IonCard>
+                                    </IonCol>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Facha </IonLabel>
+                                        <IonCard onClick = { FotoFachada } >
+                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
+                                        </IonCard>
+                                        <IonRippleEffect></IonRippleEffect>
+                                    </IonCol>
+                                    <IonCol size="4" className="center" >
+                                        <IonLabel> Calle </IonLabel>
+                                        <IonCard onClick = { FotoCalle } >
+                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
+                                        </IonCard>
+                                        <IonRippleEffect></IonRippleEffect>
+                                    </IonCol>
+                                </IonRow>
+                        </IonGrid>
                         
-                        <IonItem>
-                            <IonLabel >Adjuntar evidencia (maximo 3 fotos)</IonLabel>
-                            <IonIcon  icon={camera} className="iconStyle" onClick={handleAbrirCamara}></IonIcon>
-                        </IonItem>
-                        <br/>
-                        {
-                            generarGaleria()
-                        }
                         <br />
                         {
                             fotoActiva != '' ?
