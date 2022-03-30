@@ -309,9 +309,10 @@ async function enviarDatosLectura(data: any) {
         arregloFotos: data.arregloFotos,
         ruta: data.route
     }
-    let result = await service.guardarDatosLectura(datos, data.token);
+    let result = await service.guardarDatosLecturaV2(datos, data.token);
     console.log(result);
     let code = result.data.Mensaje;
+    console.log(code);
     let message = "";
     switch (code) {
         case 200:
@@ -866,7 +867,8 @@ export async function guardarCuotaFija(data:any){
             let basicData = obtenerDatosCliente();
             let token = basicData.token;
             //NOTE: damos formato a los datos en la interfaz
-            let result = await service.capturarCoutaFija(data,String(token));
+            let result = await service.guardarCoutaFijaV2(data,String(token));
+            console.log(result.data.Mensaje);
             if(result.data.Code == 200){
                 return true;
             }else if(result.data.Code == 404){

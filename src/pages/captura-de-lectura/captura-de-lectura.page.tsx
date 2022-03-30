@@ -37,6 +37,7 @@ import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPro
 import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas } from '../../utilities';
 import { getDatosLecturaStorage, verifyingSession, contribuyenteBuscado, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
 import { useHistory } from 'react-router';
+import './captura-de-lectura.page.css';
 const CapturaDeLectura: React.FC = () => {
     const history = useHistory();
     const [datosContribuyente, setDatosContribuyente] = useState(Object);
@@ -87,6 +88,8 @@ const CapturaDeLectura: React.FC = () => {
     //NOTE: Foto perspectiva amplia
     const [ fotoCalleEncode, setFotoCalleEncode ] = useState(String);
     const [ fotoCallePreview, setFotoCallePreview ] = useState(String);
+    //NOTE: Error de las fotos
+    const [ errorFotoUI, setErrorFotosU ] = useState("");
 
 
     const alertButtons = [
@@ -360,7 +363,7 @@ const CapturaDeLectura: React.FC = () => {
         }, 2500);
     }
     //Manejadores de la interfaz
-    const handleBtnGuardar = async () => {
+    const handleBtnGuardar = async ( fotos:any  ) => {
         try {
             setLoading(true);
             setTimeout(() => {
@@ -385,7 +388,7 @@ const CapturaDeLectura: React.FC = () => {
                         fechaCaptura: fecha,
                         anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
                         tipoCoordenada: 1,
-                        //arregloFotos: fotosCodificadas, INDEV: cambiar por tipo de foto
+                        arregloFotos: fotos,
                         comparaMes: comparaMes,
                         comparaAnio: comparaAnio,
                         lectura: 1,
@@ -404,7 +407,7 @@ const CapturaDeLectura: React.FC = () => {
                         .then((result) => { mensajeConsumoCero(); })
                         .catch((err) => { setLoading(false); setMessage(err.message) });
                 }else{
-                    guardarDatosCuotaFija(validarConsumo,coords);
+                    guardarDatosCuotaFija(validarConsumo,coords,fotos);
                 }
         } catch (err) {
             console.log(err);
@@ -414,7 +417,7 @@ const CapturaDeLectura: React.FC = () => {
         }
     }
     //NOTE: metodo para enviar los datos de la cuotafija
-    const guardarDatosCuotaFija = async ( consumo:Number, coords: any ) => {
+    const guardarDatosCuotaFija = async ( consumo:Number, coords: any, fotos:any ) => {
         //NOTE: creamos el formato de los datos
         let datos = {
             LecturaActual: lecturaActual,
@@ -426,12 +429,11 @@ const CapturaDeLectura: React.FC = () => {
             mes: indexMes,
             anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
             idUsuario: datosContribuyente.idUsuario,
-            //Fotos: fotosCodificadas, INDEV: cambiar por tipo de foto
+            Fotos: fotos,
             tipoCoordenada: 1,
             Latidude:  String(coords.latitude),
             Longitude: String(coords.longitude),
         };
-        console.log(datos);
         await guardarCuotaFija(datos)
         .then(()=>{
             mensajeConsumoCero();
@@ -597,6 +599,33 @@ const CapturaDeLectura: React.FC = () => {
     const FotoCalle = () =>{
         handleAbrirCamera(3);
     }
+    const validarFotosTomadas = () => {
+        let errorFotos = "";
+        if( fotoMedidorEncode.length == 0 ){
+            errorFotos += "FM,";
+        }
+        if( fotoFachadaEncode.length == 0 ){
+            errorFotos += "FF,";
+        }
+        if( fotoCalleEncode.length == 0 ){
+            errorFotos += "FC,";
+        }
+        if(errorFotos.length != 0){
+            setMessage("¡Favor de capturar las evidencias!");
+            setTipoMessage("Mensaje");
+            console.log(errorFotos);
+            setErrorFotosU(errorFotos);
+        }else{
+            //NOTE: se forma el json para el envio de las imagenes
+            setErrorFotosU("");
+            let jsonImagenes = {
+                "Toma": fotoMedidorEncode,
+                "Fachada": fotoFachadaEncode,
+                "Calle": fotoCalleEncode
+            }
+            handleBtnGuardar(jsonImagenes);
+        }
+    }
     return (
         <IonPage>
       {
@@ -671,21 +700,21 @@ const CapturaDeLectura: React.FC = () => {
                                 <IonRow>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Toma </IonLabel>
-                                        <IonCard onClick = { FotoToma } >
+                                        <IonCard onClick = { FotoToma } className = { errorFotoUI.includes("FM,") ? "cardError" : "" } >
                                             <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
                                             <IonRippleEffect></IonRippleEffect>
                                         </IonCard>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Facha </IonLabel>
-                                        <IonCard onClick = { FotoFachada } >
+                                        <IonCard onClick = { FotoFachada } className = { errorFotoUI.includes("FF,") ? "cardError" : "" } >
                                             <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Calle </IonLabel>
-                                        <IonCard onClick = { FotoCalle } >
+                                        <IonCard onClick = { FotoCalle } className = { errorFotoUI.includes("FC,") ? "cardError" : "" } >
                                             <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
@@ -723,7 +752,7 @@ const CapturaDeLectura: React.FC = () => {
                                         </IonButton>
                                     </IonCol>
                                     <IonCol size="6">
-                                        <IonButton color="danger" onClick={handleBtnGuardar} disabled={btnInactivo}>
+                                        <IonButton color="danger" onClick={validarFotosTomadas} disabled={btnInactivo}>
                                             Guardar
                                             <IonIcon icon={saveOutline} slot="end"></IonIcon>
                                         </IonButton>
@@ -738,7 +767,6 @@ const CapturaDeLectura: React.FC = () => {
                     cssClass="my-custom-class"
                     header={tipoMessage}
                     message={message}
-
                     isOpen={message.length > 0}
                     backdropDismiss={false}
                     buttons={enbleButtons ? alertButtons : [{ text: 'Aceptar', handler: () => { setMessage("") } }]}

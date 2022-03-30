@@ -33,6 +33,7 @@ export class APIservice {
         }
         return axios.post('https://api.servicioenlinea.mx/api-movil/extrarDatosLecturaPrueba', data, { headers })
     }
+    //FIXME: esta es una vercion vieja para enviar los datos de la captura 
     guardarDatosLectura(data: object, token: string) {
         let headers = {
             'Content-type': 'application/json',
@@ -243,6 +244,20 @@ export class APIservice {
         };
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ConfiguracionEvidencia`,data,{headers});
     }
-
+    //INDEV: metodos para guardar las fotos de forma ordenada
+    guardarDatosLecturaV2(data: object, token: string) {
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarLecturaV3`, data, { headers })
+    }
+    guardarCoutaFijaV2( data: object, token: string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarCoutaFija`,data,{headers})
+    }
 }
 
