@@ -34,7 +34,6 @@ const Reportes: React.FC = () => {
     const [activarMenu,setActivarMenu] = useState(false);
     const sinFoto = "https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=";
 
-
      //INDEV: Bloque de fotos para tomas
      const [ fotoMedidorEncode, setFotoMedidorEncode ] =  useState(String);
      const [ fotoMedidorPreview, setFotoMedidorPreview ] = useState(String);
@@ -107,29 +106,6 @@ const Reportes: React.FC = () => {
                 setLoading(false);
             })
     }
-    
-                        <IonGrid>
-                                <IonRow>
-                                    <IonCol size="4" className="center" >
-                                        <IonLabel> Toma </IonLabel>
-                                        <IonCard>
-                                            <IonImg className="imagenViwer"  src="https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=" >  </IonImg>
-                                        </IonCard>
-                                    </IonCol>
-                                    <IonCol size="4" className="center" >
-                                        <IonLabel> Facha </IonLabel>
-                                        <IonCard>
-                                            <IonImg className="imagenViwer"  src="https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=" >  </IonImg>
-                                        </IonCard>
-                                    </IonCol>
-                                    <IonCol size="4" className="center" >
-                                        <IonLabel> Calle </IonLabel>
-                                        <IonCard>
-                                            <IonImg className="imagenViwer"  src="https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=" >  </IonImg>
-                                        </IonCard>
-                                    </IonCol>
-                                </IonRow>
-                        </IonGrid>
     const handleAbrirCamera = async (tipoFoto: number) => {
         setLoading(true);
         await takePhoto()
@@ -193,6 +169,7 @@ const Reportes: React.FC = () => {
     }
     const validarDatos = () =>{
         setMessage("");
+        setErrorUI("");
         let error = "";
         if( calle.trim().length == 0 ){
             error += "Cl,";
@@ -206,6 +183,13 @@ const Reportes: React.FC = () => {
         if ( descripcion.trim().length == 0 ){
             error += "D,";
         }
+        //NOTE: aqui ingresamos lar reglas para las imagenes
+        if(fotoMedidorEncode.length == 0)
+            error += "FM,"
+        if(fotoFachadaEncode.length == 0)
+            error += "FF,"
+        if(fotoCallePreview.length == 0)
+            error += "FC,";
         //NOTE: validamos que los datos no esten en 0
         error.length == 0 ? enviarReporte() : lanzarMensaje("Mensaje","Favor de ingresar los campos requeridos", error);
 
@@ -213,45 +197,40 @@ const Reportes: React.FC = () => {
     const enviarReporte = async () =>{
         //NOTE: Recolectamos los datos
         setLoading(true);
-        if(fotosCodificadas.length > 0 && fotosCodificadas.length < 4 ){
-            let Padron = getContratoReporte()
-            await obtenerCoordenadas().then( async ( coordenadas )=>{
-                let datos = {
-                    'Calle':calle,
-                    'Colonia':colonia,
-                    'Numero':numero,
-                    'Descripcion':descripcion,
-                    'Latitud':String(coordenadas.latitude),
-                    'Longitud':String(coordenadas.longitude),
-                    'FallaAdministrativa':0,
-                    'Estatus':1,
-                    'Fotos':fotosCodificadas,
-                    'Padron':String(Padron),
-                };
-                await guardarReporteV2(datos)
-                .then(( result )=>{
-                    limpiarPantalla();
-                })
-                .catch(( error )=>{
-                    setTipoMensaje("Mensaje");
-                    setMessage(error.mensaje);
-                }).finally(()=>{
-                    setLoading(false);
-                })
-            })
-        }else{
-            setLoading(false);
-            if(fotosCodificadas.length == 0){
-                setTipoMensaje("Mensaje");
-                setMessage(" Debes capturar almenos una evidencia ");
-                setConnectionError(false);
-            }
-            if(fotosCodificadas.length >= 4){
-                setTipoMensaje("Mensaje");
-                setMessage(" Solo se permiten 3 evidencias maximo ");
-                setConnectionError(false);
-            }
+        //NOTE: creamos el json de los datos
+        let jsonImagenes = {
+            "Toma": fotoMedidorEncode,
+            "Fachada": fotoFachadaEncode,
+            "Calle": fotoCalleEncode
         }
+        let Padron = getContratoReporte()
+        await obtenerCoordenadas().then( async ( coordenadas )=>{
+            let datos = {
+                'Calle':calle,
+                'Colonia':colonia,
+                'Numero':numero,
+                'Descripcion':descripcion,
+                'Latitud':String(coordenadas.latitude),
+                'Longitud':String(coordenadas.longitude),
+                'FallaAdministrativa':0,
+                'Estatus':1,
+                'Fotos':jsonImagenes,
+                'Padron':String(Padron),
+            };
+            await guardarReporteV2(datos)
+            .then(( result )=>{
+                limpiarPantalla();
+            })
+            .catch(( error )=>{
+                setTipoMensaje("Mensaje");
+                setMessage(error.mensaje);
+            }).finally(()=>{
+                setLoading(false);
+            });
+        }).catch((error)=>{
+            setLoading(false);
+            lanzarMensaje("ERROR","¡Favor de activar el servicio de ubicacion!", "")
+        })
     }
     const lanzarMensaje = ( tipoMensaje: string, mensaje: string, error = "") =>{
         setTipoMensaje( tipoMensaje );
@@ -343,23 +322,23 @@ const Reportes: React.FC = () => {
                     <br/><br/>
                     <IonGrid>
                                 <IonRow>
-                                    <IonCol size="4" className="center" >
+                                    <IonCol size="4" className="center"  >
                                         <IonLabel> Toma </IonLabel>
-                                        <IonCard onClick = { FotoToma } >
+                                        <IonCard onClick = { FotoToma } className = { ErrorUI.includes("FM,") ? "errorInput" : "clearInput" } >
                                             <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
                                             <IonRippleEffect></IonRippleEffect>
                                         </IonCard>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Facha </IonLabel>
-                                        <IonCard onClick = { FotoFachada } >
+                                        <IonCard onClick = { FotoFachada } className = { ErrorUI.includes("FF,") ? "errorInput" : "clearInput" }  >
                                             <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Calle </IonLabel>
-                                        <IonCard onClick = { FotoCalle } >
+                                        <IonCard onClick = { FotoCalle } className = { ErrorUI.includes("FC,") ? "errorInput" : "clearInput" } >
                                             <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>

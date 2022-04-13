@@ -27,3 +27,6 @@
 .errorInput{
     border: solid 1px red;
 }
+.clearInput{
+    border: solid 0px black;
+}

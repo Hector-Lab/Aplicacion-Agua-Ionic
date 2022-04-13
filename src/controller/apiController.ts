@@ -993,7 +993,7 @@ export async function guardarReporteV2 (Reporte:any){
             'FallaAdministrativa':Reporte.FallaAdministrativa,
             'Estatus':Reporte.Estatus
         }
-        let result = await service.realizarReporteContrato(datos, String(token));
+        let result = await service.guardarReporte(datos, String(token));
         if( result.data.Mensaje.Code == 200 ){
             return true;
         }else if( result.data.Mensaje.Code == 423 ){

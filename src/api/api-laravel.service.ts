@@ -259,5 +259,12 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarCoutaFija`,data,{headers})
     }
+    guardarReporte( data:object, token: string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarReporteAgua`,data,{headers});
+    }
 }
 
