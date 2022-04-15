@@ -47,7 +47,7 @@ const Reportes: React.FC = () => {
     const { takePhoto } = useTakePhoto();
     //Verificando la session
     const buttonsErrorConnection = [
-        { text: "Reintentar", handler: () => { setMessage(""); handleBtnCrearReporte(); } },
+        { text: "Reintentar", handler: () => { setMessage(""); enviarReporte(); } },
         { text: "Aceptar", handler: () => { setMessage(""); console.log("Cancelando") } }
     ]
     const isSessionValid = async () => {
@@ -75,7 +75,7 @@ const Reportes: React.FC = () => {
             }, 2500)
         }
     }
-    const handleBtnCrearReporte = async () => {
+    /*const handleBtnCrearReporte = async () => {
         setLoading(true);
         let data = {
             colonia: colonia,
@@ -105,7 +105,7 @@ const Reportes: React.FC = () => {
             }).finally(() => {
                 setLoading(false);
             })
-    }
+    }*/
     const handleAbrirCamera = async (tipoFoto: number) => {
         setLoading(true);
         await takePhoto()
@@ -192,7 +192,6 @@ const Reportes: React.FC = () => {
             error += "FC,";
         //NOTE: validamos que los datos no esten en 0
         error.length == 0 ? enviarReporte() : lanzarMensaje("Mensaje","Favor de ingresar los campos requeridos", error);
-
     }
     const enviarReporte = async () =>{
         //NOTE: Recolectamos los datos
@@ -222,8 +221,9 @@ const Reportes: React.FC = () => {
                 limpiarPantalla();
             })
             .catch(( error )=>{
+                console.log(error);
                 setTipoMensaje("Mensaje");
-                setMessage(error.mensaje);
+                //setMessage(error.mensaje);
             }).finally(()=>{
                 setLoading(false);
             });

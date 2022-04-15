@@ -1,6 +1,6 @@
 import { Motion } from '@capacitor/core';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
-import { thermometer } from 'ionicons/icons';
+import { server, thermometer } from 'ionicons/icons';
 import { Console } from 'node:console';
 import { _private } from 'workbox-core';
 import { APIservice } from '../api/api-laravel.service';
@@ -975,7 +975,7 @@ export async function ContratosListaContratoReporte( contrato: string ){
         console.log(error);
     }
 }
-export async function guardarReporteV2 (Reporte:any){
+export async function guardarReporteV2(Reporte:any){
     try{
         let { cliente , token, idUsuario } = obtenerDatosCliente();
         console.log(token);
@@ -994,6 +994,7 @@ export async function guardarReporteV2 (Reporte:any){
             'Estatus':Reporte.Estatus
         }
         let result = await service.guardarReporte(datos, String(token));
+        console.log(result);
         if( result.data.Mensaje.Code == 200 ){
             return true;
         }else if( result.data.Mensaje.Code == 423 ){
@@ -1037,4 +1038,57 @@ export async function configuracionCuotaFija(  ){
     }catch(error){
         throw conectionError( error );
     }
+}
+export async function EnviarCorte( datos: {Evidencia:any,Motivo:string, Padron: number, Persona:number, Estado: number, Usuario: number, Longitud:string, Latitud: string, Ejercicio: number} ) {
+    try{
+        let { cliente, token } = obtenerDatosCliente();       
+        //NOTE: creamos el objeto que vamos a enviar
+        let datosCorte = {
+            'Longitud': datos.Longitud,
+            'Latitud': datos.Latitud,
+            'Cliente':  cliente,
+            'Motivo': datos.Motivo,
+            'Padron': datos.Padron,
+            'Persona': datos.Persona,
+            'Usuario': datos.Usuario,
+            'Estado': datos.Estado,
+            'Ejercicio': datos.Ejercicio,
+            'Evidencia': datos.Evidencia
+        };
+        let resultCorte = await service.RealizarCorteV2( datosCorte, String( token ));
+        if(resultCorte.data.Code == 200){
+            return ("OK");
+        }else if(resultCorte.data.Code == 206){
+            throw errorImagenes;
+        }else if(resultCorte.data.Code == 400){
+            let jsonError = JSON.parse(resultCorte.data.Mensaje);
+            throw new Error(`Error ${jsonError.Code}:\n${jsonError.Mensaje}`);
+        }
+        
+
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function historialLecturas( datos:{ anio:number, mes: number } ){
+    try{ 
+        let { cliente,idUsuario,token } = obtenerDatosCliente();
+        let datosFecha = {
+            Usuario: idUsuario,
+            Cliente: cliente,
+            Anio: datos.anio,
+            Mes: datos.mes,
+        };
+        let resultHistorial = await service.ObtenerHistorialLecturas( datosFecha, String( token ) );
+        if(resultHistorial.data.Status){
+            return resultHistorial.data.Mensaje;
+        }else{
+            throw noRowSelect;
+        }
+    }catch( error )
+    {
+        throw verificarDatosCoutaFija(error);
+    }
+
+
 }

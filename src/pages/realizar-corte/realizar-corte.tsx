@@ -2,7 +2,7 @@ import { IonAlert, IonApp, IonButton, IonButtons, IonCard, IonCardContent, IonCa
 import { checkmarkCircle, chevronBackCircleOutline, contractOutline, pencil, saveOutline, triangle } from "ionicons/icons";
 import { useEffect,useState } from 'react';
 import MenuLeft from '../../components/left-menu';
-import { obtenerDatosCorte, RealizarCorteAPI } from '../../controller/apiController';
+import { obtenerDatosCorte, EnviarCorte } from '../../controller/apiController';
 import { getIdUsuario } from '../../controller/storageController';
 import { useTakePhoto, obtenerBase64, obtenerCoordenadas } from '../../utilities';
 import { camera } from 'ionicons/icons';
@@ -39,14 +39,16 @@ const RealizarCorte: React.FC = () => {
 
 
      //INDEV: Bloque de fotos para tomas
-     const [ fotoMedidorEncode, setFotoMedidorEncode ] =  useState(String);
-     const [ fotoMedidorPreview, setFotoMedidorPreview ] = useState(String);
+     const [ fotoTomaEncode, setFotoTomaEncode ] =  useState(String);
+     const [ fotoTomaPreview, setFotoTomaPreview ] = useState(String);
      //NOTE: Foto de la facha
      const [ fotoFachadaEncode, setFotoFachadaEncode ] = useState(String);
      const [ fotoFachadaPreview, setFotoFachadaPreview ] = useState(String);
      //NOTE: Foto perspectiva amplia
      const [ fotoCalleEncode, setFotoCalleEncode ] = useState(String);
      const [ fotoCallePreview, setFotoCallePreview ] = useState(String);
+     //NOTE: Manejador de errores 
+     const [ errorImagenes, setErrorImagenes ] = useState( String );
 
     const alertButtons = [
         {
@@ -121,8 +123,8 @@ const RealizarCorte: React.FC = () => {
         await obtenerBase64(imgDir).then((result) => {
             switch (tipoFoto) {
                 case 1:
-                    setFotoMedidorEncode(String(result));
-                    setFotoMedidorPreview(imgDir);
+                    setFotoTomaEncode(String(result));
+                    setFotoTomaPreview(imgDir);
                     break;
                 case 2:
                     setFotoFachadaEncode(String(result));
@@ -159,7 +161,7 @@ const RealizarCorte: React.FC = () => {
                                     </IonCol>
                                 </IonRow>
                         </IonGrid>
-    const guardarInspeccion = async(  ) =>{
+    const guardarInspeccion = async( Fotos: { "Toma": string, "Fachada": string , "Calle": string }  ) =>{
         try {
             setLoading(true);
             setTimeout(() => {
@@ -167,42 +169,40 @@ const RealizarCorte: React.FC = () => {
                     throw 0;
                 }
             }, 20000);
-            if(!(arregloFotos.length == 0)){
-                await obtenerCoordenadas()
-                .then( async ( coordenadas )=>{
-                    //NOTE: damos formato a los datos que se enviaran
-                    //INDEV: faltan las fotos {\"Estatus\":true,\"Code\":200,\"Mensaje\":\"Tomar cortada\",\"Corte\":6089}
-                    let datos = {
-                        Motivo: motivoInspeccion,
-                        Padron: datosContrato.Padron,
-                        Persona: datosUsuario.Persona,
-                        Usuario: datosUsuario.Usuario,
-                        Estado: tipoInspeccion,
-                        Longitud: String(coordenadas.longitude),
-                        Latitud: String(coordenadas.latitude),
-                        Ejercicio: ejercicio,
-                        Evidencia:arregloFotos
-                    };
-                    await RealizarCorteAPI(datos)
-                    .then(()=>{
-                        setErrorCarga(false);
-                        setTipoMensaje("Mensaje");
-                        setMensaje("Corte realizado...");
-                    })
-                    .catch((error)=>{
-                        setErrorCarga(false);
-                        setMensaje(error.message);
-                        setTipoMensaje("ERROR");            
-                    })
-                    .finally(()=>{
-                        setLoading(false);
-                    })
-                });
-            }else{
-                setTipoMensaje("Mensaje");
-                setMensaje("Debe capturar almenos 1 foto")
-                setLoading(false);
-            }
+            await obtenerCoordenadas()
+            .then( async ( coordenadas )=>{
+                //NOTE: damos formato a los datos que se enviaran
+                //INDEV: faltan las fotos {\"Estatus\":true,\"Code\":200,\"Mensaje\":\"Tomar cortada\",\"Corte\":6089}
+                let datos = {
+                    Motivo: motivoInspeccion,
+                    Padron: datosContrato.Padron,
+                    Persona: datosUsuario.Persona,
+                    Usuario: datosUsuario.Usuario,
+                    Estado: tipoInspeccion,
+                    Longitud: String(coordenadas.longitude),
+                    Latitud: String(coordenadas.latitude),
+                    Ejercicio: ejercicio,
+                    Evidencia:Fotos
+                };
+                console.log( datos );                
+                await EnviarCorte(datos)
+                .then(()=>{
+                    setErrorCarga(false);
+                    setTipoMensaje("Mensaje");
+                    setMensaje("Corte realizado...");
+                    setTimeout(()=>{
+                        history.goBack();
+                    }, 1000);
+                })
+                .catch((error)=>{
+                    setErrorCarga(false);
+                    setMensaje(error.message);
+                    setTipoMensaje("ERROR");            
+                })
+                .finally(()=>{
+                    setLoading(false);
+                })
+            });
         }catch(error){
             console.log(error);
             setLoading(false);
@@ -212,15 +212,31 @@ const RealizarCorte: React.FC = () => {
         }
     }
     const validarCampos = async () =>{
-        if(motivoInspeccion != ""){
-            setErrorCampos(false);
-            await guardarInspeccion();
+        //Validamos que las fotos no esten vacias
+        let error = "";
+        fotoTomaEncode == "" ? error += "T," : error+="";
+        fotoFachadaEncode == "" ? error += "F," : error+="";
+        fotoCalleEncode == "" ? error += "C,": error+=""
+        if(error == ""){
+            if(motivoInspeccion != ""){
+                //NOTE: Creamosel objeto que se va a enviar
+                let jsonImagenes = {
+                    "Toma": fotoTomaEncode,
+                    "Fachada": fotoFachadaEncode,
+                    "Calle": fotoCalleEncode
+                };
+                setErrorCampos(false);
+                await guardarInspeccion(jsonImagenes);
+            }else{
+                setTipoMensaje("Mensaje");
+                setMensaje("Favor de ingresar el motivo del corte");
+                setErrorCampos(true);
+            }
         }else{
-            setTipoMensaje("Mensaje");
-            setMensaje("Favor de ingresar el motivo del corte");
-            setErrorCampos(true);
+            //Lanzamos los errores de fotos
+            setErrorImagenes(error);
         }
-    }
+    }   
     const borrarFotoEvidencia = () => {
         let fotosTemporal = new Array;
         let fotosEncoded = new Array;
@@ -281,8 +297,6 @@ const RealizarCorte: React.FC = () => {
             {
                 activarMenu ? <MenuLeft /> : <></>
             }
-            {/**  Header del menu */}
-            
             <IonHeader>
                 <IonToolbar color="danger" >
                     <IonTitle>Cortar toma</IonTitle>
@@ -334,21 +348,21 @@ const RealizarCorte: React.FC = () => {
                                 <IonRow>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Toma </IonLabel>
-                                        <IonCard onClick = { FotoToma } >
-                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
+                                        <IonCard onClick = { FotoToma } className = { errorImagenes.includes("T,") ? "errorInput" : "clearInput" }  >
+                                            <IonImg className="imagenViwer"  src = { fotoTomaPreview != "" ? fotoTomaPreview : sinFoto } ></IonImg>
                                             <IonRippleEffect></IonRippleEffect>
                                         </IonCard>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Facha </IonLabel>
-                                        <IonCard onClick = { FotoFachada } >
+                                        <IonCard onClick = { FotoFachada } className = { errorImagenes.includes("F,") ? "errorInput" : "clearInput" } >
                                             <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Calle </IonLabel>
-                                        <IonCard onClick = { FotoCalle } >
+                                        <IonCard onClick = { FotoCalle } className = { errorImagenes.includes("C,") ? "errorInput" : "clearInput" } >
                                             <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
@@ -373,13 +387,13 @@ const RealizarCorte: React.FC = () => {
                         }
                             <IonGrid>
                                 <IonRow>
-                                    <IonCol size="6">
-                                            <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
+                                    <IonCol size="6" className = "center" >
                                         <IonButton color="secondary" onClick = {regresar}>
+                                        <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                             Regresar
                                         </IonButton>
                                     </IonCol>
-                                    <IonCol size="6">
+                                    <IonCol size="6" className = "center" >
                                         <IonButton disabled = {bloquearCorte} color="danger" onClick={validarCampos}>
                                             Guardar
                                             <IonIcon icon={saveOutline} slot="end"></IonIcon>

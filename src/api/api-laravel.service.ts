@@ -209,6 +209,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/listaCortes`,data,{headers});
     }
+    //NOTE: Rutas con nuevo controlador
     buscarContratoReporte( data:object, token:string ){
         let headers = {
             'Content-type': 'application/json',
@@ -265,6 +266,20 @@ export class APIservice {
             'Authorization': 'Bearer' + token
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarReporteAgua`,data,{headers});
+    }
+    RealizarCorteV2( data: object, token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/RealizarCorte`,data,{ headers });
+    }
+    ObtenerHistorialLecturas( data:object, token: string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/HistorialLecturas`,data,{headers});
     }
 }
 

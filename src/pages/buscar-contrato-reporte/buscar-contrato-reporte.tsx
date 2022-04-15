@@ -176,7 +176,7 @@ const ListaContratoReportes : React.FC = () => {
         }
         <IonHeader>
           <IonToolbar color="danger" >
-            <IonTitle>{`${usuario} - ${nombreCliente}`}</IonTitle>
+            <IonTitle>{` Reportar `}</IonTitle>
             <IonButtons slot="start" className="btnMenu">
               <IonMenuButton ></IonMenuButton>
             </IonButtons>

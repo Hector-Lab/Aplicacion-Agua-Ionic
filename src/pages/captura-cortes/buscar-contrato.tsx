@@ -6,6 +6,7 @@ import { buscarContrato, solicitarPermisos, verifyGPSPermission,verifyCameraPerm
 import { searchCircle } from "ionicons/icons";
 import { getCuentasPapas, getUsuario, setContratoCorte } from "../../controller/storageController";
 import { useHistory } from 'react-router-dom';
+//FIXME: Agregar la validacion de vencimiento de session
 
 const PrincipalCortes: React.FC = () => {
     const history = useHistory();
@@ -144,7 +145,7 @@ const PrincipalCortes: React.FC = () => {
             {/* Cabezera */}            
             <IonHeader>
                 <IonToolbar color="danger" >
-                <IonTitle>{`${user} - ${nombreCliente}`}</IonTitle>
+                <IonTitle>{`Cortes`}</IonTitle>
                 <IonButtons slot="start" className="btnMenu">
                     <IonMenuButton ></IonMenuButton>
                 </IonButtons>
