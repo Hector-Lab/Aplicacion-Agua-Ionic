@@ -1,13 +1,23 @@
 import { useCamera, } from '@capacitor-community/react-hooks/camera';
 import { CameraResultType, CameraSource} from '@capacitor/core';
+import { callCordovaPlugin } from '@ionic-native/core/decorators/common';
 import { Geolocation, Geoposition } from '@ionic-native/geolocation';
+let calidad = 50;
+//NOTE: para fotos de fachada y calle
+let alto = 500; // 1280
+let ancho = 400; // 800 
+//NOTE: para la foto de la toma
+
+
 export function useTakePhoto( ) {
   const { getPhoto } = useCamera();
   const takePhoto = async () => {
     const cameraPhoto = await getPhoto({
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
-      quality: 50,
+      quality: calidad,
+      height: alto,
+      width: ancho
     });
     return cameraPhoto;
   }
@@ -15,6 +25,14 @@ export function useTakePhoto( ) {
     takePhoto
   }
 }
+export function asignarCalidad(cl:number) {
+  calidad < 5 ? calidad = 5 : ( cl > 100 ) ? calidad = 100 : calidad = cl; 
+}
+export function modificarTamanio ( reducir:boolean ){
+  reducir ? alto = 500 : alto = 1280;
+  reducir ? ancho = 400 : ancho = 800; 
+}
+
 export async function generarFechas(anio: number) {
   let result = new Array;
   let listaMeses = new Array;

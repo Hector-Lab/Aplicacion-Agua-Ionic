@@ -74,7 +74,6 @@ const MenuLeft: React.FC<ContainerProps> = () => {
             appPages.map((item, pageIndex) => {
                 item.selects.map((item, index) => {
                     if (item == dir) {
-                        console.log(item);
                         setSelectedIndex(pageIndex);
                         selected = true;
                     }

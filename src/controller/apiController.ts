@@ -1,7 +1,5 @@
-import { Motion } from '@capacitor/core';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
-import { server, thermometer } from 'ionicons/icons';
-import { Console } from 'node:console';
+import { threadId } from 'node:worker_threads';
 import { _private } from 'workbox-core';
 import { APIservice } from '../api/api-laravel.service';
 import {
@@ -22,8 +20,9 @@ import {
     setCuentasPapas,
     getContratoCorte,
     getIdUsuario,
+    setIdConfiguracion,
+    getIdConfiguracion
 } from '../controller/storageController';
-import DatosContribuyente from '../pages/datos-contribuyente/datos-del-contribuyente';
 const service = new APIservice();
 const date = new Date();
 //INDEV: Errores del sistema
@@ -67,7 +66,6 @@ export async function Login(user: string, password: string, remerber: boolean) {
                 contrasenia: password,
                 userName: result.data.datosUsuario.NombreCompleto
             }
-            console.log(data.token);
             let verified = await verificarUsuarioLecturista(data);
             if (verified === true) {
                 return verified;
@@ -92,7 +90,15 @@ async function verificarUsuarioLecturista(userData: any) {
             throw userNotValidError;
         }
         let result = await service.verificarUsuarioLecturista(datos, userData.token);
+        let configuracionCorte = await service.ObtenerConfiguracionCortes(datos,userData.token);
+        let esCortes =  configuracionCorte.data.Status;
         let esLecturista = result.data.Status;
+        //NOTE: si es un usuario de guardamos el id de su configuracion
+        if( esCortes ){
+            setIdConfiguracion(configuracionCorte.data.Corte[0].id);
+        }else{
+            console.log("no es usuario cortes");
+        }
         if (esLecturista) {
             guardarDatosCliente(userData);
             return true;
@@ -1091,4 +1097,54 @@ export async function historialLecturas( datos:{ anio:number, mes: number } ){
     }
 
 
+}
+export async function ObtenerListaCortes(  ){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let id =  getIdConfiguracion();
+        let datos = {
+            Cliente: cliente,
+            Configuracion:id
+        }
+        let result = await service.ObtenerListaTareas(datos, String(token));        
+        return result.data.Tareas;
+    }catch( error ){
+        throw conectionError(error);
+    }
+}
+export async function BuscarContratoCorte( indicio:string ) {
+    try{
+        let { cliente, token } = obtenerDatosCliente();
+        let configuracion = getIdConfiguracion();
+        let mes = date.getMonth()+1;
+        let anio = date.getFullYear();
+        let datos = {
+            'Cliente': cliente,
+            'Configuracion': configuracion,
+            'Indicio':indicio,
+            'Mes':mes,
+            'Anio':anio
+        }        
+        let result = await service.BuscarContratoCorte( datos , String(token) );
+        return result.data.Datos;
+    }catch( error ){
+        throw conectionError(error);
+    }
+}
+export async function BuscarMedidorCorte( indicio:string ) {
+    try{
+        let { cliente,token  } = obtenerDatosCliente();
+        let configuracion = getIdConfiguracion();
+        console.log(configuracion);
+        let datos = { 
+            'Cliente': cliente,
+            'Configuracion': configuracion,
+            'Indicio':indicio,
+
+        }
+        let result = await service.BuscarMedidorCorte(datos,String(token));
+        return result.data.Datos;
+    }catch( error ){
+        throw conectionError(error);
+    }
 }

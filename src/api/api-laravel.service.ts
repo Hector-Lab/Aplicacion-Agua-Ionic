@@ -5,12 +5,13 @@ export class APIservice {
     getAuth(data: object) {
         return axios.post(`https://api.servicioenlinea.mx/api-movil/login-presidentePrueba`, data)
     }
+    //FIXED:
     verificarUsuarioLecturista(data: object, token: string) {
         let headers = {
             'Content-type': 'application/json',
             'Authorization': 'Bearer' + token
         }
-        return axios.post(`https://api.servicioenlinea.mx/api-movil/verificarUsuarioLecturistaPrueba`, data, { headers });
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/VerificarUsuario`, data, { headers });
     }
     buscarSectores(data: object, token: string) {
         let headers = {
@@ -209,7 +210,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/listaCortes`,data,{headers});
     }
-    //NOTE: Rutas con nuevo controlador
+    //FIXED: Rutas con nuevo controlador
     buscarContratoReporte( data:object, token:string ){
         let headers = {
             'Content-type': 'application/json',
@@ -217,6 +218,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ReporteBuscarContrato`,data,{headers});
     }
+    //FIXED:
     realizarReporteContrato( data: object, token:string ) {
         let headers = {
             'Content-type': 'application/json',
@@ -224,6 +226,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/crearReporteV2`,data,{headers});
     }
+    //FIXED:
     realizarReporteMedidor( data:object, token:string ){
         let headers = {
             'Content-type': 'application/json',
@@ -231,6 +234,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ReporteBuscarMedidor`, data , {headers});
     }
+    //FIXED:
     obtenerConfiguracion( data:object, token:string ){
         let headers = {
             'Content-type': 'application/json',
@@ -238,6 +242,7 @@ export class APIservice {
         };
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ConfiguracionCoutaFija`,data,{headers});
     }
+    //FIXED:
     obtenerConfiguracionFotografia( data:object, token:string ){
         let headers = {
             'Content-type': 'application/json',
@@ -245,7 +250,7 @@ export class APIservice {
         };
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ConfiguracionEvidencia`,data,{headers});
     }
-    //INDEV: metodos para guardar las fotos de forma ordenada
+    //FIXED: metodos para guardar las fotos de forma ordenada
     guardarDatosLecturaV2(data: object, token: string) {
         let headers = {
             'Content-type': 'application/json',
@@ -253,6 +258,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarLecturaV3`, data, { headers })
     }
+    //FIXED:
     guardarCoutaFijaV2( data: object, token: string ){
         let headers = {
             'Content-type': 'application/json',
@@ -260,6 +266,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarCoutaFija`,data,{headers})
     }
+    //FIXED:
     guardarReporte( data:object, token: string ){
         let headers = {
             'Content-type': 'application/json',
@@ -267,6 +274,7 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/GuardarReporteAgua`,data,{headers});
     }
+    //FIXED:
     RealizarCorteV2( data: object, token:string ){
         let headers = {
             'Content-type': 'application/json',
@@ -274,12 +282,45 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/RealizarCorte`,data,{ headers });
     }
+    //FIXED:
     ObtenerHistorialLecturas( data:object, token: string ){
         let headers = {
             'Content-type': 'application/json',
             'Authorization': 'Bearer' + token
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/HistorialLecturas`,data,{headers});
+    }
+    //FIXED:
+    ObtenerConfiguracionCortes( data:object, token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/verificarUsuarioCortes`,data,{headers});
+    }
+    //FIXED:
+    ObtenerListaTareas( data:object, token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/TareasCortes`,data,{headers});
+    }
+    //FIXED:
+    BuscarContratoCorte( data:object, token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/BuscarCortePorContrato`,data,{headers});
+    }
+    //FIXED:
+    BuscarMedidorCorte( data:object, token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/BuscarCortePorMedidor`,data,{headers});
     }
 }
 

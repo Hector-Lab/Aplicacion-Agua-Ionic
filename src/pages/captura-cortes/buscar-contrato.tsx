@@ -2,7 +2,7 @@ import { IonAlert, IonButton, IonCard, IonCardHeader, IonCol, IonContent, IonGri
 import { useEffect, useState } from "react"
 import MenuLeft from '../../components/left-menu';
 import { IonHeader,IonToolbar,IonTitle,IonButtons,IonMenuButton } from '@ionic/react';
-import { buscarContrato, solicitarPermisos, verifyGPSPermission,verifyCameraPermission, buscarPorMedidor, buscarMedidorSinFiltro, ContratosListaContratoReporte } from '../../controller/apiController';
+import { solicitarPermisos, verifyGPSPermission,verifyCameraPermission, ObtenerListaCortes,BuscarContratoCorte,BuscarMedidorCorte } from '../../controller/apiController';
 import { searchCircle } from "ionicons/icons";
 import { getCuentasPapas, getUsuario, setContratoCorte } from "../../controller/storageController";
 import { useHistory } from 'react-router-dom';
@@ -20,51 +20,45 @@ const PrincipalCortes: React.FC = () => {
     const [ tipoMensaje, setTipoMensaje ] = useState("Mensaje");
     const [ mensaje, setMensaje ] = useState("");
     const [ sesionValida, setSessionValida ] = useState( true );
+    const [ listaTareas, setListaTareas ] = useState([]);
 
-    useEffect(()=>{ prepararPantalla(); });
+    useEffect(()=>{ prepararPantalla(); },[]);
     useIonViewWillEnter(()=>{setActivarMenu(false)});
     useIonViewDidEnter(()=>{setActivarMenu(true)});
+    //INDEV: buscamos los contratos dentro de las tareas del usuarios 
     const BuscarLectura = (  ) => {
         setLoading(true);
         if(contrato != ""){
             tipoFiltro == 1 ? PorContrato( contrato ) : porMedidor( contrato );
         }else{
-            setLoading(false);
+          //NOTE: mostramos los todos los contratos asignados
+          mostrarListaContratos();
         }
     }
     const PorContrato = async ( contrato: string ) =>{
-        await ContratosListaContratoReporte(zeroFill(contrato))
-        .then(( result )=>{
+      console.log(contrato);
+      await BuscarContratoCorte(zeroFill(contrato))
+      .then((result)=>{
+        if( result.length == 0 ){
+          setMensaje("Contrato no encontrado, favor de revisar sus contrato asignados")
+        }
         setListaContratos(result);
-        }).catch((error)=>{
-          let errorMessage = String(error.message);
-          let expired = errorMessage.includes("Sesion no valida");
-          if (!expired) {
-            setTipoMensaje("Error");
-            setMensaje(error.message)
-          }
-        })
+      }).catch((error)=>{
+        console.log(error);
+      }).finally(()=>{
         setLoading(false);
+      })
     }
     const porMedidor = async (medidor: string) =>{ 
       setLoading(true);
-      await buscarMedidorSinFiltro(zeroFill(medidor,10))
-      .then(result =>{
+      await BuscarMedidorCorte( medidor )
+      .then(( result )=>{
         setListaContratos(result);
-      }).catch(err=>{
-        
-        let errorMessage = String(err.message);
-        let expired = errorMessage.includes("Sesion no valida");
-        setSessionValida(expired);
-        if (!expired) {
-          setTipoMensaje("Error");
-          setMensaje(err.message)
-        }else{
-          setMensaje(err.message+"\nRegresando...");
-        }
-      }).finally(
-       ()=>{setLoading(false);} 
-      )
+      }).catch((error)=>{
+        setMensaje(error.message);
+      }).finally(()=>{
+        setLoading(false);
+      })
     }
     function zeroFill( number:string,width:number = 9)
     {
@@ -123,9 +117,7 @@ const PrincipalCortes: React.FC = () => {
             let storageUser = getUsuario();
             setUser(storageUser + "");
           })
-        /**
-        * Activar el metodo solo para la version web de prueba
-        */        
+          mostrarListaContratos();
     }
     const mostrarDatosContrato = async (item:any ,esPapa:boolean) =>{
       //NOTE: Verificamos si es una cuenta papa
@@ -135,7 +127,17 @@ const PrincipalCortes: React.FC = () => {
         history.push("/realizar-corte");
       }
     }
-
+    const mostrarListaContratos = async ( ) =>{
+      await ObtenerListaCortes()
+      .then(( result )=>{
+        setListaContratos(result);
+      })    
+      .catch((error)=>{
+        setMensaje(error.message);
+      }).finally(()=>{
+        setLoading(false);
+      })
+    }
     return (
         <IonPage>
             {

@@ -34,7 +34,7 @@ import { camera, checkmarkCircle, saveOutline, pencil, chevronBackCircleOutline 
 import './captura-de-lectura.page.css';
 import MenuLeft from '../../components/left-menu';
 import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija, ConfiguracionEvidencias} from '../../controller/apiController';
-import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas } from '../../utilities';
+import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
 import { getDatosLecturaStorage, verifyingSession, contribuyenteBuscado, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
 import { useHistory } from 'react-router';
 import './captura-de-lectura.page.css';
@@ -494,7 +494,10 @@ const CapturaDeLectura: React.FC = () => {
     //NOTE: 1 = Medidor, 2 = Fachada, 3 = Calle( )  
     const handleAbrirCamera = async ( tipoFoto: number  ) => {
         setLoading(true);
-        await takePhoto()
+        //NOTE: asugnamos la calidad de la camara
+        asignarCalidad( tipoFoto == 1 ? 50 : 20 );
+        modificarTamanio(  tipoFoto != 1 );
+        await takePhoto() 
             .then(async (result) => {
                 setLoading(true);
                 agregarImagenEncode(result.webPath + "", tipoFoto);
