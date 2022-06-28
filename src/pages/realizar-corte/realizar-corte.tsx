@@ -4,7 +4,7 @@ import { useEffect,useState } from 'react';
 import MenuLeft from '../../components/left-menu';
 import { obtenerDatosCorte, EnviarCorte } from '../../controller/apiController';
 import { getIdUsuario } from '../../controller/storageController';
-import { useTakePhoto, obtenerBase64, obtenerCoordenadas } from '../../utilities';
+import { useTakePhoto, obtenerBase64, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
 import { camera } from 'ionicons/icons';
 import './realizar-corte.css';
 import { useHistory } from 'react-router';
@@ -49,6 +49,7 @@ const RealizarCorte: React.FC = () => {
      const [ fotoCallePreview, setFotoCallePreview ] = useState(String);
      //NOTE: Manejador de errores 
      const [ errorImagenes, setErrorImagenes ] = useState( String );
+     
 
     const alertButtons = [
         {
@@ -106,6 +107,8 @@ const RealizarCorte: React.FC = () => {
     }
     const handleAbrirCamera = async (tipoFoto: number) =>{
         setLoading(true);
+        asignarCalidad(50);
+        modificarTamanio(false);
         await takePhoto()
             .then(async (result) => {
                 setLoading(true);

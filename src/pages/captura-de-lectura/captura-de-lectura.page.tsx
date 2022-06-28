@@ -375,7 +375,6 @@ const CapturaDeLectura: React.FC = () => {
                 let anio = fecha.getFullYear();
                 let coords = await obtenerCoordenadas();
                 let validarConsumo = procesoConsumo(); // Falta la validacion del consumo
-                console.log(lecturaActual);
                 //NOTE: Verificamos la cuotafija
                 if( !fija ){
                     let datosCapturados = {
@@ -402,7 +401,6 @@ const CapturaDeLectura: React.FC = () => {
                         Latidude:  String(coords.latitude) ,
                         Longitude: String(coords.longitude),
                     }
-                    console.log(datosCapturados);
                     await guardarCaptura(datosCapturados)
                         .then((result) => { mensajeConsumoCero(); })
                         .catch((err) => { setLoading(false); setMessage(err.message) });

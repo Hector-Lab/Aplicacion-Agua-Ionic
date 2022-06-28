@@ -1106,7 +1106,7 @@ export async function ObtenerListaCortes(  ){
             Cliente: cliente,
             Configuracion:id
         }
-        let result = await service.ObtenerListaTareas(datos, String(token));        
+        let result = await service.ObtenerListaTareas(datos, String(token));
         return result.data.Tareas;
     }catch( error ){
         throw conectionError(error);

@@ -21,3 +21,7 @@
 .margintop{
     margin-top: 10px;
 }
+.test{
+    border-width: 1;
+    border-color: aqua;
+}
