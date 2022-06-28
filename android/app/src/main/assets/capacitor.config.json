@@ -1,6 +1,6 @@
 {
-  "appId": "io.suinpac.agua",
-  "appName": "Lectura de agua V2",
+  "appId": "io.suinpac.aguados",
+  "appName": "Lectura de agua V3",
   "bundledWebRuntime": false,
   "npmClient": "npm",
   "webDir": "build",

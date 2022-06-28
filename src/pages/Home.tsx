@@ -71,7 +71,7 @@ const Home: React.FC = () => {
       </IonHeader>
       <IonContent fullscreen>
         <IonCard class="ion-text-center" className="box">
-          <IonImg src={"../assets/Imagenes/SUNIPAC_GRP_ROJO.png"}></IonImg>
+          <IonImg src={"../assets/Imagenes/Logo_suinpac.jpeg"}></IonImg>
           <IonItem className="input">
             <IonInput type="text" placeholder="Usuario" onIonChange={e => setUserName(e.detail.value!)} value={User}>
             </IonInput>

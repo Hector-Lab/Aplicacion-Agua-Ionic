@@ -1,0 +1,27 @@
+.bordeFecha {
+    text-align: center;
+    border-radius: 20px;
+    font-weight: bold;
+    border: solid #3880ff40 1px;
+    margin-top: 10px;
+}
+.labelCalendario{
+    text-align: center;
+    align-self: center;
+}
+.selectedItemBold{
+    font-weight: bold;
+}
+.borderList{ 
+    border-radius: 5px;
+}
+.itemStyle{
+    background-color: #90a4ae;
+}
+.margintop{
+    margin-top: 10px;
+}
+.test{
+    border-width: 1;
+    border-color: aqua;
+}

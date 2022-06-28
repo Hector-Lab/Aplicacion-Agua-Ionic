@@ -41,9 +41,15 @@ const DatosContribuyente: React.FC = () => {
         setLoading(true);
         await obtenerDatosContribuyente()
             .then((result) => {
-                setTelefono(result.Celular == null ? "" : result.Celular);
-                setEmail(result.Email == null ? "" : result.Email);
-                setDatosContribuyente(result);
+                if( result != null ){
+                    setTelefono(result.Celular == null ? "" : result.Celular);
+                    setEmail(result.Email == null ? "" : result.Email);
+                    setDatosContribuyente(result);
+                }else{
+                    setTypeMessage("ERROR");
+                    setTypeError("onLoad");
+                    setMessage("No se encontro el contribuyente");
+                }
             })
             .catch((error) => { 
                 setHideButtons(false);

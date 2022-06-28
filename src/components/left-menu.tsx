@@ -1,6 +1,6 @@
 
 import './left-menu.css';
-import { create, logOut, reader, water, newspaper, construct } from 'ionicons/icons'
+import { create, logOut, reader, water, cutOutline, timerOutline, construct } from 'ionicons/icons'
 import { IonMenu, IonContent, IonImg, IonItemDivider, IonMenuToggle, IonRouterOutlet, IonItem, IonLabel, IonIcon, IonSpinner } from '@ionic/react'
 import { useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom'
@@ -11,6 +11,9 @@ const MenuLeft: React.FC<ContainerProps> = () => {
     const history = useHistory();
     let [selectedIndex, setSelectedIndex] = useState(-1);
     const [logo,setLogo] = useState("");
+    useEffect(()=>{
+
+    },[])
     const appPages = [
         {
             title: 'Toma de agua',
@@ -24,16 +27,28 @@ const MenuLeft: React.FC<ContainerProps> = () => {
             path: '/historial-lecturas.page'
         }, {
 
-            title: 'Fallos en infraestructura',
-            selects: ['reportes.page'],
-            path: '/reportes.page',
+            title: 'Reportes',
+            selects: ['ContratosReportes','reportes.page'],
+            path: '/ContratosReportes',
             icon: construct
         },
-        {
+        /*{
             title: 'Historial reportes',
             selects: ['historial-reportes.page', 'detalles-reportes.page'],
             path: '/historial-reportes.page',
             icon: newspaper
+        },*/
+        {
+            title: 'Cortes',
+            selects: ['buscar-contrato','realizar-corte'],
+            path: '/buscar-contrato',
+            icon: cutOutline
+        },
+        {
+            title: 'Historial Cortes',
+            selects: ['buscar-corte'],
+            path: '/buscar-corte',
+            icon: timerOutline
         },
         /*{
             title: 'Inspecciones',
@@ -59,7 +74,6 @@ const MenuLeft: React.FC<ContainerProps> = () => {
             appPages.map((item, pageIndex) => {
                 item.selects.map((item, index) => {
                     if (item == dir) {
-                        console.log(item);
                         setSelectedIndex(pageIndex);
                         selected = true;
                     }
@@ -81,9 +95,11 @@ const MenuLeft: React.FC<ContainerProps> = () => {
         }
     }
     const cargarLogo = async ()=>{
-        await getLogoStorage().then((result)=>{
-            setLogo(String(result));
-        })
+        if(logo == ""){
+            await getLogoStorage().then((result)=>{
+                setLogo(String(result));
+            });
+        }
     }
     return (
         <div>

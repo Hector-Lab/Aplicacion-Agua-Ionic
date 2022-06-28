@@ -34,3 +34,10 @@ ion-text {
 .btnEditar{
     margin-left: -1%;
 }
+.imagenViwer{
+    height: 150px;
+    width: 70px;
+}
+.cardError{
+    border: solid 1px red;
+}

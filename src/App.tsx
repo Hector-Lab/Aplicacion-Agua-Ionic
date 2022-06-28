@@ -7,11 +7,13 @@ import CapturaLectura from './pages/captura-de-lectura/captura-de-lectura.page'
 import HistorialLecturas from './pages/historial-lecturas/historial-lecturas.page'
 import EditarLectura from './pages/editar-lecturas-agua/editar-lecturas-agua.page'
 import Reportes from './pages/reportes/reportes.page';
-import HistorialReportes from './pages/historial-reportes/historial-reportes.page';
-import DetallesHistorial from './pages/detalle-reporte/detalle-reporte.page';
+import ReportesContrato from './pages/buscar-contrato-reporte/buscar-contrato-reporte';
+//import HistorialReportes from './pages/historial-reportes/historial-reportes.page';
+//import DetallesHistorial from './pages/detalle-reporte/detalle-reporte.page';
 import DatosContribuyente from './pages/datos-contribuyente/datos-del-contribuyente';
-import ContribuyenteInspeccion from './pages/inspecciones/inspeccciones.page';
-import AgregarInspeccion from './pages/inspeccion-agregar/inspeccion-agregar.page';
+import PrincipalCortes from './pages/captura-cortes/buscar-contrato';
+import RealizarCorte from './pages/realizar-corte/realizar-corte';
+import BuscarCorte from './pages/buscar-corte/buscar-corte';
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -53,23 +55,23 @@ const App: React.FC = () => (
         <Route exact path = "/editar-lecturas-agua.page">
           <EditarLectura/>
         </Route>
-        <Route exact path = "/reportes.page">
-          <Reportes/>
-        </Route>
-        <Route exact path = "/historial-reportes.page">
-          <HistorialReportes/>
-        </Route>
-        <Route exact path = "/detalles-reportes.page">
-          <DetallesHistorial/>
-        </Route>
         <Route exact path = "/datos-contribuyente.page">
           <DatosContribuyente/>
         </Route>
-        <Route exact path = "/inspeccciones.page">
-        <ContribuyenteInspeccion/>
+        <Route exact path = "/buscar-contrato">
+          <PrincipalCortes/>
         </Route>
-        <Route exact path = "/inspeccion-agregar.page">
-          <AgregarInspeccion/>
+        <Route exact path = "/realizar-corte">
+          <RealizarCorte />
+        </Route>
+        <Route exact path = "/buscar-corte" >
+          <BuscarCorte />
+        </Route>
+        <Route exact path = "/reportes.page">
+          <Reportes />
+        </Route>
+        <Route exact path = "/ContratosReportes" >
+          <ReportesContrato />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>

@@ -4,3 +4,29 @@
 .input{
     padding-left: 2%;
 }
+.inputLabel {
+    text-align: center;
+}
+.centerItems {
+    justify-content: center;
+    justify-items: center;
+    align-self: center;
+}
+.centerInput {
+    border: solid 1px lightgrey;
+    border-radius: 5px;
+    background-color: #edeff2;
+}
+.paddingElement{
+    padding: 10;
+}
+.descrip{
+    padding-left: 0%;
+    padding-right: 0%;
+}
+.errorInput{
+    border: solid 1px red;
+}
+.clearInput{
+    border: solid 0px black;
+}

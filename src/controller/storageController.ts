@@ -1,3 +1,4 @@
+import { lockClosed } from "ionicons/icons";
 
 //controlador del LocalStorage
 export function restoreUser() {
@@ -278,4 +279,25 @@ export function setCuentasPapas(papas:String){
 }
 export function getCuentasPapas(){
     return localStorage.getItem("@Storage:CuentasPapas") != null ? localStorage.getItem("@Storage:CuentasPapas"): "";
+}
+export function setContratoCorte(item:string){
+    localStorage.setItem("@Storage:ContratoCorte",item);
+}
+export function getContratoCorte(){
+    return localStorage.getItem("@Storage:ContratoCorte") != null ? localStorage.getItem("@Storage:ContratoCorte") : "";
+}
+export function getIdUsuario(){
+    return localStorage.getItem("@Storage:idUsuario") != null ? localStorage.getItem("@Storage:idUsuario") : 0;
+}
+export function setContratoReporte(idContrato:string){
+    localStorage.setItem("@Storage:reporteContrato", idContrato );
+}
+export function getContratoReporte( ){
+    return localStorage.getItem("@Storage:reporteContrato");
+}
+export function setIdConfiguracion( idConfiguracionCorte:string ){
+    localStorage.setItem("@Storage:configuracionCorte",idConfiguracionCorte);
+}
+export function getIdConfiguracion( ){
+    return localStorage.getItem("@Storage:configuracionCorte");
 }

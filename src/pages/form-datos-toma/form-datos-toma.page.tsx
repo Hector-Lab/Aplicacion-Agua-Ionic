@@ -26,14 +26,16 @@ import {
   IonCol,
   useIonViewWillEnter,
   IonNote,
+  useIonViewWillLeave,
   
 } from "@ionic/react";
 import { useHistory } from 'react-router-dom'
 import "./form-datos-toma.page.css";
 import MenuLeft from '../../components/left-menu';
-import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor} from '../../controller/apiController';
+import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija} from '../../controller/apiController';
 import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda, setPaginasBusqueda,getCuentasPapas } from '../../controller/storageController';
-import { searchCircle, arrowForwardOutline, arrowBackOutline, cogSharp } from 'ionicons/icons'
+import { searchCircle, arrowForwardOutline, arrowBackOutline, cogSharp, server } from 'ionicons/icons'
+import { Console } from "node:console";
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');
@@ -46,7 +48,7 @@ const FormDatosTomaPage: React.FC = () => {
   const [permissions, setPermissons] = useState(true);
   const [hideAlertButons, setHideAlertbuttons] = useState(false);
   const [block, setBlock] = useState(false);
-  const [tipoMessage, setTipoMessage] = useState("ERROR");
+  const [tipoMessage, setTipoMessage] = useState("Mensaje");
   const [tokenExpired, setTokenExpired] = useState(false);
   const [textoBusqueda, setTextoBusqueda] = useState(String);
   const [serched, setSerched] = useState(false);
@@ -104,7 +106,7 @@ const FormDatosTomaPage: React.FC = () => {
         if (camera && gps) {
           let storageUser = getUsuario();
           setUser(storageUser + "");
-          cargarSectores()
+          cargarSectores();
         } else {
           setHideAlertbuttons(true);
           setMessage("Debe otorgar permisos para usar la aplicación");
@@ -140,6 +142,7 @@ const FormDatosTomaPage: React.FC = () => {
       })
   }
   useIonViewWillEnter(()=>{setActivarMenu(true)});
+  useIonViewWillLeave(()=>{setActivarMenu(false)});
   const buscarPorSector = async (idSector:string) => {
     setBusqueda(false)
     setLoading(true);
@@ -163,24 +166,45 @@ const FormDatosTomaPage: React.FC = () => {
         setTokenExpired(expired);
         if (!expired) {
           setHideAlertbuttons(true)
-          setTypeError("Error");
+          setTypeError("Mensaje");
           setMessage(err.message)
         }
       })
       .finally(() => { setLoading(false) })
   }
-  const abrirCapturaDatos = async (idLectura: string, contribuyente: string, contratoVigente: string, medidor: string,metodo:number,esPapa:boolean)=> {
-    console.log(metodo);
+  const abrirCapturaDatos = async (idLectura: string, contribuyente: string, contratoVigente: string, medidor: string,metodo:number,esPapa:boolean) => {
     if(!esPapa){
-      setContribuyenteBuscado(serched);
-      let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
-      if (result === true) {
-        setActivarMenu(false);
-        //Redireccion a toma de lectura
-        history.push('/captura-de-lectura.page');
+      if( metodo != 1 ){
+        setContribuyenteBuscado(serched);
+        let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
+        if (result === true) {
+          //Redireccion a toma de lectura
+          history.push('/captura-de-lectura.page');
+          setHideAlertbuttons(true);
+        }
+      }else{
+        //INDEV: obtenemo la configuracion de los clie 
+        await configuracionCuotaFija()
+        .then((result)=>{
+            //NOTE: si el valor del result es 1 se inserta
+            if(result == "1"){
+              let result = guardarDatosLectura(idLectura, contribuyente, contratoVigente, medidor);
+              if(result === true){
+                history.push('/captura-de-lectura.page');
+                setHideAlertbuttons(true);
+              }
+            }else{              
+              setHideAlertbuttons(true);
+              setTipoMessage("Mensaje");
+              setMessage("Temporalmente deshabilitado");   
+            }
+        })
+        .catch((error)=>{
+          //Mandamos un error al usuario
+        })
       }
      }
-   }
+  }
   const buscarPalabraClave = async () => {
 
     if(idSector == ""){
@@ -264,7 +288,7 @@ const FormDatosTomaPage: React.FC = () => {
         setTokenExpired(expired);
         if (!expired) {
           setHideAlertbuttons(true)
-          setTypeError("Error");
+          setTypeError("Mensaje");
           setMessage(err.message)
         }
       })
@@ -317,7 +341,7 @@ const FormDatosTomaPage: React.FC = () => {
         let sessionValid = errorMessage.includes("Sesion no valida");
         if (!sessionValid) {
           setHideAlertbuttons(true);
-          setTipoMessage("ERROR");
+          setTipoMessage("Mensaje");
           setMessage(errorMessage);
         } else {
           setTokenExpired(true);
@@ -385,7 +409,7 @@ const FormDatosTomaPage: React.FC = () => {
       setTokenExpired(expired);
       if (!expired) {
         setHideAlertbuttons(true)
-        setTypeError("Error");
+        setTypeError("Mensaje");
         setMessage(err.message)
       }
     }).finally(
@@ -408,7 +432,7 @@ const FormDatosTomaPage: React.FC = () => {
       setTokenExpired(expired);
       if (!expired) {
         setHideAlertbuttons(true)
-        setTypeError("Error");
+        setTypeError("Mensaje");
         setMessage(err.message)
       }
     }).finally(
@@ -485,7 +509,7 @@ const FormDatosTomaPage: React.FC = () => {
             <div>
               <h3>Lectura de agua potable</h3>
               <IonLabel>Puedes realizar busquedas por:</IonLabel>
-              <p>Contrato, Medidor, Nombre comercial o nombre del propietario</p>
+              <p>Contrato y Medidor</p>
               <br />
             </div>
             <IonGrid>
@@ -501,7 +525,7 @@ const FormDatosTomaPage: React.FC = () => {
                 </IonCol>
               </IonRow>
               <IonRow>
-                <IonCol size="10">
+                <IonCol size="9">
                   <IonItem>
                     <IonInput type="number" placeholder = {placeHolder} onIonChange={e => { handleInputSerh(String(e.detail.value)) }}></IonInput>
                   </IonItem>
@@ -563,7 +587,7 @@ const FormDatosTomaPage: React.FC = () => {
                   if(cuentaPapa){
                     arrayData[0] += "Desarrollo";  
                   }
-                  return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => { abrirCapturaDatos(item.id, item.Contribuyente, item.ContratoVigente, item.Medidor,item.M_etodoCobro,cuentaPapa) }}>
+                  return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => {  abrirCapturaDatos(item.id, item.Contribuyente, item.ContratoVigente, item.Medidor,item.M_etodoCobro,cuentaPapa) }}>
                     <IonItem detail={true} >
                       <IonList>
                         <IonLabel>{item.Contribuyente}</IonLabel>
