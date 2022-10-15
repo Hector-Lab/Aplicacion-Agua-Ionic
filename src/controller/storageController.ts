@@ -1,4 +1,4 @@
-import { lockClosed } from "ionicons/icons";
+import { lockClosed, returnUpBackOutline } from "ionicons/icons";
 
 //controlador del LocalStorage
 export function restoreUser() {
@@ -300,4 +300,23 @@ export function setIdConfiguracion( idConfiguracionCorte:string ){
 }
 export function getIdConfiguracion( ){
     return localStorage.getItem("@Storage:configuracionCorte");
+}
+export function guardarTareasCortes( listaTareas:string ){
+    localStorage.setItem("@Storage:listaTareas",listaTareas);
+}
+export function guardarIndexTareas( index:string ){
+    localStorage.setItem("@Storage:indexTareas",index);
+}
+export function getIndexTareas(){
+    return localStorage.getItem("@Storage:indexTareas");
+}
+export function getTareasCortes( listaTareas:string ){
+    return localStorage.getItem("@Storage:listaTareas");
+}
+export function setNumeroPaginasTareas( totalPaginas:string ){
+    localStorage.setItem("@Storage:totalPaginasTareas",totalPaginas);
+}
+export function getNumeroPaginasTareas(){
+    let datos =  localStorage.getItem("@Storage:totalPaginasTareas")
+    return (datos == null || datos == "") ? 0 : parseInt(datos) ;
 }

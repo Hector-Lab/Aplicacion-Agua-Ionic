@@ -27,9 +27,10 @@ import { useEffect, useState } from "react"
 import MenuLeft from '../../components/left-menu';
 import { IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton } from '@ionic/react';
 import { solicitarPermisos, verifyGPSPermission, verifyCameraPermission, ObtenerListaCortes, BuscarContratoCorte, BuscarMedidorCorte } from '../../controller/apiController';
-import { searchCircle } from "ionicons/icons";
-import { getCuentasPapas, getUsuario, setContratoCorte } from "../../controller/storageController";
+import { searchCircle, arrowForwardOutline, arrowBackOutline } from "ionicons/icons";
+import { getCuentasPapas, getUsuario, setContratoCorte, getNumeroPaginasTareas } from "../../controller/storageController";
 import { useHistory } from 'react-router-dom';
+
 //FIXME: Agregar la validacion de vencimiento de session
 
 const PrincipalCortes: React.FC = () => {
@@ -44,8 +45,12 @@ const PrincipalCortes: React.FC = () => {
   const [tipoMensaje, setTipoMensaje] = useState("Mensaje");
   const [mensaje, setMensaje] = useState("");
   const [sesionValida, setSessionValida] = useState(true);
-  const [listaTareas, setListaTareas] = useState([]);
+  const [listaTareas, setListaTareas] = useState<any[]>([]);
 
+  //NOTE: para el control del paginado
+  const [index, setIndex] = useState(0);
+  const [ totalPaginas, setTotalPaginas ] = useState(1);
+  
   useEffect(() => { prepararPantalla(); }, []);
   useIonViewWillEnter(() => { setActivarMenu(false) });
   useIonViewDidEnter(() => { setActivarMenu(true) });
@@ -152,15 +157,46 @@ const PrincipalCortes: React.FC = () => {
   }
   const mostrarListaContratos = async () => {
     await ObtenerListaCortes()
-      .then((result) => {
-        console.log(result);
-        setListaContratos(result);
+      .then( async (result) => {
+        if(result.length > 0){
+          //NOTE: obtenemos los datos para el paginado
+          setIndex(1);
+          setTotalPaginas(await getNumeroPaginasTareas());
+          let listaSeccion = [];
+          for( let i = (0); i < ((index+1)*4); i++ ){
+            listaSeccion.push(result[i]);
+          }
+          setListaContratos(listaSeccion);
+          setListaTareas(result);
+        }
+        //setListaContratos(result);
       })
       .catch((error) => {
         setMensaje(error.message);
       }).finally(() => {
         setLoading(false);
       })
+  }
+  const paginaAnterior = (  ) =>{
+    if( (index - 2) >= 0 ){
+      let listaSeccion = [];
+      console.log( "Border: " + ((index - 2) * 4 ) + " -> Superior: " +((( index - 1 ) * 4)));
+      for( let i = ((index - 2) * 4 ); i <= ((index - 1) * 4)-1; i++ ){
+        listaSeccion.push(listaTareas[i]);
+      }
+      setListaContratos(listaSeccion);
+      setIndex((index - 1));
+    }
+  }
+  const paginaSigueinte = async () =>{
+    if(( index + 1) < getNumeroPaginasTareas()){
+      let listaSeccion = [];
+      for( let i = (( index * 4 ) -1) ; i < (( index + 1 )*4) -1; i++ ){
+        listaSeccion.push(listaTareas[i]);
+      }
+      setListaContratos(listaSeccion);
+      setIndex((index + 1));
+    }
   }
   return (
     <IonPage>
@@ -208,8 +244,22 @@ const PrincipalCortes: React.FC = () => {
               </IonRow>
               <br />
               <IonButton color="danger" expand="block" onClick={BuscarLectura}> Buscar Contrato </IonButton>
+              <IonItem></IonItem>
               <IonItem>
-                <IonLabel className="center" color="">Contrato</IonLabel>
+              <IonGrid>
+                <IonRow>
+                  <IonCol size="2">
+                    <IonButton shape="round" color="danger" size="small" onClick={ paginaAnterior} /* disabled={getPuntero() == 0} */>
+                      <IonIcon icon={arrowBackOutline} size="small" ></IonIcon>
+                    </IonButton></IonCol>
+                    <IonCol size="8"><IonLabel className = "center">Pagina:{index}</IonLabel></IonCol>
+                  <IonCol size="2">
+                    <IonButton shape="round" color="danger" onClick={ paginaSigueinte } /* disabled = {getPuntero()+1==getNumeroPaginas()} */>
+                      <IonIcon icon={arrowForwardOutline} size="small" ></IonIcon>
+                    </IonButton>
+                  </IonCol>
+                </IonRow>
+              </IonGrid>
               </IonItem>
             </IonGrid>
           </IonCardHeader>

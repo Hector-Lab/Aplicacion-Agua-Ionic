@@ -21,7 +21,10 @@ import {
     getContratoCorte,
     getIdUsuario,
     setIdConfiguracion,
-    getIdConfiguracion
+    getIdConfiguracion, 
+    guardarIndexTareas,
+    guardarTareasCortes,
+    setNumeroPaginasTareas,
 } from '../controller/storageController';
 const service = new APIservice();
 const date = new Date();
@@ -1107,6 +1110,16 @@ export async function ObtenerListaCortes(  ){
             Configuracion:id
         }
         let result = await service.ObtenerListaTareas(datos, String(token));
+        console.log(result.data);
+        if(result.data.Status){
+            //NOTE: lo enviamos al storage
+            guardarTareasCortes(result.data.Tareas);
+            guardarIndexTareas("1");
+            let paginas = (result.data.Tareas.length / 4);
+            let resuido = (parseFloat(result.data.Tareas.length)%(parseFloat("5")));
+            setNumeroPaginasTareas( resuido > 0 ? ((paginas+1)+"") : ((paginas)+"") );
+            
+        }
         return result.data.Tareas;
     }catch( error ){
         throw conectionError(error);
