@@ -25,13 +25,12 @@ import {
     guardarIndexTareas,
     guardarTareasCortes,
     setNumeroPaginasTareas,
-    getContratoMulta,
 } from '../controller/storageController';
 const service = new APIservice();
 const date = new Date();
 //INDEV: Errores del sistema
 const netwokError = new Error("Error al intentar comunicarse con la API. Verifique que su dispositivo se encuentre conectado a la red");
-const sesionNotValidError = new Error("La sesion del usuario a caducado");
+const sesionNotValidError = new Error("Sesion no valida");
 const failedLoginError = new Error("Usuario y/o contraseña incorrectos");
 const userNotValidError = new Error("No puedes iniciar sesión con este usuario");
 const lecturaCodeError = new Error('Consulte con su administrador que el código de lecturas de agua se encuentre en el rango de 1-3');
@@ -51,11 +50,6 @@ const PermissionsError = new Error("Para poder hacer uso de todas las funciones 
 const errorCarga = new Error("Error al obtener los datos del contrato 403");
 const errorImagenes = new Error("Corte realizado\nHubo un error al subir las imagenes");
 const ErrorInsertar = new Error("Error al insertar el registro");
-const ErrorMulta404 = new Error("Error al procesar la operacion\nOperacion no soportada");
-const ErrorMulta424 = new Error("Error al procesar la operacion\nFavor de revisar su caja de cobro");
-const ErrorMulta425 = new Error("Error al procesar la operacion\nFavor de revisar su area recaudadora");
-const ErrorMulta401 = new Error("Error al procesar la operacion\nEl usuario actual no existe o esta dado de baja");
-const ErrorMulta423 = new Error("Error al procesar la operacion\nHubo un error al realizar la multa");
 export async function Login(user: string, password: string, remerber: boolean) {
     const acceso = {
         usuario: user,
@@ -604,7 +598,6 @@ export async function lecturasPorSectorPage(sector: string, offset: number,) {
 export async function obtenerPromedioConsumo() {
     try {
         let { idLectura, token, nCliente } = getDatosLecturaStorage();
-        console.log(token);
         let datos = {
             idLectura: idLectura,
             nCliente: nCliente,
@@ -900,10 +893,10 @@ export async function guardarCuotaFija(data:any){
     }
 
 }
-export async function obtenerDatosCorte(esmulta = false){
+export async function obtenerDatosCorte(){
     try {
         let { cliente,token } = obtenerDatosCliente(); 
-        let padron = esmulta ? getContratoMulta() : getContratoCorte();
+        let padron = getContratoCorte();
         let Usuario = getIdUsuario();
         let datos = {
             'Padron': padron,
@@ -1165,38 +1158,6 @@ export async function BuscarMedidorCorte( indicio:string ) {
         let result = await service.BuscarMedidorCorte(datos,String(token));
         return result.data.Datos;
     }catch( error ){
-        throw conectionError(error);
-    }
-}
-export async function MultarToma(padron:number,total:number,Observacion:string,coords:any,Evidencia:any){
-    try{
-        let { cliente,token,idUsuario } = obtenerDatosCliente();
-        let datos = {
-            Usuario: idUsuario,
-            Padron:padron,
-            Cliente:cliente,
-            Debug:0,
-            Total:total,
-            Observacion:Observacion,
-            Cordenadas: coords,
-            Evidencia:Evidencia
-        }
-        let result = await service.MultarContratoAPI(datos,String(token));
-        console.log(result.data);
-        if(result.data.Status){
-            return true;
-        }else if (result.data.Code == 404){
-            throw ErrorMulta404;
-        }else if (result.data.Code == 424){
-            throw ErrorMulta424;
-        }else if (result.data.Code == 425){
-            throw ErrorMulta425;
-        }else if (result.data.Code == 401){
-            throw ErrorMulta401;
-        }else if( result.data.Code == 423){
-            throw ErrorMulta423;
-        }
-    }catch(error){
         throw conectionError(error);
     }
 }

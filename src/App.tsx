@@ -14,8 +14,6 @@ import DatosContribuyente from './pages/datos-contribuyente/datos-del-contribuye
 import PrincipalCortes from './pages/captura-cortes/buscar-contrato';
 import RealizarCorte from './pages/realizar-corte/realizar-corte';
 import BuscarCorte from './pages/buscar-corte/buscar-corte';
-import MultarToma from './pages/multar-toma/multar-toma.page';
-import RealizarMulta from './pages/Realizar-multa/realizar-multa.page';
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -74,12 +72,6 @@ const App: React.FC = () => (
         </Route>
         <Route exact path = "/ContratosReportes" >
           <ReportesContrato />
-        </Route>
-        <Route exact path = "/Multas" >
-          <MultarToma />
-        </Route>
-        <Route exact path = "/RealizarMulta" >
-          <RealizarMulta />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>

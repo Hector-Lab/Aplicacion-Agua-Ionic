@@ -1,6 +1,6 @@
 
 import './left-menu.css';
-import { create, logOut, reader, water, cutOutline, timer, construct, warning } from 'ionicons/icons'
+import { create, logOut, reader, water, cutOutline, timerOutline, construct } from 'ionicons/icons'
 import { IonMenu, IonContent, IonImg, IonItemDivider, IonMenuToggle, IonRouterOutlet, IonItem, IonLabel, IonIcon, IonSpinner } from '@ionic/react'
 import { useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom'
@@ -48,13 +48,7 @@ const MenuLeft: React.FC<ContainerProps> = () => {
             title: 'Historial Cortes',
             selects: ['buscar-corte'],
             path: '/buscar-corte',
-            icon: timer
-        },
-        {
-            title: 'Multar',
-            selects: ['Multas'],
-            path: '/Multas',
-            icon: warning
+            icon: timerOutline
         },
         /*{
             title: 'Inspecciones',
