@@ -320,3 +320,9 @@ export function getNumeroPaginasTareas(){
     let datos =  localStorage.getItem("@Storage:totalPaginasTareas")
     return (datos == null || datos == "") ? 0 : parseInt(datos) ;
 }
+export function setContratoMulta( idPadron:string ){
+    localStorage.setItem("@Storage:multaContrato",idPadron);
+}
+export function getContratoMulta(  ){
+    return localStorage.getItem("@Storage:multaContrato");
+}
