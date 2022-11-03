@@ -1,14 +1,18 @@
-import { IonAlert, IonApp, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonPicker, IonRippleEffect, IonRow, IonSelect, IonSelectOption, IonText, IonTextarea, IonTitle, IonToolbar, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
-import { checkmarkCircle, chevronBackCircleOutline, contractOutline, pencil, saveOutline, triangle } from "ionicons/icons";
-import { useEffect,useState } from 'react';
+import { IonModal,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRow, IonSelect, IonSelectOption, IonTextarea, IonTitle, IonToolbar, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
+import { checkmarkCircle, chevronBackCircleOutline, saveOutline, cameraOutline,arrowBackCircle, arrowForwardCircle } from "ionicons/icons";
+import { useEffect,useRef,useState } from 'react';
 import MenuLeft from '../../components/left-menu';
 import { obtenerDatosCorte, MultarToma } from '../../controller/apiController';
 import { useTakePhoto, obtenerBase64, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
 import './realizar-multa.page.css';
+import foto from '../../assets/icon/sinFoto.jpg';
 import { useHistory } from 'react-router';
 import { cerrarSesion } from "../../controller/storageController";
 
 const RealizarMulta: React.FC = () => {
+    //NOTE: referencias
+    const referenciaModal = useRef<HTMLIonModalElement>(null);
+
     const history = useHistory();
     const [ activarMenu, setActivarMenu ] = useState(true);
     const [ datosContrato, setDatosContrato ] = useState(Object);
@@ -17,11 +21,11 @@ const RealizarMulta: React.FC = () => {
     const [ fechaActual, setFechaActual ] = useState("");
     const [ tipoInspeccion, setTipoInspecion ] = useState(1);
     /**NOTE: Manejadores de fotos */
+    const [ mostrarSlide, setMostrarSlide ] = useState(Boolean);
     const [ arregloFotos, setArregloFotos ] = useState<string[]>([]);
     const [ arregloFotosVista, setArregloFotosVista ] = useState<string[]>([]);
     const [ fotoActiva, setFotoActiva ] = useState(String);
     const [ indexFoto, setIndexFoto ] = useState(Number);
-    const [ activarGaleria, setActivarGaleria ] = useState(false);
     const { takePhoto } = useTakePhoto();
     //NOTE: contradores de la base de datos
     const [ motivoInspeccion, setMotivoInspeccion ] = useState(String);
@@ -33,22 +37,8 @@ const RealizarMulta: React.FC = () => {
     const [ mensaje, setMensaje ] = useState( String );
     const [ errorCarga, setErrorCarga ] = useState(false);
     const [ errorCampos, setErrorCampos ] = useState(false);
-    const [pressentToast, dismissToast] = useIonToast();
     const sinFoto = "https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=";
-
-
-     //INDEV: Bloque de fotos para tomas
-     const [ fotoTomaEncode, setFotoTomaEncode ] =  useState(String);
-     const [ fotoTomaPreview, setFotoTomaPreview ] = useState(String);
-     //NOTE: Foto de la facha
-     const [ fotoFachadaEncode, setFotoFachadaEncode ] = useState(String);
-     const [ fotoFachadaPreview, setFotoFachadaPreview ] = useState(String);
-     //NOTE: Foto perspectiva amplia
-     const [ fotoCalleEncode, setFotoCalleEncode ] = useState(String);
-     const [ fotoCallePreview, setFotoCallePreview ] = useState(String);
-     //NOTE: Manejador de errores 
-     const [ errorImagenes, setErrorImagenes ] = useState( String );
-     const [ monto, setMonto ] = useState(4481);
+    const [ monto, setMonto ] = useState(4481);
 
     const modoPruebas = false; //INDEV: modo de pruebas 
     const fecha = new Date();
@@ -109,25 +99,16 @@ const RealizarMulta: React.FC = () => {
     }
     const agregarImagenEncode = async ( imgDir: string, tipoFoto: number ) =>{
         await obtenerBase64(imgDir).then((result) => {
-            switch (tipoFoto) {
-                case 1:
-                    setFotoTomaEncode(String(result));
-                    setFotoTomaPreview(imgDir);
-                    break;
-                case 2:
-                    setFotoFachadaEncode(String(result));
-                    setFotoFachadaPreview(imgDir);
-                    break;
-                case 3: 
-                    setFotoCalleEncode(String(result));
-                    setFotoCallePreview(imgDir);
-                    break;
-            }
-
+            console.log(String(result).slice(50));
+            //FIXME: se cambia por encode universal            
+            setIndexFoto(arregloFotos.length);
+            setFotoActiva(imgDir);
+            setArregloFotos([...arregloFotos,String(result)]);
+            setArregloFotosVista([...arregloFotosVista,imgDir]);
         }).finally(() => { setLoading(false) })
         
     }
-    const guardarMulta = async( Fotos: { "Toma": string, "Fachada": string , "Calle": string }  ) =>{
+    const guardarMulta = async( ) =>{
         //NOTE: Mandamo a Generar y cotizar la multa
         try{
             setLoading(true);
@@ -143,9 +124,7 @@ const RealizarMulta: React.FC = () => {
                     latitude: coordenadas.latitude,
                     longitude: coordenadas.longitude
                 }
-                console.log("Monto: " + monto);
-                console.log("Observacion: " + motivoInspeccion);
-                await MultarToma(parseInt(datosContrato.Padron),monto,motivoInspeccion,coords,Fotos)
+                await MultarToma(parseInt(datosContrato.Padron),monto,motivoInspeccion,coords, arregloFotos/*Fotos*/)
                 .then(()=>{
                     setTipoMensaje("Mensaje");
                     setMensaje("Multa guardada");
@@ -174,9 +153,6 @@ const RealizarMulta: React.FC = () => {
     const validarCampos = async () =>{
         //Validamos que las fotos no esten vacias
         let error = "";
-        fotoTomaEncode == "" ? error += "T," : error+="";
-        fotoFachadaEncode == "" ? error += "F," : error+="";
-        fotoCalleEncode == "" ? error += "C,": error+="";
         (monto < 1 || monto >= 5000) ? error +="M," : error+="";
         console.log("Errores encontrados: " + error );
         if( error == "" ){
@@ -188,13 +164,8 @@ const RealizarMulta: React.FC = () => {
             }
             if(motivoInspeccion != ""){
                 //NOTE: Creamosel objeto que se va a enviar
-                let jsonImagenes = {
-                    "Toma": fotoTomaEncode,
-                    "Fachada": fotoFachadaEncode,
-                    "Calle": fotoCalleEncode
-                };
                 setErrorCampos(false);
-                await guardarMulta(jsonImagenes);
+                await guardarMulta(/* FIXME: las imagenes*/);
             }else{
                 setTipoMensaje("Mensaje");
                 setMensaje("Favor de ingresar el motivo del corte");
@@ -202,43 +173,12 @@ const RealizarMulta: React.FC = () => {
             }
         }else{
             //Lanzamos los errores de fotos
-            setErrorImagenes(error);
         }
-    }
-    const borrarFotoEvidencia = () => {
-        let fotosTemporal = new Array;
-        let fotosEncoded = new Array;
-        arregloFotos.map((item, index) => {
-            if (index != indexFoto) {
-                fotosTemporal.push(item);
-            }
-        });
-        arregloFotosVista.map((item, index) => {
-            if (index != indexFoto) {
-                fotosEncoded.push(item);
-            }
-        })
-        setArregloFotosVista(fotosTemporal);
-        setArregloFotos(fotosEncoded);
-        setFotoActiva('');
-        pressentToast({
-            message: "Se elimino la foto de la lista",
-            duration: 2000,
-            position: 'top',
-            buttons: [
-                {
-                    side: 'start',
-                    icon: checkmarkCircle,
-                }
-            ]
-        });
-        console.log(fotosTemporal.length + " - " + fotosEncoded.length);
     }
     const regresar = () =>{
         history.replace('/Multas');
     }
     const limpiarPantalla = () =>{
-        setActivarGaleria(false);
         setFotoActiva("");
         setArregloFotos([]);
         setArregloFotosVista([]);
@@ -250,16 +190,10 @@ const RealizarMulta: React.FC = () => {
         setErrorCarga(false);
     } 
     //INDEV: Bloque para lanzar la camara dependiendo del tipo de foto
-    const FotoToma = () =>{
-        //NOTE: lanzamos la camara con el tipo 1
+    const CapturarEvidencia = () =>{
+        //NOTE: Lanzamos la camara para capturar la imagen
         handleAbrirCamera(1);
     } 
-    const FotoFachada = () =>{
-        handleAbrirCamera(2);
-    }
-    const FotoCalle = () =>{
-        handleAbrirCamera(3);
-    }
     const logOut = async(valido:Boolean) =>{
         if (valido) {
             setTipoMensaje("Sesión no valida");
@@ -273,6 +207,19 @@ const RealizarMulta: React.FC = () => {
                 })
             }, 2500);
           }
+    }
+    const siguienteFoto = () =>{
+        if((indexFoto + 1) < arregloFotos.length  ){
+            //INDEV: pasamos a la siguiente 
+            setFotoActiva( arregloFotosVista[indexFoto + 1] );
+            setIndexFoto(indexFoto + 1);
+        }
+    }
+    const fotoAnterior = () => {
+        if( (indexFoto - 1) >= 0 ){
+            setFotoActiva( arregloFotosVista[indexFoto - 1] );
+            setIndexFoto(indexFoto - 1);
+        }
     }
     return (
         <IonPage>
@@ -332,64 +279,61 @@ const RealizarMulta: React.FC = () => {
                         }
                         <br/>
                         <IonGrid>
-                                <IonRow>
-                                    <IonCol size="4" className="center" >
-                                        <IonLabel> Toma </IonLabel>
-                                        <IonCard onClick = { FotoToma } className = { errorImagenes.includes("T,") ? "errorInput" : "clearInput" }  >
-                                            <IonImg className="imagenViwer"  src = { fotoTomaPreview != "" ? fotoTomaPreview : sinFoto } ></IonImg>
-                                            <IonRippleEffect></IonRippleEffect>
-                                        </IonCard>
-                                    </IonCol>
-                                    <IonCol size="4" className="center" >
-                                        <IonLabel> Facha </IonLabel>
-                                        <IonCard onClick = { FotoFachada } className = { errorImagenes.includes("F,") ? "errorInput" : "clearInput" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
-                                        </IonCard>
-                                        <IonRippleEffect></IonRippleEffect>
-                                    </IonCol>
-                                    <IonCol size="4" className="center" >
-                                        <IonLabel> Calle </IonLabel>
-                                        <IonCard onClick = { FotoCalle } className = { errorImagenes.includes("C,") ? "errorInput" : "clearInput" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
-                                        </IonCard>
-                                        <IonRippleEffect></IonRippleEffect>
-                                    </IonCol>
-                                </IonRow>
+                            {/**INDEV: Se cambio por un boton */}
+                    <IonButton expand="block" color="danger" onClick={() => { setMostrarSlide(true) }} > Evidencias <IonIcon slot="end" icon={cameraOutline} ></IonIcon> </IonButton>
+                    </IonGrid>
+                        <IonGrid>
+                            <IonRow>
+                                <IonCol size="6" className = "center" >
+                                    <IonButton color="secondary" onClick = {regresar}>
+                                    <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
+                                        Regresar
+                                    </IonButton>
+                                </IonCol>
+                                <IonCol size="6" className = "center" >
+                                    <IonButton disabled = { false/** NOTE: default permite guardar varias multas */ } color="danger" onClick={validarCampos}>
+                                        Guardar
+                                        <IonIcon icon={saveOutline} slot="end"></IonIcon>
+                                    </IonButton>
+                                </IonCol>
+                            </IonRow>
                         </IonGrid>
-                        
-                        <br />
-                        {
-                            fotoActiva != '' ?
-                            <IonItem >
-                                <IonCard className = "centrarCarousel" >
-                                    <IonImg src={fotoActiva} />
-                                    <IonCardContent >
-                                        <IonButtons>
-                                            <IonButton color="secondary" onClick={() => { setFotoActiva(''); }}>Cerrar</IonButton>
-                                            <IonButton color="danger" onClick={() => { borrarFotoEvidencia(); }} >Eliminar</IonButton>
-                                        </IonButtons>
-                                    </IonCardContent>
-                                </IonCard>
-                            </IonItem> : <></>
-                        }
-                            <IonGrid>
-                                <IonRow>
-                                    <IonCol size="6" className = "center" >
-                                        <IonButton color="secondary" onClick = {regresar}>
-                                        <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
-                                            Regresar
-                                        </IonButton>
-                                    </IonCol>
-                                    <IonCol size="6" className = "center" >
-                                        <IonButton disabled = { false/** NOTE: default permite guardar varias multas */ } color="danger" onClick={validarCampos}>
-                                            Guardar
-                                            <IonIcon icon={saveOutline} slot="end"></IonIcon>
-                                        </IonButton>
-                                    </IonCol>
-                                </IonRow>
-                            </IonGrid>
-                    </IonCardContent>
+                </IonCardContent>
                 </IonCard>
+                {/**INDEV: Parte del modal de evidencias */}
+                <IonModal ref={referenciaModal} isOpen={mostrarSlide} >
+                    <IonHeader>
+                        <IonToolbar>
+                            <IonTitle className="center" > Evidencias </IonTitle>
+                        </IonToolbar>
+                    </IonHeader>
+                    <IonContent >
+                        <IonGrid >
+                            <IonRow className = "centrarImagen cabecera" >
+                                <IonCol className= " centrarIconos" > Lista de imagenes </IonCol>
+                            </IonRow>
+                            <IonRow className="media" >
+                                <IonCol size="2" className= "centrarIconos" >
+                                    <IonIcon onClick={ fotoAnterior } size="large" icon={arrowBackCircle} ></IonIcon></IonCol>
+                                <IonCol size="8" className="centrarIconos" >
+                                    <IonImg className="imgTotal" src = { fotoActiva == "" ? foto : fotoActiva } ></IonImg>
+                                </IonCol>
+                                <IonCol size="2" className= " centrarIconos" >
+                                    <IonIcon onClick={  siguienteFoto } size="large" icon={arrowForwardCircle} ></IonIcon>
+                                </IonCol>
+                            </IonRow>
+                            <IonRow className = "centrarImagen cabecera">
+                                <IonCol className= "centrarIconos centrarDatos" >
+                                    <IonButton expand="block" color="danger" >Borrar</IonButton>
+                                </IonCol>
+                                <IonCol className= "centrarIconos centrarDatos" >
+                                    <IonButton expand="block" color="success" onClick={CapturarEvidencia} >Capturar</IonButton>
+                                </IonCol>
+                            </IonRow>
+                        </IonGrid>
+                    </IonContent>
+                    <IonButton expand="block" onClick={ ()=>{setMostrarSlide(false)} } >Regresar</IonButton>
+                </IonModal>
                 <IonLoading 
                     cssClass="my-custom-class"
                     isOpen={ loading }

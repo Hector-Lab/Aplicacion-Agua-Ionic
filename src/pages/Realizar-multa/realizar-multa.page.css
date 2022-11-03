@@ -1,0 +1,45 @@
+.centrarImagen {
+    text-align: center;
+}
+.cabecera {
+    height: 150px;
+}
+.ColorVerder {
+    background-color: #135d54;
+    border: solid 1px #fff;
+    color: #fff;
+}
+.ColorAzul {
+    background-color: blue;
+    border: solid 1px #fff;
+    color: #fff;
+}
+.ColorRojo {
+    background-color: red;
+    border: solid 1px #fff;
+    color: #fff;
+}
+.media {
+ height: 300px;   
+}
+.centrarIconos {
+    align-self: center;
+}
+.centrarDatos {
+    align-content: center;
+}
+.btnCapturar {
+    background-color: #28a745;
+}
+.btnEliminar {
+    background-color: #ffc107;
+}
+.iconoIzquierda {
+    align-content: flex-end;
+}
+.iconoDerecha {
+    align-content: flex-start;
+}
+.imgTotal{
+    width: fit-content;
+}

@@ -70,8 +70,11 @@ const PrincipalCortes: React.FC = () => {
       .then((result) => {
         if (result.length == 0) {
           setMensaje("Contrato no encontrado, favor de revisar sus contrato asignados")
+          setListaContratos([]);
+        }else{
+          setListaContratos(result);
         }
-        setListaContratos(result);
+        
       }).catch((error) => {
         console.log(error);
       }).finally(() => {
@@ -82,7 +85,12 @@ const PrincipalCortes: React.FC = () => {
     setLoading(true);
     await BuscarMedidorCorte(medidor)
       .then((result) => {
-        setListaContratos(result);
+          if( result.length == 0 ){
+            setMensaje("Contrato no encontrado, favor de revisar sus contrato asignados")
+            setListaContratos([]);
+          }else{
+            setListaContratos(result);
+          }
       }).catch((error) => {
         setMensaje(error.message);
       }).finally(() => {
@@ -245,48 +253,54 @@ const PrincipalCortes: React.FC = () => {
               <br />
               <IonButton color="danger" expand="block" onClick={BuscarLectura}> Buscar Contrato </IonButton>
               <IonItem></IonItem>
-              <IonItem>
-              <IonGrid>
-                <IonRow>
-                  <IonCol size="2">
-                    <IonButton shape="round" color="danger" size="small" onClick={ paginaAnterior} /* disabled={getPuntero() == 0} */>
-                      <IonIcon icon={arrowBackOutline} size="small" ></IonIcon>
-                    </IonButton></IonCol>
-                    <IonCol size="8"><IonLabel className = "center">Pagina:{index}</IonLabel></IonCol>
-                  <IonCol size="2">
-                    <IonButton shape="round" color="danger" onClick={ paginaSigueinte } /* disabled = {getPuntero()+1==getNumeroPaginas()} */>
-                      <IonIcon icon={arrowForwardOutline} size="small" ></IonIcon>
-                    </IonButton>
-                  </IonCol>
-                </IonRow>
-              </IonGrid>
-              </IonItem>
+              {
+                (listaContratos != null && listaContratos.length > 0) ?
+                <IonItem>
+                <IonGrid>
+                  <IonRow>
+                    <IonCol size="2">
+                      <IonButton shape="round" color="danger" size="small" onClick={ paginaAnterior} /* disabled={getPuntero() == 0} */>
+                        <IonIcon icon={arrowBackOutline} size="small" ></IonIcon>
+                      </IonButton></IonCol>
+                      <IonCol size="8"><IonLabel className = "center">Pagina:{index}</IonLabel></IonCol>
+                    <IonCol size="2">
+                      <IonButton shape="round" color="danger" onClick={ paginaSigueinte } /* disabled = {getPuntero()+1==getNumeroPaginas()} */>
+                        <IonIcon icon={arrowForwardOutline} size="small" ></IonIcon>
+                      </IonButton>
+                    </IonCol>
+                  </IonRow>
+                </IonGrid>
+              </IonItem>:<></>
+              }
             </IonGrid>
           </IonCardHeader>
           <IonList>
             {
               listaContratos.map((item, index) => {
-                let papas = getCuentasPapas();
-                let arrayData = functionValidarLectura(parseInt(item.Estatus), parseInt(item.M_etodoCobro));
-                let cuentaPapa = String(papas).includes(item.id);
-                if (cuentaPapa) {
-                  arrayData[0] += "Desarrollo";
+                if( item != undefined ){
+                  let papas = getCuentasPapas();
+                  //console.log( "Estado de la toma: " + item);
+                  let arrayData = functionValidarLectura(parseInt(item.Estatus), parseInt(item.M_etodoCobro));
+                  let cuentaPapa = String(papas).includes(item.id);
+                  if (cuentaPapa) {
+                    arrayData[0] += "Desarrollo";
+                  }
+                  return <div className={(cuentaPapa || arrayData[1]) ? 'cuotaFija' : ''} key={index} onClick={() => { mostrarDatosContrato(item, cuentaPapa); }}>
+                    <IonItem detail={true} >
+                      <IonList>
+                        <IonLabel>{item.Contribuyente}</IonLabel>
+                        <p>Contrato: {item.ContratoVigente},
+                                           Medidor: {item.Medidor},
+                                           Toma: {item.Toma}
+                                           &nbsp;&nbsp;&nbsp;&nbsp;
+                                           {
+                            (cuentaPapa || arrayData[1]) ? <IonNote style={{ fontsize: 20 }} color="danger">{arrayData[0]}</IonNote> : ""
+                          }
+                        </p>
+                      </IonList>
+                    </IonItem>
+                  </div>
                 }
-                return <div className={(cuentaPapa || arrayData[1]) ? 'cuotaFija' : ''} key={index} onClick={() => { mostrarDatosContrato(item, cuentaPapa); }}>
-                  <IonItem detail={true} >
-                    <IonList>
-                      <IonLabel>{item.Contribuyente}</IonLabel>
-                      <p>Contrato: {item.ContratoVigente},
-                                         Medidor: {item.Medidor},
-                                         Toma: {item.Toma}
-                                         &nbsp;&nbsp;&nbsp;&nbsp;
-                                         {
-                          (cuentaPapa || arrayData[1]) ? <IonNote style={{ fontsize: 20 }} color="danger">{arrayData[0]}</IonNote> : ""
-                        }
-                      </p>
-                    </IonList>
-                  </IonItem>
-                </div>
               })
             }
           </IonList>
