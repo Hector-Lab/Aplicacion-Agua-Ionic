@@ -308,14 +308,14 @@ const RealizarMulta: React.FC = () => {
                         </IonToolbar>
                     </IonHeader>
                     <IonContent >
-                        <IonGrid >
+                        <IonGrid fixed = { true } >
                             <IonRow className = "centrarImagen cabecera" >
                                 <IonCol className= " centrarIconos" > Lista de imagenes </IonCol>
                             </IonRow>
                             <IonRow className="media" >
                                 <IonCol size="2" className= "centrarIconos" >
                                     <IonIcon onClick={ fotoAnterior } size="large" icon={arrowBackCircle} ></IonIcon></IonCol>
-                                <IonCol size="8" className="centrarIconos" >
+                                <IonCol size="8" className="centrarIconos ColorVerder" >
                                     <IonImg className="imgTotal" src = { fotoActiva == "" ? foto : fotoActiva } ></IonImg>
                                 </IonCol>
                                 <IonCol size="2" className= " centrarIconos" >
