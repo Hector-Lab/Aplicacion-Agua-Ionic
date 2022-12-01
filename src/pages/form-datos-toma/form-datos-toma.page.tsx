@@ -35,7 +35,7 @@ import MenuLeft from '../../components/left-menu';
 import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija} from '../../controller/apiController';
 import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda, setPaginasBusqueda,getCuentasPapas } from '../../controller/storageController';
 import { searchCircle, arrowForwardOutline, arrowBackOutline, cogSharp, server } from 'ionicons/icons'
-import { Console } from "node:console";
+import { isPlatform} from '@ionic/react';
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');
@@ -564,13 +564,15 @@ const FormDatosTomaPage: React.FC = () => {
             <IonItemDivider >
               {showPagination ? <IonGrid>
                 <IonRow>
-                  <IonCol size="2">
-                    <IonButton shape="round" color="danger" size="small" onClick={busqueda ? handlePreviousPageBusqueda : handlePreviousPage} /* disabled={getPuntero() == 0} */>
+                  <IonCol>
+                    <IonButton shape="round" color="danger" size="small" onClick={busqueda ? handlePreviousPageBusqueda : handlePreviousPage} disabled={getPuntero() == 0}>
                       <IonIcon icon={arrowBackOutline} size="small" ></IonIcon>
                     </IonButton></IonCol>
-                  <IonCol size="8"><IonLabel>Resultados: Pagina {busqueda ? getPunteroBusqueda() + 1 : getPuntero() + 1} de {paginas}</IonLabel></IonCol>
-                  <IonCol size="2">
-                    <IonButton shape="round" color="danger" onClick={busqueda ? handleNextPageBusqueda : handleNextPage} /* disabled = {getPuntero()+1==getNumeroPaginas()} */>
+                  <IonCol className = "centrar-ios" >
+                    <IonLabel >Pagina {busqueda ? getPunteroBusqueda() + 1 : getPuntero() + 1} de {(paginas == 0 ? 1 : paginas)}</IonLabel>
+                  </IonCol>
+                  <IonCol>
+                    <IonButton shape="round" color="danger" onClick={busqueda ? handleNextPageBusqueda : handleNextPage}  disabled = {getPuntero()+1==(getNumeroPaginas())}>
                       <IonIcon icon={arrowForwardOutline} size="small" ></IonIcon>
                     </IonButton>
                   </IonCol>
@@ -588,7 +590,7 @@ const FormDatosTomaPage: React.FC = () => {
                     arrayData[0] += "Desarrollo";  
                   }
                   return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => {  abrirCapturaDatos(item.id, item.Contribuyente, item.ContratoVigente, item.Medidor,item.M_etodoCobro,cuentaPapa) }}>
-                    <IonItem detail={true} >
+                    <IonItem detail={true} className = {isPlatform("ios") ? "padding-ios" : "" } >
                       <IonList>
                         <IonLabel>{item.Contribuyente}</IonLabel>
                         <p>Contrato: {item.ContratoVigente},

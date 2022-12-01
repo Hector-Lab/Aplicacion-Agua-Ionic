@@ -251,19 +251,21 @@ const PrincipalCortes: React.FC = () => {
                 </IonCol>
               </IonRow>
               <br />
-              <IonButton color="danger" expand="block" onClick={BuscarLectura}> Buscar Contrato </IonButton>
+              <IonButton color="danger" expand="block" onClick={BuscarLectura}>
+              <IonIcon icon={searchCircle} slot="end" size = "large"></IonIcon>
+                 Buscar Toma </IonButton>
               <IonItem></IonItem>
               {
                 (listaContratos != null && listaContratos.length > 0) ?
                 <IonItem>
                 <IonGrid>
                   <IonRow>
-                    <IonCol size="2">
+                    <IonCol>
                       <IonButton shape="round" color="danger" size="small" onClick={ paginaAnterior} /* disabled={getPuntero() == 0} */>
                         <IonIcon icon={arrowBackOutline} size="small" ></IonIcon>
                       </IonButton></IonCol>
-                      <IonCol size="8"><IonLabel className = "center">Pagina:{index}</IonLabel></IonCol>
-                    <IonCol size="2">
+                      <IonCol ><IonLabel className = "center">Pagina:{index == 0 ? 1 : index}</IonLabel></IonCol>
+                    <IonCol >
                       <IonButton shape="round" color="danger" onClick={ paginaSigueinte } /* disabled = {getPuntero()+1==getNumeroPaginas()} */>
                         <IonIcon icon={arrowForwardOutline} size="small" ></IonIcon>
                       </IonButton>

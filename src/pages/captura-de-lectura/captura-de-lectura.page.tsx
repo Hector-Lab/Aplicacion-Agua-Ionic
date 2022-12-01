@@ -30,14 +30,15 @@ import {
     useIonViewDidEnter,
     IonRippleEffect
 } from '@ionic/react'
-import { camera, checkmarkCircle, saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
+import { saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
 import './captura-de-lectura.page.css';
 import MenuLeft from '../../components/left-menu';
-import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija, ConfiguracionEvidencias} from '../../controller/apiController';
+import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija } from '../../controller/apiController';
 import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
-import { getDatosLecturaStorage, verifyingSession, contribuyenteBuscado, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
+import { getDatosLecturaStorage, verifyingSession, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
 import { useHistory } from 'react-router';
 import './captura-de-lectura.page.css';
+import foto from '../../assets/icon/sinFoto.jpg';
 const CapturaDeLectura: React.FC = () => {
     const history = useHistory();
     const [datosContribuyente, setDatosContribuyente] = useState(Object);
@@ -702,21 +703,21 @@ const CapturaDeLectura: React.FC = () => {
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Toma </IonLabel>
                                         <IonCard onClick = { FotoToma } className = { errorFotoUI.includes("FM,") ? "cardError" : "" } >
-                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
+                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : foto }></IonImg>
                                             <IonRippleEffect></IonRippleEffect>
                                         </IonCard>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Facha </IonLabel>
                                         <IonCard onClick = { FotoFachada } className = { errorFotoUI.includes("FF,") ? "cardError" : "" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Calle </IonLabel>
                                         <IonCard onClick = { FotoCalle } className = { errorFotoUI.includes("FC,") ? "cardError" : "" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
@@ -747,13 +748,13 @@ const CapturaDeLectura: React.FC = () => {
                             <IonGrid>
                                 <IonRow>
                                     <IonCol size="6">
-                                        <IonButton color="secondary" onClick = {btnRegresar}>
+                                        <IonButton expand = "block" color="secondary" onClick = {btnRegresar}>
                                             <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                             Regresar
                                         </IonButton>
                                     </IonCol>
                                     <IonCol size="6">
-                                        <IonButton color="danger" onClick={validarFotosTomadas} disabled={btnInactivo}>
+                                        <IonButton expand = "block" color="danger" onClick={validarFotosTomadas} disabled={btnInactivo}>
                                             Guardar
                                             <IonIcon icon={saveOutline} slot="end"></IonIcon>
                                         </IonButton>

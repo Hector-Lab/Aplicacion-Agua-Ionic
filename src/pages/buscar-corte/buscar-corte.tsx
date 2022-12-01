@@ -23,13 +23,15 @@ import { IonButtons,
     IonNote,
     IonCardContent,
     IonLoading,
-    IonAlert} from "@ionic/react";
+    IonAlert,
+    IonIcon} from "@ionic/react";
 import { useEffect, useState } from "react";
 import { generarFechas } from '../../utilities'; 
 import MenuLeft from '../../components/left-menu';
 import { ListaCortes } from '../../controller/apiController';
 import { useHistory } from  'react-router-dom'; 
 import './buscar-corte.css'
+import { searchCircle } from "ionicons/icons";
 const BuscarCorte: React.FC = () => {
     const history = useHistory();
     const [activarMenu , setActivarMenu ] = useState(true);
@@ -83,7 +85,7 @@ const BuscarCorte: React.FC = () => {
             }
             <IonHeader>
                 <IonToolbar color="danger" >
-                    <IonTitle>Cortar toma</IonTitle>
+                    <IonTitle> Historial Cortes </IonTitle>
                     <IonButtons slot="start" className="btnMenu">
                         <IonMenuButton ></IonMenuButton>
                     </IonButtons>
@@ -91,9 +93,7 @@ const BuscarCorte: React.FC = () => {
             </IonHeader>
             <IonContent>
                 <IonCard>
-                    <IonCardHeader >
-                        <IonTitle className = "center" > Historial de cortes </IonTitle>
-                        <br />
+                    <IonCardHeader>
                         <IonRow className = "bordeFecha" >
                             <IonCol size = "6" className = "labelCalendario" >
                                 <IonText > Seleccione el año: </IonText>
@@ -130,7 +130,10 @@ const BuscarCorte: React.FC = () => {
                         </IonRow>
                         <IonRow>
                             <IonCol className = "center margintop" >
-                                <IonButton color="danger" expand = "block" onClick = { obtenerCortes } > <IonText> Buscar Cortes </IonText> <IonRippleEffect></IonRippleEffect> </IonButton>
+                                <IonButton color="danger" expand = "block" onClick = { obtenerCortes } >
+                                <IonIcon icon={searchCircle} slot="end" size = "large" ></IonIcon>
+                                    <IonText> Buscar Historial </IonText> <IonRippleEffect></IonRippleEffect>
+                                    </IonButton>
                             </IonCol>
                         </IonRow>
                     </IonCardHeader>

@@ -99,7 +99,7 @@ const MultarToma: React.FC = () => {
         }
         <IonHeader>
           <IonToolbar color="danger" >
-            <IonTitle>{` Multar contrato `}</IonTitle>
+            <IonTitle>{` Multar Contrato `}</IonTitle>
             <IonButtons slot="start" className="btnMenu">
               <IonMenuButton ></IonMenuButton>
             </IonButtons>
@@ -135,7 +135,7 @@ const MultarToma: React.FC = () => {
                 </IonRow>
                 <IonRow>
                     <IonCol size="12" > 
-                        <IonButton color="danger" expand="block" onClick={ buscarPadron } ><IonIcon icon={ searchCircle } color="light" size="large" ></IonIcon></IonButton>
+                        <IonButton color="danger" expand="block" onClick={ buscarPadron } > Buscar Toma <IonIcon slot = "end" icon={ searchCircle } color="light" size="large" ></IonIcon></IonButton>
                     </IonCol>
                 </IonRow>
               </IonGrid>

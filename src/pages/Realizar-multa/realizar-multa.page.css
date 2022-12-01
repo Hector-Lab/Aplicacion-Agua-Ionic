@@ -43,3 +43,10 @@
 .imgTotal{
     width: 80%;
 }
+.bottom{
+    margin-bottom: 10%;
+}
+.centrarIconosTest{
+    align-self: center;
+    text-align: right;
+}

@@ -111,12 +111,14 @@ const MenuLeft: React.FC<ContainerProps> = () => {
         <div>
             <IonMenu side="start" menuId="first" contentId="main-content" >
             <IonContent >
-                    <div className = "center">
+                    <div className = "center" >
                         {   logo != "" ? 
                             <IonImg  src= {"data:image/png;base64,"+logo}/* "../assets/Imagenes/Logo recortado.png" */></IonImg> : 
                             <IonSpinner className = "spinerItem" color = "danger" name = "lines"></IonSpinner>}
+                    <br></br>
                     </div>
-                    <IonItemDivider className="menuLeft" />
+
+                    {/*<IonItemDivider className="menuLeft" />*/}
                     <IonMenuToggle  >
                         {
                             appPages.map((item, index) => {
@@ -127,7 +129,7 @@ const MenuLeft: React.FC<ContainerProps> = () => {
                             })
                         }
                     </IonMenuToggle>
-                    <IonItemDivider />
+                    {/*<IonItemDivider />*/}
                 </IonContent>
             </IonMenu>
             <IonRouterOutlet id = "main-content"></IonRouterOutlet>

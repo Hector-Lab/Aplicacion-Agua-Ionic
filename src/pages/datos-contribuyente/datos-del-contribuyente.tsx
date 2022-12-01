@@ -138,17 +138,14 @@ const DatosContribuyente: React.FC = () => {
                         <br />
                         <IonGrid>
                             <IonRow>
-                                <IonCol size="4">
-                                    <IonButton color="secondary" onClick = {handleBtnRegresar}>
-                                        Regresar
-                                        <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
+                                <IonCol size = "6" >
+                                    <IonButton expand ="block" color="secondary" onClick = {handleBtnRegresar}> 
+                                        Regresar <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                     </IonButton>
                                 </IonCol>
-                                <IonCol size="4" ></IonCol>
-                                <IonCol size="4">
-                                    <IonButton color="danger" onClick={handleBtnGuardarContacto}>
-                                        Guardar
-                                        <IonIcon icon={saveSharp} slot="end"></IonIcon>
+                                <IonCol size = "6">
+                                    <IonButton expand ="block" color="danger" onClick={handleBtnGuardarContacto}> 
+                                        Guardar <IonIcon icon={saveSharp} slot="end"></IonIcon>
                                     </IonButton>
                                 </IonCol>
                             </IonRow>

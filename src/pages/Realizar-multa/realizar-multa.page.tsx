@@ -1,5 +1,5 @@
 import { IonModal,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRow, IonSelect, IonSelectOption, IonTextarea, IonTitle, IonToolbar, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
-import { checkmarkCircle, chevronBackCircleOutline, saveOutline, cameraOutline,arrowBackCircle, arrowForwardCircle } from "ionicons/icons";
+import { checkmarkCircle, chevronBackCircleOutline, saveOutline, cameraOutline,arrowBackCircle, arrowForwardCircle, arrowBackCircleOutline } from "ionicons/icons";
 import { useEffect,useRef,useState } from 'react';
 import MenuLeft from '../../components/left-menu';
 import { obtenerDatosCorte, MultarToma } from '../../controller/apiController';
@@ -285,13 +285,13 @@ const RealizarMulta: React.FC = () => {
                         <IonGrid>
                             <IonRow>
                                 <IonCol size="6" className = "center" >
-                                    <IonButton color="secondary" onClick = {regresar}>
+                                    <IonButton expand = "block" color="secondary" onClick = {regresar}>
                                     <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                         Regresar
                                     </IonButton>
                                 </IonCol>
                                 <IonCol size="6" className = "center" >
-                                    <IonButton disabled = { false/** NOTE: default permite guardar varias multas */ } color="danger" onClick={validarCampos}>
+                                    <IonButton expand = "block" disabled = { false/** NOTE: default permite guardar varias multas */ } color="danger" onClick={validarCampos}>
                                         Guardar
                                         <IonIcon icon={saveOutline} slot="end"></IonIcon>
                                     </IonButton>
@@ -310,12 +310,12 @@ const RealizarMulta: React.FC = () => {
                     <IonContent >
                         <IonGrid fixed = { true } >
                             <IonRow className = "centrarImagen cabecera" >
-                                <IonCol className= " centrarIconos" > Lista de imagenes </IonCol>
+                                <IonCol className= "centrarIconos" > Lista de imagenes </IonCol>
                             </IonRow>
                             <IonRow className="media" >
-                                <IonCol size="2" className= "centrarIconos" >
+                                <IonCol size="2" className= "centrarIconosTest" >
                                     <IonIcon onClick={ fotoAnterior } size="large" icon={arrowBackCircle} ></IonIcon></IonCol>
-                                <IonCol size="8" className="centrarIconos ColorVerder" >
+                                <IonCol size="8" className="centrarIconos" >
                                     <IonImg className="imgTotal" src = { fotoActiva == "" ? foto : fotoActiva } ></IonImg>
                                 </IonCol>
                                 <IonCol size="2" className= " centrarIconos" >
@@ -332,7 +332,7 @@ const RealizarMulta: React.FC = () => {
                             </IonRow>
                         </IonGrid>
                     </IonContent>
-                    <IonButton expand="block" onClick={ ()=>{setMostrarSlide(false)} } >Regresar</IonButton>
+                    <IonButton expand="block" className = "bottom" onClick={ ()=>{setMostrarSlide(false)} } > <IonIcon icon={arrowBackCircleOutline} size = "large" slot="start"></IonIcon> Regresar</IonButton>
                 </IonModal>
                 <IonLoading 
                     cssClass="my-custom-class"

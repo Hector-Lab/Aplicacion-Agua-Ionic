@@ -28,3 +28,10 @@ margin-top: -20px;
     background-color: lightcoral;
     border-radius: 5px;
 }
+.padding-ios{
+    margin-bottom: 3%;
+    margin-top: 3%;
+}
+.centrar-ios{
+    align-content: center;
+}
