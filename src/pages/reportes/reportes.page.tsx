@@ -1,4 +1,4 @@
-import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCheckbox, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonText, IonTextarea, IonTitle, IonToolbar, IonIcon, useIonViewWillEnter } from '@ionic/react'
+import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonTextarea, IonTitle, IonToolbar, IonIcon, useIonViewWillEnter } from '@ionic/react'
 import { useEffect, useState } from 'react'
 import LeftMenu from '../../components/left-menu';
 import {  guardarReporteV2 } from '../../controller/apiController';
@@ -6,7 +6,7 @@ import { verifyingSession, cerrarSesion, getContratoReporte } from '../../contro
 import { useTakePhoto, obtenerBase64, obtenerCoordenadas } from '../../utilities';
 import { useHistory } from 'react-router';
 import './reportes.page.css';
-import { arrowBackOutline,checkmarkCircle, chevronBackCircleOutline, saveOutline } from 'ionicons/icons';
+import { checkmarkCircle, chevronBackCircleOutline, saveOutline } from 'ionicons/icons';
 import MenuLeft from '../../components/left-menu';
 import foto from '../../assets/icon/sinFoto.jpg';
 
@@ -19,7 +19,6 @@ const Reportes: React.FC = () => {
     const [ tokenExpired, setTokenExpired ] = useState(false);
     const [ connectionError, setConnectionError ] = useState(false);
     const [ contrato,setContrato ] = useState(String);
-    const [ fallaAdministrativa, setFallaAdministrativa ] = useState(false);
     const [ arregloFotos, setArregloFotos ] = useState<string[]>([]);
     const [ fotoActiva, setFotoActiva ] = useState('');
     const [ indexFoto, setIndexFoto ] = useState(Number);
@@ -109,8 +108,8 @@ const Reportes: React.FC = () => {
         }).finally(() => { setLoading(false) })
     }
     const borrarFotoEvidencia = () => {
-        let fotosTemporal = new Array;
-        let fotosEncoded = new Array;
+        let fotosTemporal = new Array();
+        let fotosEncoded = new Array();
         arregloFotos.map((item, index) => {
             if (index != indexFoto) {
                 fotosTemporal.push(item);
@@ -140,27 +139,27 @@ const Reportes: React.FC = () => {
         setMessage("");
         setErrorUI("");
         let error = "";
-        if( calle.trim().length == 0 ){
+        if( calle.trim().length === 0 ){
             error += "Cl,";
         }
-        if( colonia.trim().length == 0 ){
+        if( colonia.trim().length === 0 ){
             error += "C,";
         }
-        if( numero.trim().length == 0 ){
+        if( numero.trim().length === 0 ){
             error += "N,";
         }
-        if ( descripcion.trim().length == 0 ){
+        if ( descripcion.trim().length === 0 ){
             error += "D,";
         }
         //NOTE: aqui ingresamos lar reglas para las imagenes
-        if(fotoMedidorEncode.length == 0)
+        if(fotoMedidorEncode.length === 0)
             error += "FM,"
-        if(fotoFachadaEncode.length == 0)
+        if(fotoFachadaEncode.length === 0)
             error += "FF,"
-        if(fotoCallePreview.length == 0)
+        if(fotoCallePreview.length === 0)
             error += "FC,";
         //NOTE: validamos que los datos no esten en 0
-        error.length == 0 ? enviarReporte() : lanzarMensaje("Mensaje","Favor de ingresar los campos requeridos", error);
+        error.length === 0 ? enviarReporte() : lanzarMensaje("Mensaje","Favor de ingresar los campos requeridos", error);
     }
     const enviarReporte = async () =>{
         //NOTE: Recolectamos los datos

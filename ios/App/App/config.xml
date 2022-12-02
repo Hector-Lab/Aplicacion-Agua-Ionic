@@ -23,5 +23,9 @@
     <param name="ios-package" value="CDVLocation"/>
   </feature>
 
+  <feature name="Capture">
+    <param name="ios-package" value="CDVCapture"/>
+  </feature>
+
   
 </widget>

@@ -1,18 +1,21 @@
 import { IonModal,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRow, IonSelect, IonSelectOption, IonTextarea, IonTitle, IonToolbar, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
-import { checkmarkCircle, chevronBackCircleOutline, saveOutline, cameraOutline,arrowBackCircle, arrowForwardCircle, arrowBackCircleOutline } from "ionicons/icons";
+import { chevronBackCircleOutline, saveOutline, cameraOutline,arrowBackCircle, arrowForwardCircle, arrowBackCircleOutline } from "ionicons/icons";
 import { useEffect,useRef,useState } from 'react';
+import { AndroidPermissions } from '@ionic-native/android-permissions';
+import { MediaCapture, MediaFile } from '@awesome-cordova-plugins/media-capture';
 import MenuLeft from '../../components/left-menu';
 import { obtenerDatosCorte, MultarToma } from '../../controller/apiController';
 import { useTakePhoto, obtenerBase64, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
+import { VideoPlayer } from '@awesome-cordova-plugins/video-player';
 import './realizar-multa.page.css';
 import foto from '../../assets/icon/sinFoto.jpg';
 import { useHistory } from 'react-router';
 import { cerrarSesion } from "../../controller/storageController";
+import { Console } from "node:console";
 
 const RealizarMulta: React.FC = () => {
     //NOTE: referencias
     const referenciaModal = useRef<HTMLIonModalElement>(null);
-
     const history = useHistory();
     const [ activarMenu, setActivarMenu ] = useState(true);
     const [ datosContrato, setDatosContrato ] = useState(Object);
@@ -190,9 +193,41 @@ const RealizarMulta: React.FC = () => {
         setErrorCarga(false);
     } 
     //INDEV: Bloque para lanzar la camara dependiendo del tipo de foto
-    const CapturarEvidencia = () =>{
+    const CapturarEvidencia = async () =>{
         //NOTE: Lanzamos la camara para capturar la imagen
-        handleAbrirCamera(1);
+        //TESTING: capturarVideo
+        //handleAbrirCamera(1);
+        if(!AndroidPermissions.checkPermission(AndroidPermissions.PERMISSION.RECORD_AUDIO)){
+            AndroidPermissions.requestPermission(AndroidPermissions.PERMISSION.RECORD_AUDIO);
+        }
+        VideoPlayer.play("file://storage/emulated/0/DCIM/Camera/20221202_133133.mp4",{ volume: 0.5 }).then(()=>{
+            console.log("Video reproducido");
+        }).catch(( error )=>{
+            console.log("Error al reproducir el video");
+            console.log(error);
+        })
+        MediaCapture.captureVideo({duration:15, limit:1, quality:.4 })
+        .then( async (datos:any)=>{
+            console.log("Direccion Video: " + datos[0].fullPath);
+            if(datos[0].fullPath != undefined){
+                let direccion = datos[0].fullPath;
+                console.log("Direccion Video: " + datos[0].fullPath);
+                VideoPlayer.play(direccion,{ volume: 0.5 }).then(()=>{
+                    console.log("Video reproducido");
+                }).catch(( error )=>{
+                    console.log("Error al reproducir el video");
+                    console.log(error);
+                });
+                await obtenerBase64(direccion).then(( base64 )=>{
+                    console.log( String(base64).substring(0,100) );
+                })
+            }else{
+                console.log("Error al procesar el video " + JSON.stringify(datos));
+            }
+        }).catch((error)=>{
+            console.log("Error al capturar video");
+            console.log(JSON.stringify(error));
+        });
     } 
     const logOut = async(valido:Boolean) =>{
         if (valido) {
@@ -220,6 +255,8 @@ const RealizarMulta: React.FC = () => {
             setFotoActiva( arregloFotosVista[indexFoto - 1] );
             setIndexFoto(indexFoto - 1);
         }
+    }
+    const capturarVideo = () =>{
     }
     return (
         <IonPage>
