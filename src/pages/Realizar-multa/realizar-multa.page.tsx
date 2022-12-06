@@ -195,39 +195,7 @@ const RealizarMulta: React.FC = () => {
     //INDEV: Bloque para lanzar la camara dependiendo del tipo de foto
     const CapturarEvidencia = async () =>{
         //NOTE: Lanzamos la camara para capturar la imagen
-        //TESTING: capturarVideo
-        //handleAbrirCamera(1);
-        if(!AndroidPermissions.checkPermission(AndroidPermissions.PERMISSION.RECORD_AUDIO)){
-            AndroidPermissions.requestPermission(AndroidPermissions.PERMISSION.RECORD_AUDIO);
-        }
-        VideoPlayer.play("file://storage/emulated/0/DCIM/Camera/20221202_133133.mp4",{ volume: 0.5 }).then(()=>{
-            console.log("Video reproducido");
-        }).catch(( error )=>{
-            console.log("Error al reproducir el video");
-            console.log(error);
-        })
-        MediaCapture.captureVideo({duration:15, limit:1, quality:.4 })
-        .then( async (datos:any)=>{
-            console.log("Direccion Video: " + datos[0].fullPath);
-            if(datos[0].fullPath != undefined){
-                let direccion = datos[0].fullPath;
-                console.log("Direccion Video: " + datos[0].fullPath);
-                VideoPlayer.play(direccion,{ volume: 0.5 }).then(()=>{
-                    console.log("Video reproducido");
-                }).catch(( error )=>{
-                    console.log("Error al reproducir el video");
-                    console.log(error);
-                });
-                await obtenerBase64(direccion).then(( base64 )=>{
-                    console.log( String(base64).substring(0,100) );
-                })
-            }else{
-                console.log("Error al procesar el video " + JSON.stringify(datos));
-            }
-        }).catch((error)=>{
-            console.log("Error al capturar video");
-            console.log(JSON.stringify(error));
-        });
+        handleAbrirCamera(1);
     } 
     const logOut = async(valido:Boolean) =>{
         if (valido) {
@@ -256,7 +224,22 @@ const RealizarMulta: React.FC = () => {
             setIndexFoto(indexFoto - 1);
         }
     }
-    const capturarVideo = () =>{
+    const borrarEvidencia = () =>{
+        setLoading(true);
+        if(arregloFotos.length > 1){
+            let arregloAuxiliar = arregloFotosVista.filter(item => item !== arregloFotosVista[indexFoto]);
+            let arregloAuxiliarCodificado  = arregloFotos.filter(item => item !== arregloFotos[indexFoto]);
+            setIndexFoto(indexFoto-1);
+            setArregloFotos( arregloAuxiliarCodificado);
+            setArregloFotosVista( arregloAuxiliar);
+            setFotoActiva(arregloFotosVista[indexFoto-1]);
+        }else{
+            setIndexFoto(0);
+            setFotoActiva("");
+            setArregloFotos([]);
+            setArregloFotosVista([]);
+        }
+        setLoading(false);
     }
     return (
         <IonPage>
@@ -361,7 +344,7 @@ const RealizarMulta: React.FC = () => {
                             </IonRow>
                             <IonRow className = "centrarImagen cabecera">
                                 <IonCol className= "centrarIconos centrarDatos" >
-                                    <IonButton expand="block" color="danger" >Borrar</IonButton>
+                                    <IonButton onClick = {borrarEvidencia} expand="block" color="danger" >Borrar</IonButton>
                                 </IonCol>
                                 <IonCol className= "centrarIconos centrarDatos" >
                                     <IonButton expand="block" color="success" onClick={CapturarEvidencia} >Capturar</IonButton>

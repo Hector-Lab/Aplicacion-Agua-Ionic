@@ -51,13 +51,15 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>To Pick Photos from Library</string>
 	<key>UILaunchStoryboardName</key>
-	<string>Main</string>
+	<string>Main.storyboard</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

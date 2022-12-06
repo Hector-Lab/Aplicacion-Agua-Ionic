@@ -47,7 +47,6 @@ const CapturaDeLectura: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [anomalias, setAnomalias] = useState<any[]>([])
     const [consumo, setConsumo] = useState(Number);
-    const [pressentToast, dismissToast] = useIonToast();
     const [listaMeses, setlistaMeses] = useState<any[]>([]);
     const [mesDefautl, setMesDefault] = useState('');
     const [indexMes, setIndexMes] = useState(Number);
