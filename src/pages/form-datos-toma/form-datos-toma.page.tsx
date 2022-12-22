@@ -27,15 +27,19 @@ import {
   useIonViewWillEnter,
   IonNote,
   useIonViewWillLeave,
+  IonFab,
+  IonFabButton,
+  IonFabList,
   
 } from "@ionic/react";
 import { useHistory } from 'react-router-dom'
 import "./form-datos-toma.page.css";
 import MenuLeft from '../../components/left-menu';
-import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija} from '../../controller/apiController';
-import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda, setPaginasBusqueda,getCuentasPapas } from '../../controller/storageController';
-import { searchCircle, arrowForwardOutline, arrowBackOutline, cogSharp, server } from 'ionicons/icons'
+import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija, DescargarSectoresLecturistas, DescargarPadronAnomalias,DescargarConfiguraciones,DescargarContratosLecturaSector} from '../../controller/apiController';
+import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda, setPaginasBusqueda,getCuentasPapas,getDatosUsuario } from '../../controller/storageController';
+import { searchCircle, arrowForwardOutline, arrowBackOutline, cloudDownload } from 'ionicons/icons'
 import { isPlatform} from '@ionic/react';
+import { CrearTablas,VerificarTablas,SQLITETruncarTablas,SQLITEInsertarAnomalias,SQLITEInsertarConfiguracionUsuario } from '../../controller/DBControler';
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');
@@ -58,6 +62,9 @@ const FormDatosTomaPage: React.FC = () => {
   const [busqueda, setBusqueda] = useState(false);
   const [filtro,setFiltro] = useState(1);
   const [placeHolder,setPlaceHolder] = useState("Buscar por contrato");
+  // NOTE: Contraladores para descargar sectores y lecturas
+  const [descargando, setDescargando] = useState(false);
+  const [estadoDescarga, setEstadoDescarga] = useState("");
   const alertButtons = [
     {
       text: "Reintentar", handler: () => {
@@ -147,7 +154,6 @@ const FormDatosTomaPage: React.FC = () => {
     setBusqueda(false)
     setLoading(true);
     await obtenerTotalDatosSectores(idSector).then((result) => {
-      console.log(result);
       setNumeroPaginas(parseInt(result + ""))
       setPaginas(parseInt(result + ""));
       setPuntero(0)
@@ -204,40 +210,6 @@ const FormDatosTomaPage: React.FC = () => {
         })
       }
      }
-  }
-  const buscarPalabraClave = async () => {
-
-    if(idSector == ""){
-      setBusqueda(true);
-      setLecuras([]);
-      setShowPagination(true);
-      setLoading(true);
-      await obtenerTotalDatosBusqueda(textoBusqueda,"-1").then((result) => {
-        let paginas = parseInt(String(result));
-        setPunteroBusqueda(0);
-        setPaginasBusqueda(paginas);
-        setPaginas(paginas);
-      });
-      await obtenerContribuyente(textoBusqueda,0,"-1").then((result) => {
-        console.log(result);
-        setSerched(true);
-        setLecuras(result);
-      }).catch((err) => {
-        setLecuras([]);
-        let errorMessage = String(err.message);
-        let sessionValid = errorMessage.includes("Sesion no valida");
-        if (!sessionValid) {
-          setHideAlertbuttons(true);
-          setTipoMessage("ERROR");
-          setMessage(errorMessage);
-        } else {
-          setTokenExpired(true);
-        }
-      }).finally(() => { setLoading(false) });
-    }else{
-      console.log("Busqueda por sector");
-      handleBuscarSectorParablaClave();
-    }
   }
   const handleInputSerh = (texto: string) => {
     setTextoBusqueda(texto);
@@ -348,38 +320,6 @@ const FormDatosTomaPage: React.FC = () => {
         }
       }).finally(() => { setLoading(false) });
   }
-  const handleCancelSector = () =>{
-    setIdSector("");
-  }
-  const handleBuscarSectorParablaClave = async () =>{
-    setBusqueda(true);
-    setLecuras([]);
-    setShowPagination(true);
-    setLoading(true);
-    await obtenerTotalDatosBusqueda(textoBusqueda,idSector).then((result) => {
-      let paginas = parseInt(String(result));
-      setPunteroBusqueda(0);
-      setPaginasBusqueda(paginas);
-      setPaginas(paginas);
-    });
-    await obtenerContribuyente(textoBusqueda,0,idSector).then((result) => {
-      console.log(result);
-      setSerched(true);
-      setLecuras(result);
-    }).catch((err) => {
-      setLecuras([]);
-      let errorMessage = String(err.message);
-      let sessionValid = errorMessage.includes("Sesion no valida");
-      if (!sessionValid) {
-        setHideAlertbuttons(true);
-        setShowPagination(false);
-        setTipoMessage("Mensaje");
-        setMessage(errorMessage);
-      } else {
-        setTokenExpired(true);
-      }
-    }).finally(() => { setLoading(false) });
-  }  
   const handleCancelFiltro = () =>{
     setFiltro(1);
   }
@@ -473,22 +413,94 @@ const FormDatosTomaPage: React.FC = () => {
   }
   return result;
   }
-  function zeroFill( number:string,width:number = 9)
-{
-  while(number.length < width){
-    number = "0"+number;
-  }
-  return number;
+  function zeroFill( number:string,width:number = 9){
+    while(number.length < width){
+      number = "0"+number;
+    }
+    return number;
   }
   const handleSelectFiltro = (filter: number) => {
-  setFiltro(filter); 
-  if(filtro == 1){
-    setPlaceHolder("Buscar por Medidor");
+    setFiltro(filter); 
+    if(filtro == 1){
+      setPlaceHolder("Buscar por Medidor");
+    }
+    if(filtro == 2){
+      setPlaceHolder("Buscar por Contrato");
+    }
   }
-  if(filtro == 2){
-    setPlaceHolder("Buscar por Contrato");
+  const DescargarRecursos = async () =>{
+    DescargarPadronSectorAgua();
+    return;
+    setDescargando(true);
+    let Anomalias:[{id:number,clave:string,descripci_on:string,AplicaFoto:number}] = await DescargarPadronAnomalias();
+    let ConfiguracionesAgua: [{Status:boolean,TipoLectura:number,BloquarCampos:number,Code:number}] = await DescargarConfiguraciones(); //NOTE: para las lecturas
+    let ConfiguracionUsuario = getDatosUsuario();
+    await InsertarSectores();
+    await InsertarAnomalias(Anomalias);
+    await SQLITEInsertarConfiguracionUsuario(parseInt(ConfiguracionUsuario.Cliente),ConfiguracionUsuario.NombreUsuario,ConfiguracionUsuario.Email,ConfiguracionUsuario.Contrasenia);
+    await DescargarPadronSectorAgua();
+    
+    /**
+     * Sectores ->  ya se encuentra en la interfaz 
+     * Contratos -> Se descargan por sector
+     * Lecturas -> Vienen con los contratos el ultimo registrado
+     * Anomalias -> Desde el APi
+      DELETE FROM DatosExtra;
+      DELETE FROM ConfiguracionUsuario;
+      DELETE FROM LecturaAnterior;
+      DELETE FROM Evidencia;
+      DELETE FROM MetaDatos;
+      DELETE FROM Anomalias;
+      DELETE FROM Padron;
+      DELETE FROM DatosLectura;
+      DELETE FROM Sectores;
+     */
   }
+
+  const InsertarRecursos = async ( ) =>{
+    //NOTE: Eliminamos tablas
+    await SQLITETruncarTablas()
+    .then( async ()=>{
+      //NOTE Empezamos a descargar 
+    })
+    .catch(()=>{
+
+    })
+    
   }
+  const InsertarSectores = async () =>{
+    //NOTE: Es para ver si funciona la base de datos
+    setEstadoDescarga("Insertando Sectores...");
+    setDescargando(true);
+    setEstadoDescarga("Lista de sectore");
+    try {
+      if(sectores != null && sectores.length > 0){
+        sectores.map((sectores,index)=>{
+          setEstadoDescarga(`${sectores.Sector}`)
+          //SQLITEObtenerSectores();
+        });
+      }  
+    setDescargando(false);
+    }catch( error ){
+      setMessage(`Erorr al realizar descarga:\n${ error.message}` )
+      console.log(error.message + " Mensaje de error");
+    }
+  }
+  const InsertarAnomalias = async (Anomalias:[{id:number,clave:string,descripci_on:string,AplicaFoto:number}]) =>{
+    setEstadoDescarga("Insertando Anomalias...");
+    Anomalias.map( async (Anomalia,index)=>{
+      await SQLITEInsertarAnomalias(Anomalia.id,Anomalia.clave,Anomalia.descripci_on,Anomalia.AplicaFoto);
+    });
+  }
+  const DescargarPadronSectorAgua = async () => {
+    sectores.map( async (Sector:{id:number,Sector:string},index)=>{
+      //DescargarContratosLecturaSector(Sector.id);
+      let contratos =  await DescargarContratosLecturaSector(String(Sector.id));
+      console.log(contratos);
+    });
+  }
+  
+  
   return (
     <IonPage>
       {
@@ -623,12 +635,23 @@ const FormDatosTomaPage: React.FC = () => {
           onDidDismiss={() => { setLoading(false); }}
           message="Por favor espere"
         />
+        <IonLoading
+          cssClass="my-custom-class"
+          isOpen={descargando}
+          onDidDismiss={() => { setLoading(false); }}
+          message = { `Descargando: ${estadoDescarga}...`}
+        />
         <IonAlert
           cssClass="my-custom-class"
           header={"ERROR"}
           message={'Para poder hacer uso de todas las funciones de la aplicaciòn por favor acepta los permisos solicitados por la misma'}
           isOpen={!permissions}
         />
+        <IonFab slot="fixed" vertical="top" horizontal="end" edge={true} className = "btnDescargar"  >
+          <IonFabButton color = {"danger"} className = "btnDescargar" onClick = {DescargarRecursos}  >
+            <IonIcon icon={cloudDownload}></IonIcon>
+          </IonFabButton>
+        </IonFab>
       </IonContent>
     </IonPage>
   );

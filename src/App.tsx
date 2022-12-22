@@ -1,4 +1,6 @@
 import { Redirect, Route } from 'react-router-dom';
+import { useState } from 'react';
+import { SQLiteHook, useSQLite } from 'react-sqlite-hook';
 import { IonApp, IonRouterOutlet } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
@@ -31,12 +33,28 @@ import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
-
 /* Theme variables */
 import './theme/variables.css';
+interface JsonListenerInterface {
+  jsonListeners: boolean,
+  setJsonListeners: React.Dispatch<React.SetStateAction<boolean>>,
+}
+interface existingConnInterface {
+  existConn: boolean,
+  setExistConn: React.Dispatch<React.SetStateAction<boolean>>,
+}
+/** NOTE: Propiedades de la conexion a la base de datos */
+export let sqlite:SQLiteHook;
+export let existingConn: existingConnInterface;
 
-const App: React.FC = () => (
-  <IonApp>
+const App: React.FC = () => {
+  /* NOTE: Iniciamos los datos de la base de datos */ 
+  const [existConn, setExistConn] = useState(false);
+  existingConn = {existConn: existConn, setExistConn: setExistConn};
+  sqlite = useSQLite();
+  console.log(`$$$ in App sqlite.isAvailable  ${sqlite.isAvailable} $$$`);
+  return(
+    <IonApp>
     <IonReactRouter>
       <IonRouterOutlet>
         <Route exact path="/home">
@@ -84,6 +102,7 @@ const App: React.FC = () => (
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>
-);
+  )
+};
 
 export default App;

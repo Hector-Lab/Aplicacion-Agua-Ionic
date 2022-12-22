@@ -6,10 +6,11 @@
     "@awesome-cordova-plugins/android-permissions": "^6.2.0",
     "@awesome-cordova-plugins/media-capture": "^6.2.0",
     "@awesome-cordova-plugins/video-player": "^6.2.0",
-    "@capacitor-community/react-hooks": "^0.0.11",
-    "@capacitor/android": "^2.4.7",
-    "@capacitor/core": "^2.4.7",
-    "@capacitor/ios": "^2.4.7",
+    "@capacitor-community/camera-react": "^0.1.0",
+    "@capacitor/android": "^4.0.0",
+    "@capacitor/camera": "^4.1.4",
+    "@capacitor/core": "^4.0.0",
+    "@capacitor/ios": "^4.0.0",
     "@ionic-native/android-permissions": "^5.32.1",
     "@ionic-native/barcode-scanner": "^5.32.1",
     "@ionic-native/camera": "^5.32.1",
@@ -30,7 +31,6 @@
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
     "axios": "^0.21.1",
-    "com-sarriaroman-photoviewer": "^1.2.5",
     "cordova-plugin-advanced-http": "^3.1.0",
     "cordova-plugin-android-permissions": "^1.1.5",
     "cordova-plugin-camera": "^5.0.1",
@@ -42,8 +42,8 @@
     "ionicons": "^5.4.0",
     "jetifier": "^2.0.0",
     "pod-install": "^0.1.27",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "5.0.1",
@@ -88,6 +88,8 @@
   },
   "description": "An Ionic project",
   "devDependencies": {
-    "@capacitor/cli": "^2.4.7"
+    "@capacitor-community/sqlite": "^4.5.0",
+    "@capacitor/cli": "^4.0.0",
+    "react-sqlite-hook": "^3.1.1"
   }
 }

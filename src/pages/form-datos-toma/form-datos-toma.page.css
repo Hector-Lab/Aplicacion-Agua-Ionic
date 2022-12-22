@@ -35,3 +35,9 @@ margin-top: -20px;
 .centrar-ios{
     align-content: center;
 }
+.btnDescargar{
+    border-style: solid;
+    border-width: 1px;
+    border-color: white;
+    border-radius: 50%;
+}

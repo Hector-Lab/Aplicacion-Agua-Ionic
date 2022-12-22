@@ -576,7 +576,7 @@ export async function obtenerTotalDatosSectores(sector: string) {
         throw conectionError(error);
     }
 }
-export async function lecturasPorSectorPage(sector: string, offset: number,) {
+export async function lecturasPorSectorPage(sector: string, offset: number) {
     try {
         let basicData = obtenerDatosCliente();
         let mes = date.getMonth() + 1;
@@ -1195,6 +1195,72 @@ export async function MultarToma(padron:number,total:number,Observacion:string,c
             throw ErrorMulta401;
         }else if( result.data.Code == 423){
             throw ErrorMulta423;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function DescargarSectoresLecturistas(sector: string) {
+    try{
+        let Fecha = new Date();
+        let { cliente,token } = obtenerDatosCliente();
+        let datos = {
+            Cliente:cliente,
+            Sector:sector,
+            Mes:Fecha.getMonth(),
+            Anio:Fecha.getFullYear()
+        }
+        let result =  await service.ObtenerContratosLecturaSector(datos,String(token));
+        if(result.data.Code == 200){
+            console.log(result.data.Mensaje);
+        }
+
+    }catch( error ){
+        throw conectionError(error);
+    }
+}
+export async function DescargarPadronAnomalias(  ){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let headers = {
+            Cliente: cliente
+        }
+        let APIResult = await service.ObtenerPadronAnomalias(headers,String(token));
+        if(APIResult.data.Status){
+            return APIResult.data.Datos;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function DescargarConfiguraciones(){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let headers = {
+            Cliente:cliente
+        }
+        let APIResult = await service.ObtenerConfiguracionAgua(headers,String(token));
+        if(APIResult.data.Status){
+            return APIResult.data;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function DescargarContratosLecturaSector( Sector:string ){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let datosSolicitados = {
+            'Cliente':cliente,
+            'Sector': Sector,
+            'Mes': date.getMonth() ,
+            'Anio': date.getFullYear(),
+        };
+        let rawContratos = await service.ObtenerContractosSector(datosSolicitados,String(token));
+        if(rawContratos.data.Status){
+            return rawContratos.data.Mensaje;
+        }else{
+            throw noRowSelect;
         }
     }catch(error){
         throw conectionError(error);

@@ -326,3 +326,12 @@ export function setContratoMulta( idPadron:string ){
 export function getContratoMulta(  ){
     return localStorage.getItem("@Storage:multaContrato");
 }
+export function getDatosUsuario( ):{ Cliente: string, NombreUsuario:string,Email: string,Contrasenia: string } {
+    let datosUsuario = {
+        Cliente: String(obtnerCliente()),
+        NombreUsuario: String(getUsuario()),
+        Email: "",
+        Contrasenia: String(localStorage.getItem("@Storage:contraseniaX"))
+    };
+    return datosUsuario;
+}

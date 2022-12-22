@@ -1,11 +1,10 @@
 import { IonAlert, IonButton, IonCard, IonCheckbox, IonContent, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonPage, IonTitle, IonToolbar, useIonViewWillEnter } from '@ionic/react';
 import { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom'
-import { Plugins } from '@capacitor/core'
 import './Home.css';
 import { Login, obtenerLogo, solicitarPermisos, } from '../controller/apiController';
 import { restoreUser,clearState } from '../controller/storageController';
-const { SplashScreen } = Plugins
+import { CrearTablas, VerificarTablas } from '../controller/DBControler';
 const Home: React.FC = () => {
   const history = useHistory();
   const [User, setUserName] = useState('');
@@ -14,7 +13,8 @@ const Home: React.FC = () => {
   const [message, setMessage] = useState('');
   const [remember, setRemember] = useState(false);
   useEffect(() => {
-    SplashScreen.hide();
+    //SplashScreen.hide();
+    CreatTablasDB();
     handleRequestPermissions();
     recordarCredenciales();
   }, [])
@@ -61,6 +61,10 @@ const Home: React.FC = () => {
     await solicitarPermisos().then((result) => {
       console.log(result)
     })
+  }
+  const CreatTablasDB = async () =>{
+    await CrearTablas();
+    await VerificarTablas();
   }
   return (
     <IonPage>

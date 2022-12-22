@@ -1,8 +1,42 @@
-import React from 'react';
+import React, { HTMLAttributes } from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import { defineCustomElements as jeepSqlite, applyPolyfills, JSX as LocalJSX } from "jeep-sqlite/loader";
 import reportWebVitals from './reportWebVitals';
+import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
+import { Capacitor } from '@capacitor/core';
+type StencilToReact<T> = {
+  [P in keyof T]?: T[P] & Omit<HTMLAttributes<Element>, 'className'> & {
+    class?: string;
+  };
+};
+
+declare global {
+  export namespace JSX {
+    interface IntrinsicElements extends StencilToReact<LocalJSX.IntrinsicElements> {
+    }
+  }
+}
+
+applyPolyfills().then(() => {
+  jeepSqlite(window);
+});
+window.addEventListener('DOMContentLoaded', async () => {
+  console.log('$$$ in index $$$');
+  const platform = Capacitor.getPlatform();
+  const sqlite: SQLiteConnection = new SQLiteConnection(CapacitorSQLite)
+  try {
+    if (platform === "web") {
+      const jeepEl = document.createElement("jeep-sqlite");
+      document.body.appendChild(jeepEl);
+      await customElements.whenDefined('jeep-sqlite');
+      await sqlite.initWebStore();
+    }
+  } catch (error: any) {
+    console.log(error.message);
+  }
+});
 
 ReactDOM.render(
   <React.StrictMode>
