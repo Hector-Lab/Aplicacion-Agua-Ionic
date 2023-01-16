@@ -1,18 +1,21 @@
 
 import './left-menu.css';
-import { create, logOut, reader, water, cutOutline, timer, construct, warning } from 'ionicons/icons'
-import { IonMenu, IonContent, IonImg, IonItemDivider, IonMenuToggle, IonRouterOutlet, IonItem, IonLabel, IonIcon, IonSpinner } from '@ionic/react'
+import { create, logOut, reader, water, cutOutline, timer, construct, warning,server } from 'ionicons/icons'
+import { IonMenu, IonContent, IonImg, IonMenuToggle, IonRouterOutlet, IonItem, IonLabel, IonIcon, IonSpinner, IonToggle} from '@ionic/react'
 import { useEffect, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom'
-import { cerrarSesion, getLogoStorage} from '../controller/storageController'
+import { useHistory } from 'react-router-dom';
+import {  } from '../controller/storageController';
+import { cerrarSesion, getLogoStorage, ObtenerModoTrabajo, ActivarModoOffline, DesactivarModoOffline} from '../controller/storageController'
 interface ContainerProps { }
 
 const MenuLeft: React.FC<ContainerProps> = () => {
     const history = useHistory();
     let [selectedIndex, setSelectedIndex] = useState(-1);
+    let [ modoTrabajo, setModoTrabajo] = useState(false);
+
     const [logo,setLogo] = useState("");
     useEffect(()=>{
-
+        setModoTrabajo(ObtenerModoTrabajo());
     },[])
     const appPages = [
         {
@@ -107,6 +110,10 @@ const MenuLeft: React.FC<ContainerProps> = () => {
             });
         }
     }
+    const AsignarModoTrabajo = ( Activo:boolean ) => {
+        Activo ? ActivarModoOffline() : DesactivarModoOffline();
+        setModoTrabajo(Activo);
+    }
     return (
         <div>
             <IonMenu side="start" menuId="first" contentId="main-content" >
@@ -128,6 +135,11 @@ const MenuLeft: React.FC<ContainerProps> = () => {
                                 </IonItem>
                             })
                         }
+                        <IonItem>
+                            <IonLabel>{"Offline"}</IonLabel>
+                            <IonToggle onIonChange = { e => { AsignarModoTrabajo(e.detail.checked) } } slot = "end" checked = { modoTrabajo }  ></IonToggle>
+                            <IonIcon slot = "start" ios={server + "-outline"} md={server + "-sharp"} color = "blue" ></IonIcon>
+                        </IonItem>
                     </IonMenuToggle>
                     {/*<IonItemDivider />*/}
                 </IonContent>

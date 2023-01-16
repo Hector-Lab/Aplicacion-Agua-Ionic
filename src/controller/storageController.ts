@@ -335,3 +335,13 @@ export function getDatosUsuario( ):{ Cliente: string, NombreUsuario:string,Email
     };
     return datosUsuario;
 }
+export function ActivarModoOffline() {
+    localStorage.setItem("@Storage:ModoTrabajo","1");
+}
+export function DesactivarModoOffline(){
+    localStorage.setItem("@Storage:ModoTrabajo","0");
+}
+export function ObtenerModoTrabajo():boolean{
+    let modoTrabajo = localStorage.getItem("@Storage:ModoTrabajo");
+    return ( modoTrabajo !== null &&  modoTrabajo !== "0" );
+}

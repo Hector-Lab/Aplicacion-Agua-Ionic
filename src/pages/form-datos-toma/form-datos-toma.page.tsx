@@ -29,17 +29,23 @@ import {
   useIonViewWillLeave,
   IonFab,
   IonFabButton,
-  IonFabList,
-  
+  IonBadge,
+  IonFabList
 } from "@ionic/react";
-import { useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom';
 import "./form-datos-toma.page.css";
 import MenuLeft from '../../components/left-menu';
-import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija, DescargarSectoresLecturistas, DescargarPadronAnomalias,DescargarConfiguraciones,DescargarContratosLecturaSector} from '../../controller/apiController';
-import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda, setPaginasBusqueda,getCuentasPapas,getDatosUsuario } from '../../controller/storageController';
-import { searchCircle, arrowForwardOutline, arrowBackOutline, cloudDownload } from 'ionicons/icons'
+import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija, DescargarPadronAnomalias,DescargarConfiguraciones,DescargarContratosLecturaSector, obtenerPromedioContrato} from '../../controller/apiController';
+import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda,getCuentasPapas,getDatosUsuario, ObtenerModoTrabajo } from '../../controller/storageController';
+import { searchCircle, arrowForwardOutline, arrowBackOutline, cloudDownload, cloudUpload, returnUpBackOutline } from 'ionicons/icons';
 import { isPlatform} from '@ionic/react';
-import { CrearTablas,VerificarTablas,SQLITETruncarTablas,SQLITEInsertarAnomalias,SQLITEInsertarConfiguracionUsuario } from '../../controller/DBControler';
+import { 
+  SQLITEInsertarDatosExtra,SQLITEObtenerPadronPagina,SQLITEObtenerTotalContratosPadron,SQLITEObtenerContratosFiltroContrato,
+  SQLITEObtenerContratosFiltroMedidor,SQLITEObtenerListaSectores,SQLITETruncarTablas,SQLITEInsertarAnomalias,SQLITEInsertarConfiguracionUsuario,
+  SQLITEGuardarPadronAgua,SQLITEGuardarLecturaAnteriorContrato, SQLITEInsertarSector, SQLITEObtenerLecturaActual,SQLITEObtenerEvidencias,SQLITEObtenerGeoreferencia, SQLITEObtenerListaLecturas, SQLITEObtenerContratoVigente} from '../../controller/DBControler';
+import { ContratoAPI,LecturaAnteriorContrato,PadronAguaPotable, Anomalias, DatosLectura, Evidencia, StructuraEvidencia } from '../../Objetos/Interfaces';
+import { obtenerBase64 } from '../../utilities';
+import { Network } from '@capacitor/network';
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');
@@ -47,7 +53,7 @@ const FormDatosTomaPage: React.FC = () => {
   const [message, setMessage] = useState('');
   const [idSector, setIdSector] = useState("");
   const [loading, setLoading] = useState(false);
-  const [lecturas, setLecuras] = useState<any[]>([])
+  const [lecturas, setLecuras] = useState<any[]>([]);
   const [typeErro, setTypeError] = useState('');
   const [permissions, setPermissons] = useState(true);
   const [hideAlertButons, setHideAlertbuttons] = useState(false);
@@ -62,9 +68,14 @@ const FormDatosTomaPage: React.FC = () => {
   const [busqueda, setBusqueda] = useState(false);
   const [filtro,setFiltro] = useState(1);
   const [placeHolder,setPlaceHolder] = useState("Buscar por contrato");
+  const [ msjSubiendo, setMsjSubiendo ] = useState(String);
   // NOTE: Contraladores para descargar sectores y lecturas
   const [descargando, setDescargando] = useState(false);
   const [estadoDescarga, setEstadoDescarga] = useState("");
+  const [ enLinea, setEnlinea ] = useState(false);
+  const [ mostrarBotonDescarga, setMostrarBotonDescarga ] = useState(false);
+  //NOTE: Mensaje de descarga 
+  const [ verificarDescarga,setVerificarDescarga ] = useState(false);
   const alertButtons = [
     {
       text: "Reintentar", handler: () => {
@@ -77,19 +88,43 @@ const FormDatosTomaPage: React.FC = () => {
         setMessage("");
       }
     }
-  ]
+  ];
+
+  const alertButtonsDescarga = [
+    {
+        text: "Aceptar", handler: () => {
+            //NOTE: Mandamos a descargar la base de datos
+            setVerificarDescarga(false);
+            DescargarRecursos();
+        }
+    },
+    {
+        text: "Cancelar", handler: () =>{
+          setVerificarDescarga(false);
+        }
+    }];
   const [activarMenu,setActivarMenu] = useState(true);
   const isSessionValid = async () => {
+    VerificarModoTrabajo();
     let valid = verifyingSession();
     setTokenExpired(!valid);
     setBlock(!valid);
-    let nombreCorto = await getClienteNombreCorto();
+    let nombreCorto = getClienteNombreCorto();
     setNombreCliente(String(nombreCorto));
+    Network.addListener('networkStatusChange',status => {
+      setMostrarBotonDescarga(status.connectionType === "wifi");
+    });
+    await VerificarTipoConexion();
   }
-
   useEffect(() => { isSessionValid() }, []);
-  useEffect(() => { tokenExpired ? logOut(tokenExpired) : prepararPantalla() }, [tokenExpired])
-
+  useEffect(
+    () => {
+      if(!enLinea)
+        tokenExpired ? logOut(tokenExpired) : prepararPantalla()
+      else
+        PrepararPantallaLocal();
+    }
+    ,[tokenExpired])
   const logOut = (valid: boolean) => {
     if (valid) {
       setTipoMessage("Sesión no valida");
@@ -123,7 +158,6 @@ const FormDatosTomaPage: React.FC = () => {
           }, 2500)
         }
       }).catch(() => {
-        //Quitar antes de la vercion final (solo sirve en web)
         let storageUser = getUsuario();
         setUser(storageUser + "");
         cargarSectores()
@@ -148,8 +182,11 @@ const FormDatosTomaPage: React.FC = () => {
         }
       })
   }
-  useIonViewWillEnter(()=>{setActivarMenu(true)});
+  useIonViewWillEnter(()=>{
+    setActivarMenu(true)
+  });
   useIonViewWillLeave(()=>{setActivarMenu(false)});
+  //Seccion de metodos en linea
   const buscarPorSector = async (idSector:string) => {
     setBusqueda(false)
     setLoading(true);
@@ -189,6 +226,7 @@ const FormDatosTomaPage: React.FC = () => {
           setHideAlertbuttons(true);
         }
       }else{
+        //
         //INDEV: obtenemo la configuracion de los clie 
         await configuracionCuotaFija()
         .then((result)=>{
@@ -228,8 +266,7 @@ const FormDatosTomaPage: React.FC = () => {
     } else {
       itemIndex = puntero * 20;
     }
-    console.log(itemIndex, idSector);
-    punteroBuscarPorSector(itemIndex, idSector);
+    !enLinea ? punteroBuscarPorSector(itemIndex, idSector) : obtenerPadronContratosLocal(parseInt(idSector));
   }
   const handlePreviousPage = () => {
     let puntero = getPuntero();
@@ -240,9 +277,8 @@ const FormDatosTomaPage: React.FC = () => {
       setPuntero(puntero - 1);
       puntero--;
     }
-    let pages = getNumeroPaginas();
     let itemIndex = (puntero * 20);
-    punteroBuscarPorSector(itemIndex, idSector);
+    !enLinea ? punteroBuscarPorSector(itemIndex, idSector) : obtenerPadronContratosLocal(parseInt(idSector));
   }
   const punteroBuscarPorSector = async (offset: number, sector: string) => {
     setBusqueda(false);
@@ -267,10 +303,18 @@ const FormDatosTomaPage: React.FC = () => {
       .finally(() => { setLoading(false) })
   }
   const handleSector = (sector: string) => {
-    setIdSector(sector);
-    setSector(sector);
-    buscarPorSector(sector);
-
+    setLoading(true);
+    if(enLinea){
+      setIdSector(sector);
+      setSector(sector);
+      calcularPaginadoLocal(parseInt(sector));
+    }else{
+      if(sector !== ""){
+        setIdSector(sector);
+        setSector(sector);
+        buscarPorSector(sector);
+      }
+    }
   }
   const handleNextPageBusqueda = () => {
     setLoading(true); 
@@ -286,7 +330,6 @@ const FormDatosTomaPage: React.FC = () => {
     } else {
       itemIndex = puntero * 20;
     }
-    console.log(itemIndex, textoBusqueda);
     punteroBuscarPorClave(itemIndex);
   }
   const handlePreviousPageBusqueda = () => {
@@ -300,11 +343,11 @@ const FormDatosTomaPage: React.FC = () => {
       puntero--;
     }
     let itemIndex = (puntero * 20);
-    console.log(itemIndex, textoBusqueda);
     punteroBuscarPorClave(itemIndex);
   }
   const punteroBuscarPorClave = async (offset: number) => {
       setBusqueda(true);
+      //NOTE: Este metodo obtiene los contratos con el puntero desde la API obtenerDatosSectorPalabraClave
       await obtenerContribuyente(textoBusqueda,offset,"-1").then((result) => {
         setSerched(true);
         setLecuras(result);
@@ -324,21 +367,22 @@ const FormDatosTomaPage: React.FC = () => {
     setFiltro(1);
   }
   const buscarFiltro = () =>{
-    if(filtro == 1){
-      porContrato();
-    }
-    if(filtro == 2){
-      porMedidor();
-    }
-    if(filtro == 3){
-    }
-  }
-  const porContrato = async () =>{
+    setLoading(true);
     setBusqueda(true);
     setLecuras([]);
     setShowPagination(false);
-    setLoading(true);
-    console.log(zeroFill(textoBusqueda));
+    switch(filtro){
+      case 1:
+        enLinea ? BuscarPorContratoLocal() : porContrato();
+        break;
+      case 2: 
+        enLinea ? BuscarPorMedidorLocal() : porMedidor();
+        break;
+      default:
+      break;
+    }
+  }
+  const porContrato = async () =>{
     await buscarContrato(zeroFill(textoBusqueda))
     .then(result =>{
       setLecuras(result);
@@ -357,11 +401,6 @@ const FormDatosTomaPage: React.FC = () => {
     )
   }
   const porMedidor = async () =>{ 
-    setBusqueda(true);
-    setLecuras([]);
-    setShowPagination(false);
-    setLoading(true);
-    console.log(zeroFill(textoBusqueda,10));
     await buscarPorMedidor(zeroFill(textoBusqueda,10))
     .then(result =>{
       setLecuras(result);
@@ -413,12 +452,6 @@ const FormDatosTomaPage: React.FC = () => {
   }
   return result;
   }
-  function zeroFill( number:string,width:number = 9){
-    while(number.length < width){
-      number = "0"+number;
-    }
-    return number;
-  }
   const handleSelectFiltro = (filter: number) => {
     setFiltro(filter); 
     if(filtro == 1){
@@ -429,80 +462,260 @@ const FormDatosTomaPage: React.FC = () => {
     }
   }
   const DescargarRecursos = async () =>{
-    DescargarPadronSectorAgua();
-    return;
     setDescargando(true);
-    let Anomalias:[{id:number,clave:string,descripci_on:string,AplicaFoto:number}] = await DescargarPadronAnomalias();
-    let ConfiguracionesAgua: [{Status:boolean,TipoLectura:number,BloquarCampos:number,Code:number}] = await DescargarConfiguraciones(); //NOTE: para las lecturas
-    let ConfiguracionUsuario = getDatosUsuario();
-    await InsertarSectores();
-    await InsertarAnomalias(Anomalias);
-    await SQLITEInsertarConfiguracionUsuario(parseInt(ConfiguracionUsuario.Cliente),ConfiguracionUsuario.NombreUsuario,ConfiguracionUsuario.Email,ConfiguracionUsuario.Contrasenia);
-    await DescargarPadronSectorAgua();
-    
-    /**
-     * Sectores ->  ya se encuentra en la interfaz 
-     * Contratos -> Se descargan por sector
-     * Lecturas -> Vienen con los contratos el ultimo registrado
-     * Anomalias -> Desde el APi
-      DELETE FROM DatosExtra;
-      DELETE FROM ConfiguracionUsuario;
-      DELETE FROM LecturaAnterior;
-      DELETE FROM Evidencia;
-      DELETE FROM MetaDatos;
-      DELETE FROM Anomalias;
-      DELETE FROM Padron;
-      DELETE FROM DatosLectura;
-      DELETE FROM Sectores;
-     */
-  }
-
-  const InsertarRecursos = async ( ) =>{
-    //NOTE: Eliminamos tablas
-    await SQLITETruncarTablas()
+    setEstadoDescarga("Eliminando historial antiguo...");
+    await EliminarBaseAnterior()
     .then( async ()=>{
-      //NOTE Empezamos a descargar 
-    })
-    .catch(()=>{
-
-    })
-    
+      let Anomalias:[Anomalias] = await DescargarPadronAnomalias();
+      let ConfiguracionesAgua: {Status:boolean,TipoLectura:number,BloquarCampos:number,Code:number} = await DescargarConfiguraciones(); //NOTE: para las lecturas
+      let ConfiguracionUsuario = getDatosUsuario();
+      await InsertarSectores();
+      await InsertarAnomalias(Anomalias);
+      await SQLITEInsertarConfiguracionUsuario(parseInt(ConfiguracionUsuario.Cliente),ConfiguracionUsuario.NombreUsuario,ConfiguracionUsuario.Email,ConfiguracionUsuario.Contrasenia);
+      await DescargarPadronSectorAgua(String(ConfiguracionesAgua.BloquarCampos));
+      //NOTE: insertamos los datos extra Nombre, Valor, Descripcion       
+      await SQLITEInsertarDatosExtra("TipoLectura",String(ConfiguracionesAgua.TipoLectura),"Configuracion para las lecturas de la app DATOS EXTRA SUINPAC"); //NOTE: Para tipo de lectura
+      await SQLITEInsertarDatosExtra("BloquarCampos",String(ConfiguracionesAgua.BloquarCampos),"Para bloquear los campos de lectura de la app");
+      setTimeout( async ( )=>{ setDescargando(false); },10000);
+    }).catch(()=>{
+      setDescargando(false);
+      setMessage("Error al elimnar la base de datos antigua\n favor de eliminar los datos de la aplicacion desde configuraciones del dispositivo")
+    });
+  }
+  const EliminarBaseAnterior = async ( ) =>{
+    //NOTE: Eliminamos tablas
+    await SQLITETruncarTablas();
   }
   const InsertarSectores = async () =>{
     //NOTE: Es para ver si funciona la base de datos
     setEstadoDescarga("Insertando Sectores...");
-    setDescargando(true);
-    setEstadoDescarga("Lista de sectore");
     try {
       if(sectores != null && sectores.length > 0){
         sectores.map((sectores,index)=>{
           setEstadoDescarga(`${sectores.Sector}`)
-          //SQLITEObtenerSectores();
+          SQLITEInsertarSector(sectores.id,sectores.Sector);
         });
       }  
-    setDescargando(false);
     }catch( error ){
-      setMessage(`Erorr al realizar descarga:\n${ error.message}` )
-      console.log(error.message + " Mensaje de error");
+      setEstadoDescarga(`Erorr al realizar descarga de los sectores:\n${ error.message}`);
+      setTimeout(()=>{
+        setEstadoDescarga("Descargando Sectores...")
+      },3000)
     }
   }
   const InsertarAnomalias = async (Anomalias:[{id:number,clave:string,descripci_on:string,AplicaFoto:number}]) =>{
-    setEstadoDescarga("Insertando Anomalias...");
-    Anomalias.map( async (Anomalia,index)=>{
-      await SQLITEInsertarAnomalias(Anomalia.id,Anomalia.clave,Anomalia.descripci_on,Anomalia.AplicaFoto);
-    });
+    try{
+      setEstadoDescarga("Insertando Anomalias...");
+      Anomalias.map( async (Anomalia,index)=>{
+        await SQLITEInsertarAnomalias(Anomalia.id,Anomalia.clave,Anomalia.descripci_on,Anomalia.AplicaFoto);
+      });
+    }catch(error){
+      setEstadoDescarga(`Erorr al realizar descarga de las anomalias:\n${ error.message}`);
+      setTimeout(()=>{
+        setEstadoDescarga("Descargando Padron...")
+      },3000)
+    }
   }
-  const DescargarPadronSectorAgua = async () => {
+  const DescargarPadronSectorAgua = async (BloquarCampos:string) => {
     sectores.map( async (Sector:{id:number,Sector:string},index)=>{
-      //DescargarContratosLecturaSector(Sector.id);
-      let contratos =  await DescargarContratosLecturaSector(String(Sector.id));
-      console.log(contratos);
+      let listaContratos:[ContratoAPI] = await DescargarContratosLecturaSector(String(Sector.id));
+      listaContratos.map( async (contrato,index) => {
+        setEstadoDescarga(`Descargando contratos del sector: ${Sector.Sector}`);
+        let padronAgua = ObtenerDatosPadron(contrato,Sector.id);
+        let lecturaActual = ObtenerDatosLecturaAnterior(contrato,BloquarCampos);
+        //NOTE: Obtenemos el promedio actual del contrato
+        if(padronAgua != null)
+          await SQLITEGuardarPadronAgua(padronAgua);
+        if(lecturaActual != null)
+          await SQLITEGuardarLecturaAnteriorContrato(lecturaActual);
+      })
     });
   }
-  
-  
+  const ObtenerDatosPadron = ( Contrato:ContratoAPI,Sector:number ):PadronAguaPotable|null => {
+    if(Contrato != null ){
+      let Padron: PadronAguaPotable = {
+        ContratoVigente:Contrato.ContratoVigente,
+        Contribuyente:Contrato.Contribuyente,
+        Estatus:Contrato.Estatus,
+        Medidor:Contrato.Medidor,
+        MetodoCobro:Contrato.M_etodoCobro,
+        Padron:Contrato.id, //NOTE: es el id de padron
+        Toma:Contrato.Toma,
+        id: -1,
+        idSector:Sector,
+      }
+      return Padron;
+    }
+    return null;
+  }
+  const ObtenerDatosLecturaAnterior = ( Contrato:ContratoAPI,BloquarCampos:string ):LecturaAnteriorContrato|null =>{
+    if( Contrato != null ){
+      let LecturaAnterior:LecturaAnteriorContrato = {
+        A_no:Contrato.A_no,
+        BloquearCampos:BloquarCampos,
+        Direccion: Contrato.Domicilio,
+        LecturaActual:Contrato.LecturaActual,
+        LecturaAnterior: Contrato.LecturaAnterior,
+        Localidad:Contrato.Localidad,
+        Mes:parseInt(Contrato.Mes),
+        MetodoCobro:Contrato.M_etodoCobro,
+        Municipio:Contrato.Municipio,
+        TipoToma:Contrato.TipoToma,
+        Toma:Contrato.Toma,
+        id:-1,
+        idPadron:Contrato.id,
+        Promedio:Contrato.Promedio
+      }
+      return LecturaAnterior;
+    }
+    return null;
+  }
+  //Termina seccion de metodos en linea
+  //INDEV: Seccion de metodos para usar base de datos local
+  const PrepararPantallaLocal = async () =>{
+    console.log("Usando modo local!!");
+    let storageUser = getUsuario();
+    setUser(storageUser + "");
+    setSectores(await SQLITEObtenerListaSectores());
+  }
+  const BuscarPorContratoLocal = async () => {
+    await SQLITEObtenerContratosFiltroContrato(zeroFill(textoBusqueda))
+    .then(( listaContrato )=>{
+      setLecuras(listaContrato)
+    }).catch((error)=>{
+      setMessage("Error al obtener registors de la base de datos: " + error.message)
+      setTipoMessage("ERROR");
+    }).finally(()=>{
+      setLoading(false);
+    })
+  }
+  const BuscarPorMedidorLocal = async () => {
+    await SQLITEObtenerContratosFiltroMedidor(zeroFill(textoBusqueda))
+    .then(( listaContrato )=>{
+      setLecuras(listaContrato);
+    }).catch(( error )=>{
+      setMessage("Error al obtener registors de la base de datos: " + error.message)
+      setTipoMessage("ERROR");
+    }).finally(()=>{
+      setLoading(false);
+    })
+  }
+  const calcularPaginadoLocal = async (idSector:number) => {
+    await SQLITEObtenerTotalContratosPadron(idSector)
+    .then((totalContratos:number)=>{  
+      if(totalContratos > 0){
+        let paginas = totalContratos / 20;
+        let residuo = paginas % 1;
+        if( residuo > 0 ){
+          paginas++;
+        }
+        //NOTE: lo enviamos al localstorage
+        setShowPagination(true);
+        setNumeroPaginas(parseInt(String(paginas)))
+        setPaginas(parseInt(String(paginas)));
+        setPuntero(0);
+        obtenerPadronContratosLocal(idSector);
+      }
+    })
+    .catch((error)=>{
+      setLoading(false);
+      console.log("Error en el error: " + error.message);
+    })
+  }
+  const obtenerPadronContratosLocal = async (idSector:number) => {
+    await SQLITEObtenerPadronPagina(idSector,getPuntero())
+    .then(( listaContratos:Array<PadronAguaPotable> ) => {
+      setLecuras(listaContratos);
+    })
+    .catch((error)=>{
+      setMessage(error.message);
+    }).finally(()=>{
+      setLoading(false);
+    })
+  }
+  //metodo para verificar la conexion
+  const VerificarTipoConexion = async () => {
+    const status = await Network.getStatus();
+    setMostrarBotonDescarga(status.connectionType === "wifi");
+  }
+  const VerificarModoTrabajo = async () => {
+    //let promedioDoceMesesContrato = await obtenerPromedioContrato(146794);
+    setEnlinea(ObtenerModoTrabajo());
+  }
+  function zeroFill( number:string,width:number = 9){
+    while(number.length < width){
+      number = "0"+number;
+    }
+    return number;
+  }
+  const enviarLecturarRegistradas = async () =>{
+    setMsjSubiendo("Buscando Lecturas...");
+    setLoading(true);
+    try{
+      //NOTE: Extraer la lectura
+      await SQLITEObtenerListaLecturas()
+      .then(( listaLecturas:Array<DatosLectura> )=>{
+        //NOTE: recorremos los lecturas 
+        listaLecturas.map(  async ( lectura:DatosLectura,index:number )=>{
+          //NOTE: obtenemos el contrato vigente
+          await SQLITEObtenerContratoVigente(lectura.idbLectura);
+          setMsjSubiendo(`Enviado lectura del contrato:${ await SQLITEObtenerContratoVigente(lectura.idbLectura)} `);
+          let evidencias = await SQLITEObtenerEvidencias(lectura.idbLectura);
+          let coordenadas = await SQLITEObtenerGeoreferencia(lectura.idbLectura); 
+          await codificarEvidencia(evidencias)
+          .then((listaEvidencia)=>{ 
+            //console.error(JSON.stringify(listaEvidencia));
+            console.error(`Calle: ${listaEvidencia.Calle} Fachada: ${listaEvidencia.Fachada} Toma: ${listaEvidencia.Toma}`);
+          })
+
+        })
+        setLoading(false);
+      })
+      .catch(( error )=>{
+        setMessage(`Error al obtener los datos: ${error}`);
+      })
+    }catch( error ) {
+
+    }
+  }
+  const codificarEvidencia = async ( arregloEvidencia:Array<Evidencia> ):Promise<StructuraEvidencia> => {
+    return new Promise( async (resolve,reject)=>{
+      try{
+        let fotos:StructuraEvidencia = {
+          Calle:"",
+          Fachada:"",
+          Toma:""
+        };
+        for(let indexEvidencia = 0; indexEvidencia < arregloEvidencia.length; indexEvidencia++ ){
+          try{
+            let imagenCodificada = String(await obtenerBase64(arregloEvidencia[indexEvidencia].DireccionFisica));
+            //console.error(imagenCodificada.substring(0,125),foto.Tipo);
+            //NOTE: oganimos todos alv
+            if(arregloEvidencia[indexEvidencia].Tipo == "Toma")
+              fotos.Toma = imagenCodificada;
+            if(arregloEvidencia[indexEvidencia].Tipo == "Facha")
+              fotos.Fachada = imagenCodificada;
+            if(arregloEvidencia[indexEvidencia].Tipo == "Calle")
+              fotos.Calle = imagenCodificada;
+          }catch( error ){              
+            console.log(`Evidencia: ${arregloEvidencia[indexEvidencia].DireccionFisica} , Tipo: ${arregloEvidencia[indexEvidencia].Tipo}, Error: ${JSON.stringify(error)}`);
+          }
+        }
+        //console.error(`Toma: ${arregloEvidenciaCodificado.Toma.length}, Fachada: ${arregloEvidenciaCodificado.Fachada.length}, Calle: ${arregloEvidenciaCodificado.Calle.length}`);
+        resolve( fotos );
+      }catch(error){
+        console.error(JSON.stringify(error));
+        reject(error);
+      }
+    })
+  }
+  const dormirSegundos = async () =>{
+    setTimeout(()=>{
+      return Promise.resolve("Terminado Proceso...");
+    },2000);
+  }
   return (
-    <IonPage>
+    <IonPage onFocus = {VerificarModoTrabajo} >
       {
         activarMenu ? 
         <MenuLeft />: <></>
@@ -510,6 +723,7 @@ const FormDatosTomaPage: React.FC = () => {
       <IonHeader>
         <IonToolbar color="danger" >
           <IonTitle>{`${user} - ${nombreCliente}`}</IonTitle>
+          <IonBadge className = "estadoConexion" slot="end" color = { enLinea ? "medium" : "success" } >{ enLinea ? "Local" : "En linea" }</IonBadge>
           <IonButtons slot="start" className="btnMenu">
             <IonMenuButton ></IonMenuButton>
           </IonButtons>
@@ -594,14 +808,16 @@ const FormDatosTomaPage: React.FC = () => {
             </IonItemDivider>
             <IonList >
               {
+
                 lecturas.map(function (item, index) {
                   let papas = getCuentasPapas();
-                  let arrayData = functionValidarLectura(parseInt(item.Estatus),parseInt(item.M_etodoCobro));
-                  let cuentaPapa = String(papas).includes(item.id);
+                  //console.error("Estatus: ",item.Estatus,"Metodo de cobro:",parseInt( !enLinea ? item.M_etodoCobro : item.MetodoCobro ));
+                  let arrayData = functionValidarLectura(parseInt(item.Estatus),parseInt( !enLinea ? item.M_etodoCobro : item.MetodoCobro ));
+                  let cuentaPapa = String(papas).includes(!enLinea ? item.id : item.Padron);
                   if(cuentaPapa){
                     arrayData[0] += "Desarrollo";  
                   }
-                  return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => {  abrirCapturaDatos(item.id, item.Contribuyente, item.ContratoVigente, item.Medidor,item.M_etodoCobro,cuentaPapa) }}>
+                  return <div className = { ( cuentaPapa || arrayData[1]) ? 'cuotaFija':''} key={index} onClick={() => {  abrirCapturaDatos(!enLinea ? item.id : item.Padron, item.Contribuyente, item.ContratoVigente, item.Medidor,(enLinea) ?  item.MetodoCobro : item.M_etodoCobro,cuentaPapa) }}>
                     <IonItem detail={true} className = {isPlatform("ios") ? "padding-ios" : "" } >
                       <IonList>
                         <IonLabel>{item.Contribuyente}</IonLabel>
@@ -627,13 +843,21 @@ const FormDatosTomaPage: React.FC = () => {
           message={message}
           isOpen={message.length > 0}
           backdropDismiss={false}
-          buttons={hideAlertButons ? [{ text: "Aceptar", handler: () => { setMessage("") } }] : alertButtons}
+          buttons={ hideAlertButons ?  [{ text: "Aceptar", handler: () => { setMessage("") }}] : alertButtons }
+        />
+        <IonAlert
+          cssClass = "my-custom-class"
+          header = {"VERIFICAR"}
+          message = { "Actualizar Contratos del dispositivo" }
+          isOpen = { verificarDescarga }
+          backdropDismiss = { false }
+          buttons = { alertButtonsDescarga }
         />
         <IonLoading
           cssClass="my-custom-class"
           isOpen={loading}
           onDidDismiss={() => { setLoading(false); }}
-          message="Por favor espere"
+          message = { msjSubiendo.length > 0 ? msjSubiendo : "Por favor espere"}
         />
         <IonLoading
           cssClass="my-custom-class"
@@ -647,11 +871,23 @@ const FormDatosTomaPage: React.FC = () => {
           message={'Para poder hacer uso de todas las funciones de la aplicaciòn por favor acepta los permisos solicitados por la misma'}
           isOpen={!permissions}
         />
-        <IonFab slot="fixed" vertical="top" horizontal="end" edge={true} className = "btnDescargar"  >
-          <IonFabButton color = {"danger"} className = "btnDescargar" onClick = {DescargarRecursos}  >
-            <IonIcon icon={cloudDownload}></IonIcon>
-          </IonFabButton>
-        </IonFab>
+        {
+          mostrarBotonDescarga ? 
+          <IonFab slot="fixed" vertical="top" horizontal="end" edge={true} className = "btnDescargar"  >
+            <IonFabButton color = {"danger"} className = "btnDescargar" >
+              <IonIcon icon={cloudDownload}></IonIcon>
+            </IonFabButton>
+            <IonFabList>
+              <IonFabButton color = {"primary"} >
+                <IonIcon icon = { cloudDownload} onClick = {()=>{setVerificarDescarga(true)}} ></IonIcon>
+              </IonFabButton>
+              <IonFabButton color = {"success"} >
+                <IonIcon icon = {cloudUpload} onClick = { enviarLecturarRegistradas } > </IonIcon>
+              </IonFabButton>
+            </IonFabList>
+          </IonFab>:
+          <></>
+        }
       </IonContent>
     </IonPage>
   );

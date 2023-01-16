@@ -589,7 +589,7 @@ export async function lecturasPorSectorPage(sector: string, offset: number) {
             Offset: offset
         }
         let result = await service.buscarLecturasPorSector(datosConsulta, basicData.token + "");
-        let mensaje = result.data.mensaje;        
+        let mensaje = result.data.mensaje;
         setCuentasPapas(result.data.Papas);
         guardarContratos(JSON.stringify(mensaje));
         if (mensaje.legth === 0 || mensaje === "No se encontraron registros") {
@@ -604,9 +604,8 @@ export async function lecturasPorSectorPage(sector: string, offset: number) {
 export async function obtenerPromedioConsumo() {
     try {
         let { idLectura, token, nCliente } = getDatosLecturaStorage();
-        console.log(token);
         let datos = {
-            idLectura: idLectura,
+            idLectura: idLectura, //NOTE: id del padron de agua potable
             nCliente: nCliente,
         }
         let result = await service.extraerPromedioContribuyente(datos, String(token));
@@ -614,6 +613,22 @@ export async function obtenerPromedioConsumo() {
         data = Math.round(data);
         return data;
     } catch (error) {
+        throw conectionError(error);
+    }
+}
+export async function obtenerPromedioContrato(Padron:number):Promise<number> {
+    try {
+        let { token, cliente } = obtenerDatosCliente();
+        let datos = {
+            idLectura: Padron,
+            nCliente: cliente,
+        }
+        let result = await service.extraerPromedioContribuyente(datos, String(token));
+        let data:number = result.data.Mensaje;
+        data = Math.round(data);
+        return Promise.resolve(data);
+    } catch (error) {
+        console.log(JSON.stringify(error));
         throw conectionError(error);
     }
 }
@@ -1250,11 +1265,13 @@ export async function DescargarConfiguraciones(){
 export async function DescargarContratosLecturaSector( Sector:string ){
     try{
         let { cliente,token } = obtenerDatosCliente();
+        let mes:number = date.getMonth();
+        let anio:number = date.getFullYear();
         let datosSolicitados = {
             'Cliente':cliente,
             'Sector': Sector,
-            'Mes': date.getMonth() ,
-            'Anio': date.getFullYear(),
+            'Mes': mes == 0 ? 12 : mes,
+            'Anio': mes == 0 ? ( anio - 1 ) : anio,
         };
         let rawContratos = await service.ObtenerContractosSector(datosSolicitados,String(token));
         if(rawContratos.data.Status){
