@@ -1,48 +1,41 @@
 import React, { useEffect, useState } from "react";
 import {
-  IonPage,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonContent,
-  IonItem,
-  IonButtons,
-  IonMenuButton,
-  IonCard,
-  IonCardHeader,
-  IonLabel,
-  IonSelect,
-  IonAlert,
-  IonSelectOption,
-  IonCardContent,
-  IonItemDivider,
-  IonList,
-  IonLoading,
-  IonButton,
-  IonInput,
-  IonIcon,
-  IonGrid,
-  IonRow,
-  IonCol,
-  useIonViewWillEnter,
-  IonNote,
-  useIonViewWillLeave,
-  IonFab,
-  IonFabButton,
-  IonBadge,
-  IonFabList
+  IonPage,IonHeader,IonTitle,IonToolbar,IonContent,
+  IonItem,IonButtons,IonMenuButton,IonCard,IonCardHeader,
+  IonLabel,IonSelect,IonAlert,IonSelectOption,IonCardContent,
+  IonItemDivider,IonList,IonLoading,IonButton,IonInput,
+  IonIcon,IonGrid,IonRow,IonCol,useIonViewWillEnter,
+  IonNote,useIonViewWillLeave,IonFab,IonFabButton,
+  IonBadge,IonFabList
 } from "@ionic/react";
+import { Filesystem,Directory } from '@capacitor/filesystem';
 import { useHistory } from 'react-router-dom';
 import "./form-datos-toma.page.css";
 import MenuLeft from '../../components/left-menu';
-import { buscarSectores, lecturasPorSectorPage, solicitarPermisos, verifyCameraPermission, verifyGPSPermission, obtenerContribuyente, obtenerTotalDatosSectores, obtenerTotalDatosBusqueda,buscarContrato,buscarPorMedidor, configuracionCuotaFija, DescargarPadronAnomalias,DescargarConfiguraciones,DescargarContratosLecturaSector, obtenerPromedioContrato} from '../../controller/apiController';
-import { getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession, setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas, setNumeroPaginas, getClienteNombreCorto, setSector, getPunteroBusqueda, getPaginasBusqueda, setPunteroBusqueda,getCuentasPapas,getDatosUsuario, ObtenerModoTrabajo } from '../../controller/storageController';
-import { searchCircle, arrowForwardOutline, arrowBackOutline, cloudDownload, cloudUpload, returnUpBackOutline } from 'ionicons/icons';
+import { 
+  EnviarDatoLocalesAPI,buscarSectores,lecturasPorSectorPage, 
+  solicitarPermisos, verifyCameraPermission, verifyGPSPermission,
+  obtenerContribuyente, obtenerTotalDatosSectores,
+  buscarContrato,buscarPorMedidor, configuracionCuotaFija, 
+  DescargarPadronAnomalias,DescargarConfiguraciones,
+  DescargarContratosLecturaSector
+} from '../../controller/apiController';
+import { 
+  getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession,
+  setContribuyenteBuscado, setPuntero, getPuntero, getNumeroPaginas,
+  setNumeroPaginas, getClienteNombreCorto, setSector, getPunteroBusqueda,
+  getPaginasBusqueda, setPunteroBusqueda,getCuentasPapas,getDatosUsuario,
+  ObtenerModoTrabajo 
+} from '../../controller/storageController';
+import { searchCircle, arrowForwardOutline, arrowBackOutline, cloudDownload, cloudUpload,warningOutline } from 'ionicons/icons';
+import { DEBBUG } from '../../constantes/constantes';
 import { isPlatform} from '@ionic/react';
 import { 
   SQLITEInsertarDatosExtra,SQLITEObtenerPadronPagina,SQLITEObtenerTotalContratosPadron,SQLITEObtenerContratosFiltroContrato,
   SQLITEObtenerContratosFiltroMedidor,SQLITEObtenerListaSectores,SQLITETruncarTablas,SQLITEInsertarAnomalias,SQLITEInsertarConfiguracionUsuario,
-  SQLITEGuardarPadronAgua,SQLITEGuardarLecturaAnteriorContrato, SQLITEInsertarSector, SQLITEObtenerLecturaActual,SQLITEObtenerEvidencias,SQLITEObtenerGeoreferencia, SQLITEObtenerListaLecturas, SQLITEObtenerContratoVigente} from '../../controller/DBControler';
+  SQLITEGuardarPadronAgua,SQLITEGuardarLecturaAnteriorContrato, SQLITEInsertarSector,SQLITEObtenerEvidencias,SQLITEObtenerGeoreferencia,
+  SQLITEObtenerListaLecturas, SQLITEObtenerContratoVigente,SQLITEBorrarLecturasLocales, SQLITEBorrarDatosPadron
+} from '../../controller/DBControler';
 import { ContratoAPI,LecturaAnteriorContrato,PadronAguaPotable, Anomalias, DatosLectura, Evidencia, StructuraEvidencia } from '../../Objetos/Interfaces';
 import { obtenerBase64 } from '../../utilities';
 import { Network } from '@capacitor/network';
@@ -76,6 +69,7 @@ const FormDatosTomaPage: React.FC = () => {
   const [ mostrarBotonDescarga, setMostrarBotonDescarga ] = useState(false);
   //NOTE: Mensaje de descarga 
   const [ verificarDescarga,setVerificarDescarga ] = useState(false);
+  //NOTE: 
   const alertButtons = [
     {
       text: "Reintentar", handler: () => {
@@ -174,18 +168,16 @@ const FormDatosTomaPage: React.FC = () => {
       .catch(err => {
         let errorMessage = String(err.message);
         let sessionValid = errorMessage.includes("Sesion no valida");
-        setTokenExpired(sessionValid);
-        setIdSector("");
+        setTokenExpired(sessionValid)
+        //setIdSector("");
         if (!sessionValid) {
           setMessage(err.message)
           setTypeError("sectores")
         }
       })
   }
-  useIonViewWillEnter(()=>{
-    setActivarMenu(true)
-  });
-  useIonViewWillLeave(()=>{setActivarMenu(false)});
+  useIonViewWillEnter(()=>{ setActivarMenu(true);console.error("Activando menu") });
+  useIonViewWillLeave(()=>{ setActivarMenu(false); console.error("Desactivando menu")});
   //Seccion de metodos en linea
   const buscarPorSector = async (idSector:string) => {
     setBusqueda(false)
@@ -303,14 +295,17 @@ const FormDatosTomaPage: React.FC = () => {
       .finally(() => { setLoading(false) })
   }
   const handleSector = (sector: string) => {
+    alert(`Sector Seleccionado: ${sector}`);
+    setIdSector(sector);
     setLoading(true);
     if(enLinea){
-      setIdSector(sector);
-      setSector(sector);
-      calcularPaginadoLocal(parseInt(sector));
+        //setIdSector(sector);
+        setSector(sector);
+        calcularPaginadoLocal(parseInt(sector));
+      
     }else{
       if(sector !== ""){
-        setIdSector(sector);
+        //setIdSector(sector);
         setSector(sector);
         buscarPorSector(sector);
       }
@@ -570,7 +565,6 @@ const FormDatosTomaPage: React.FC = () => {
     }
     return null;
   }
-  //Termina seccion de metodos en linea
   //INDEV: Seccion de metodos para usar base de datos local
   const PrepararPantallaLocal = async () =>{
     console.log("Usando modo local!!");
@@ -615,6 +609,13 @@ const FormDatosTomaPage: React.FC = () => {
         setPaginas(parseInt(String(paginas)));
         setPuntero(0);
         obtenerPadronContratosLocal(idSector);
+      }else{
+        //NOTE: escondemos el paginado y elimnamos los contratos
+        setShowPagination(false);
+        setNumeroPaginas(0)
+        setPaginas(0);
+        setPuntero(0);
+        setLecuras([]);
       }
     })
     .catch((error)=>{
@@ -640,7 +641,11 @@ const FormDatosTomaPage: React.FC = () => {
   }
   const VerificarModoTrabajo = async () => {
     //let promedioDoceMesesContrato = await obtenerPromedioContrato(146794);
-    setEnlinea(ObtenerModoTrabajo());
+    let modoTrabajo = ObtenerModoTrabajo();
+    setEnlinea(modoTrabajo);
+    if(enLinea != modoTrabajo){
+      setLecuras([]);
+    }
   }
   function zeroFill( number:string,width:number = 9){
     while(number.length < width){
@@ -649,6 +654,7 @@ const FormDatosTomaPage: React.FC = () => {
     return number;
   }
   const enviarLecturarRegistradas = async () =>{
+    //REVIEW: al que le toque esto es se puede mejorar
     setMsjSubiendo("Buscando Lecturas...");
     setLoading(true);
     try{
@@ -658,15 +664,25 @@ const FormDatosTomaPage: React.FC = () => {
         //NOTE: recorremos los lecturas 
         listaLecturas.map(  async ( lectura:DatosLectura,index:number )=>{
           //NOTE: obtenemos el contrato vigente
-          await SQLITEObtenerContratoVigente(lectura.idbLectura);
-          setMsjSubiendo(`Enviado lectura del contrato:${ await SQLITEObtenerContratoVigente(lectura.idbLectura)} `);
+          let labelContratoVigente =  await SQLITEObtenerContratoVigente(lectura.idbLectura);
+          setMsjSubiendo(`Enviado lectura del contrato: ${labelContratoVigente}`);
           let evidencias = await SQLITEObtenerEvidencias(lectura.idbLectura);
           let coordenadas = await SQLITEObtenerGeoreferencia(lectura.idbLectura); 
-          await codificarEvidencia(evidencias)
-          .then((listaEvidencia)=>{ 
-            //console.error(JSON.stringify(listaEvidencia));
-            console.error(`Calle: ${listaEvidencia.Calle} Fachada: ${listaEvidencia.Fachada} Toma: ${listaEvidencia.Toma}`);
+          let listaEvidencia = await codificarEvidencia(evidencias);
+          await EnviarDatoLocalesAPI(listaEvidencia,coordenadas,lectura)
+          .then( async ( Padron )=>{
+            //NOTE: Borramos los datos del telefono para evitar fallos en la realidad
+            console.error("Lectura del contrato: ", Padron , " Enviada !!");
+            await SQLITEBorrarDatosPadron(Padron)
+            .then(( result )=>{
+              eliminarEvidenciasLectura(evidencias);
+            })
           })
+          .catch((error)=>{
+            setTipoMessage("Mensaje");
+            setHideAlertbuttons(true);
+            setMessage(error.message)
+          });
 
         })
         setLoading(false);
@@ -675,7 +691,10 @@ const FormDatosTomaPage: React.FC = () => {
         setMessage(`Error al obtener los datos: ${error}`);
       })
     }catch( error ) {
-
+      setTipoMessage("Mensaje");
+      setHideAlertbuttons(true);
+      setMessage(`Hubo un error al enviar las lecturas: ${error.message}`);
+      
     }
   }
   const codificarEvidencia = async ( arregloEvidencia:Array<Evidencia> ):Promise<StructuraEvidencia> => {
@@ -709,10 +728,27 @@ const FormDatosTomaPage: React.FC = () => {
       }
     })
   }
-  const dormirSegundos = async () =>{
-    setTimeout(()=>{
-      return Promise.resolve("Terminado Proceso...");
-    },2000);
+  const EliminarLecturasGuardadas = async () =>{
+    setLoading(true);
+    await SQLITEBorrarLecturasLocales()
+    .then((respuesta:string)=>{ 
+      setTipoMessage("Mensaje");
+      setHideAlertbuttons(true);
+      setMessage(respuesta) 
+    })
+    .catch((error)=>{ setMessage(error.message) })
+    .finally(()=>{ setLoading(false) });
+  }
+  const eliminarEvidenciasLectura = async ( listaEvidencias:Evidencia[] ) => {
+    //NOTE: verificamos que la imagen exista
+    for(let indexEvidecia = 0; indexEvidecia < listaEvidencias.length; indexEvidecia ++ ){
+      console.log("Borrando evidencia:",listaEvidencias[indexEvidecia].DireccionFisica);
+      await Filesystem.deleteFile(
+        {
+          path:listaEvidencias[indexEvidecia].DireccionFisica,
+          directory:Directory.Data
+        });
+    }
   }
   return (
     <IonPage onFocus = {VerificarModoTrabajo} >
@@ -777,6 +813,7 @@ const FormDatosTomaPage: React.FC = () => {
                 {
                   sectores != null  ?
                     sectores.map(function (item, index) {
+                      //console.log(JSON.stringify(item));
                       return <IonSelectOption key={index} value={item.id}>{item.Sector}</IonSelectOption>
                     }) :
                     <IonSelectOption disabled>
@@ -810,10 +847,12 @@ const FormDatosTomaPage: React.FC = () => {
               {
 
                 lecturas.map(function (item, index) {
+                  //console.error(JSON.stringify(item));
                   let papas = getCuentasPapas();
                   //console.error("Estatus: ",item.Estatus,"Metodo de cobro:",parseInt( !enLinea ? item.M_etodoCobro : item.MetodoCobro ));
                   let arrayData = functionValidarLectura(parseInt(item.Estatus),parseInt( !enLinea ? item.M_etodoCobro : item.MetodoCobro ));
                   let cuentaPapa = String(papas).includes(!enLinea ? item.id : item.Padron);
+                  console.error((!enLinea ? item.id : item.Padron)," comparando desarollo ");
                   if(cuentaPapa){
                     arrayData[0] += "Desarrollo";  
                   }
@@ -884,7 +923,13 @@ const FormDatosTomaPage: React.FC = () => {
               <IonFabButton color = {"success"} >
                 <IonIcon icon = {cloudUpload} onClick = { enviarLecturarRegistradas } > </IonIcon>
               </IonFabButton>
-            </IonFabList>
+              {
+                DEBBUG ? 
+                <IonFabButton color = {"success"} >
+                  <IonIcon icon = {warningOutline} onClick = { EliminarLecturasGuardadas } > </IonIcon>
+                </IonFabButton> : <></>
+              }
+            </IonFabList> 
           </IonFab>:
           <></>
         }

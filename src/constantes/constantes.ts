@@ -1,5 +1,6 @@
 export const DBNAME = "DBL";
 const AUTOINCREMENT = "id INTEGER PRIMARY KEY AUTOINCREMENT";
+export const DEBBUG = true;
 export const QUERYTABLES = `
 CREATE TABLE IF NOT EXISTS Sectores (${AUTOINCREMENT} ,idSuinpac INTEGER, Nombre TEXT );
 CREATE TABLE IF NOT EXISTS DatosLectura (${AUTOINCREMENT},idbLectura INTEGER, LecturaAnterior INTEGER,LecturaActual INTEGER, PresentaAnomalia INTEGER, Consumo INTEGER, MesCaptua INTEGER, AnioCaptua INTEGER, idAnomalia INTEGER, TipoCoordenada INTEGER,Lectura INTEGER, Cliente INTEGER, Padron INTEGER);
@@ -43,3 +44,4 @@ export const TIPOTOMA =
 31:'Mixta',
 32:'Tarifa Especial'
 }
+

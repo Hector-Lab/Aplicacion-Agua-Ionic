@@ -90,7 +90,6 @@ export async function SQLITEInsertarDatosExtra( Nombre:string,Valor:string,Descr
         return Promise.reject(error);
     }
 }
-
 export async function SQLITEInsertarEvidencia(Evidencia: StructuraEvidencia ,Padron:number){
     try {
 
@@ -102,8 +101,7 @@ export async function SQLITEInsertarEvidencia(Evidencia: StructuraEvidencia ,Pad
         let resultInsertEvidenciaToma:capSQLiteChanges = await db.run(queryToma);
         let resultInsertEvidenciaFachada:capSQLiteChanges = await db.run(queryFachada);
         let resultInsertEvidenciaCalle:capSQLiteChanges = await db.run(queryCalle);
-
-        await db.close();
+        //await db.close();
         return Promise.resolve(`Evidencia toma: ${resultInsertEvidenciaToma.changes?.lastId} Evidencia toma: ${resultInsertEvidenciaFachada.changes?.lastId} Evidencia toma: ${resultInsertEvidenciaCalle.changes?.lastId}`);
     }catch( error ){
         return Promise.reject(error);
@@ -114,7 +112,7 @@ export async function SQLITEInsertarLecturaActual(LecturaActual:DatosLectura){
         let db = await RecuperacConexion();
         await db.open();
         let resultLecturaActual:capSQLiteChanges = await db.run(ConstructorLecturaActual(LecturaActual));
-        await db.close();
+        //await db.close();
         return Promise.resolve(resultLecturaActual.changes?.changes);
     }catch( error ){
         return Promise.reject(error);
@@ -125,14 +123,14 @@ export async function SQLITEInsertatGeoreferencia( Coordenadas:MetaDatos  ){
         let db = await RecuperacConexion();
         await db.open();
         let resultCoordenadas:capSQLiteChanges = await db.run(ConstructorGeocordenadas(Coordenadas));
-        await db.close();
+        //await db.close();
         return Promise.resolve(resultCoordenadas.changes?.changes);
     }catch( error ){
         return Promise.reject(error);
     }
 }
 //SECCION: seccion de borrado
-export async function SQLITEBorrarLecturaActual( Padron:number ):Promise<void>{
+export async function SQLITEBorrarLecturaActual( Padron:number,  ):Promise<void>{
     try{
         let db = await RecuperacConexion();
         await db.open();
@@ -141,6 +139,34 @@ export async function SQLITEBorrarLecturaActual( Padron:number ):Promise<void>{
         let resultBorrarGeoreferecnia = await db.run(`DELETE FROM MetaDatos WHERE idblectura = ${Padron}`);
         console.error(`Eliminando Lectrua: ${resultBorrarLectura.changes?.changes} Eliminando Evidencias: ${resultBorrarEvidencias.changes?.changes} EliminarMetadatos ${resultBorrarGeoreferecnia.changes?.changes}`);
     }catch( error ){
+        return Promise.reject(error);
+    }
+}
+export async function SQLITEBorrarLecturasLocales():Promise<string>{
+    try{
+        let db = await RecuperacConexion();
+        await db.open();
+        let resultBorrarLectura = await db.run(`DELETE FROM DatosLectura;`);
+        let resultBorrarEvidencias = await db.run(`DELETE FROM Evidencia;`);
+        let resultBorrarGeoreferecnia = await db.run(`DELETE FROM MetaDatos;`);
+        //await db.close();
+        return Promise.resolve(`Eliminando Lectrua: ${resultBorrarLectura.changes?.changes} Eliminando Evidencias: ${resultBorrarEvidencias.changes?.changes} EliminarMetadatos ${resultBorrarGeoreferecnia.changes?.changes}`);
+    }catch(error){
+        return Promise.reject(error);
+    }
+}
+export async function SQLITEBorrarDatosPadron( Padron:number ):Promise<boolean>{
+    try {
+        let db = await RecuperacConexion();
+        await db.open();
+        let resultBorrarPadron = await db.run(`DELETE FROM Padron WHERE Padron = ${Padron}`);
+        if( resultBorrarPadron.changes?.changes != undefined  && resultBorrarPadron.changes?.changes > 0 ){
+            let resultBorrarLecturaAnterior = await db.run(`DELETE FROM LecturaAnterior WHERE idPadron = ${Padron}`);
+            SQLITEBorrarLecturaActual(Padron);
+        }
+        //await db.close();
+        return Promise.resolve(true);
+    }catch(error){
         return Promise.reject(error);
     }
 }
@@ -173,7 +199,7 @@ export async function SQLITEObtenerListaSectores():Promise<Array<Sector>>{
             Sector.Sector = Sector.Nombre;
             listaSectores.push(Sector);
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(listaSectores);
     }catch(error){
         return Promise.reject(error)
@@ -189,7 +215,7 @@ export async function SQLITEObtenerContratosFiltroContrato( Contrato:string ):Pr
         lectorContratos.values?.map(( Padron:PadronAguaPotable,index:number )=>{
             listaContratos.push(Padron);
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(listaContratos);
     }catch(error){
         return Promise.reject(error);
@@ -205,7 +231,7 @@ export async function SQLITEObtenerContratosFiltroMedidor(Medidor:string):Promis
         lectorContratos.values?.map(( Padron:PadronAguaPotable,index:number )=>{
             listaContratos.push(Padron);
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(listaContratos);
     }catch(error){
         return Promise.reject(error);
@@ -217,10 +243,10 @@ export async function SQLITEObtenerTotalContratosPadron(idSector:number):Promise
         await db.open();
         let totalContratos: DBSQLiteValues = await db.query(`SELECT COUNT(id) as Total FROM Padron WHERE idSector = ${idSector}`);
         if(totalContratos.values !== undefined ){
-            await db.close();
+            //await db.close();
             return Promise.resolve(parseInt(totalContratos.values[0].Total));
         }else{
-            await db.close();
+            //await db.close();
             return Promise.resolve(-1);
         }
     }catch(error){
@@ -233,10 +259,11 @@ export async function SQLITEObtenerPadronPagina(idSector:number, Offset:number )
         let listaContrato: Array<PadronAguaPotable> = new Array();
         await db.open();
         let contratosPagina: DBSQLiteValues = await db.query(`SELECT * FROM Padron WHERE idSector = ${idSector} LIMIT 20 OFFSET ${Offset * 20}`);
+        console.error(JSON.stringify(contratosPagina));
         contratosPagina.values?.map(( Padron:PadronAguaPotable,index:number ) => {
             listaContrato.push(Padron);
         });
-        await db.open();
+        //await db.close();
         return listaContrato;
     }catch(error){
         return Promise.reject(error);
@@ -252,7 +279,7 @@ export async function SQLITEObtenerLecturaContrato(idContrato:number):Promise<Le
             Lectura.push(lectura);
         });
         console.log(JSON.stringify(lecturaContrato));
-        await db.close();
+        //await db.close();
         return Promise.resolve(Lectura[0]);
     }catch(error){
         return Promise.reject(error);
@@ -268,7 +295,7 @@ export async function SQLITEObtenerAnomaliasAgua( ):Promise<Array<Anomalias>>{
         lectorAnomalias.values?.map(( anomalia:Anomalias,index:number )=>{
             ListaAnomalias.push(anomalia);
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(ListaAnomalias);
     }catch(error){
         return Promise.reject(error);
@@ -283,6 +310,7 @@ export async function SQLITEObtenerAnomalia(Clave:number):Promise<{id:number, id
         lectorAnomalias.values?.map(( anomalia:{id:number, idSuinpac:number , Clave:string, Descripcion:string,AplicaFoto:number}, index:number ) => {
             listaAnomalia.push(anomalia);
         });
+        //await db.close();
         return Promise.resolve(listaAnomalia[0]);
     }catch(error){
         return Promise.reject(error);
@@ -297,7 +325,7 @@ export async function SQLITEObtenerDatoExtra(nombreDato:string):Promise<DatosExt
         lectorDatosExtra.values?.map((datosExtra:DatosExtra,index:number)=>{
             listaDatosExtra.push(datosExtra);
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(listaDatosExtra[0]);
     }catch(error){
         return Promise.reject(error);
@@ -312,7 +340,7 @@ export async function SQLITEObtenerLecturaActual( Padron:number ):Promise<DatosL
         lectorLecturaActual.values?.map(( Lectura:DatosLectura )=>{
             listaLectura.push(Lectura);
         })
-        await db
+        //await db.close();
         if(listaLectura.length > 0){
             return Promise.resolve(listaLectura[0]);
         }else{
@@ -327,11 +355,11 @@ export async function SQLITEObtenerEvidencias( Padron:number ): Promise<Array<Ev
         let db = await RecuperacConexion();
         await db.open();
         let listaEvidencias: Array<Evidencia> = new Array();
-        let lectorEvidencias: DBSQLiteValues = await db.query(`SELECT * FROM Evidencia`);
+        let lectorEvidencias: DBSQLiteValues = await db.query(`SELECT * FROM Evidencia WHERE idPadron = ${Padron}`);
         lectorEvidencias.values?.map(( evidencia:Evidencia, index:number )=>{
             listaEvidencias.push(evidencia);
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(listaEvidencias);
     }catch(error){
         return Promise.reject(error);
@@ -346,7 +374,7 @@ export async function SQLITEObtenerGeoreferencia( Padron:number ) {
         lectorGeoreferencia.values?.map(( metadatos:MetaDatos, index:number )=>{
             listaGeoreferencia.push(metadatos);
         })
-        await db.close();
+        //await db.close();
         return Promise.resolve(listaGeoreferencia[0]);
     }catch( error ){
         return Promise.reject(error);
@@ -361,7 +389,7 @@ export async function SQLITEObtenerListaLecturas(){
         lectorListaLecturas.values?.map(( Lectura:DatosLectura,index:number )=>{
             listaLecturas.push(Lectura);
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(listaLecturas);
 
     }catch(error){
@@ -377,7 +405,7 @@ export async function SQLITEObtenerContratoVigente(idPadron:number):Promise<stri
         lectorContrato.values?.map(( padron:PadronAguaPotable,index:number )=>{
             contratoVigente = padron.ContratoVigente;
         });
-        await db.close();
+        //await db.close();
         return Promise.resolve(contratoVigente);
     }catch(error){
         return Promise.reject(error);

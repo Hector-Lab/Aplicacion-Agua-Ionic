@@ -27,6 +27,7 @@ import {
     setNumeroPaginasTareas,
     getContratoMulta,
 } from '../controller/storageController';
+import { DatosLectura, Evidencia, MetaDatos, StructuraEvidencia } from '../Objetos/Interfaces';
 const service = new APIservice();
 const date = new Date();
 //INDEV: Errores del sistema
@@ -181,10 +182,10 @@ export async function extraerDatosLectura(keyLectura: string) {
             idLectura: keyLectura
         }
         let result = await service.extraesDatosLectura(datos, basicData.token + "");
-        console.log(result);
+        console.log(JSON.stringify(result));
         let tipoLectura = result.data.ValorLectura[0].Valor;
         if (tipoLectura != '1' && tipoLectura != '2' && tipoLectura != '3') {
-            throw lecturaCodeError
+            throw lecturaCodeError;
         } else {
             return result.data;
         }
@@ -1282,4 +1283,47 @@ export async function DescargarContratosLecturaSector( Sector:string ){
     }catch(error){
         throw conectionError(error);
     }
+}
+export async function EnviarDatoLocalesAPI (evidencia:StructuraEvidencia, metaDatos:MetaDatos, datosLectura:DatosLectura ):Promise<number>{
+    let { cliente,idUsuario,token } = obtenerDatosCliente();
+    const lecturaActual = {
+        idToma: String(datosLectura.idbLectura),
+        cliente: cliente,
+        lecturaAnterior: datosLectura.LecturaAnterior,
+        lecturaActual: datosLectura.LecturaActual,
+        consumoFinal: datosLectura.Consumo,
+        mesCaptura: datosLectura.MesCaptua,
+        anhioCaptura: datosLectura.AnioCaptua,
+        fechaCaptura: date.toString(),
+        anomalia: (isNaN(datosLectura.idAnomalia) ? "" : String(datosLectura.idAnomalia) ) ,
+        idUsuario: idUsuario,
+        latitud: metaDatos.Latitud,
+        longitud: metaDatos.Longitud,
+        tipoCoordenada: 1,
+        fotos: [],
+        arregloFotos: evidencia,
+        ruta: metaDatos.Ruta
+    };
+    //console.error("Datos: ", JSON.stringify(lecturaActual));
+    let result = await service.guardarDatosLecturaV2(lecturaActual, String(token) );
+    console.log(JSON.stringify(result));
+    let code = result.data.Mensaje;
+    let message = -1;
+    switch (code) {
+        case 200:
+            message = datosLectura.idbLectura;
+            break;
+        case 224:
+            throw new Error("No se pudo realizar el registro");
+            break;
+        case 223:
+            throw API223;
+        case 400:
+            throw new Error("El mes ya fue capturado");
+            break;
+        default:
+            throw APIError;
+            break;
+    }
+    return message;
 }

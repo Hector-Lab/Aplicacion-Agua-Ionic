@@ -80,9 +80,10 @@ const CapturaDeLectura: React.FC = () => {
         }];
     const fecha = new Date();
     const isSessionValid = () => {
-        VerificarModoTrabajo();
+        let resultadoModoTrabajo = VerificarModoTrabajo();
+
         let valid = verifyingSession();
-        logOut(valid)
+        logOut(valid,resultadoModoTrabajo);
     }
     useEffect(() => { isSessionValid(); }, [refreshControl])
     useEffect(() => {
@@ -92,7 +93,7 @@ const CapturaDeLectura: React.FC = () => {
         }
     }, [defaultLectura])
     useEffect(() => { console.log(promedioLectura) }, [promedioLectura])
-    const logOut = (valid: boolean) => {
+    const logOut = (valid: boolean, modo:boolean) => {
         if (!valid) {
             setTipoMessage("Sesión no valida");
             setMessage("Inicie sesión por favor\nRegresando...");
@@ -103,13 +104,13 @@ const CapturaDeLectura: React.FC = () => {
             }, 2500)
         } else {
             setLoading(true);
-            cargarContribuyente();
+            cargarContribuyente(modo);
             setDefaultLectura(0);
         }
     }
     useIonViewWillEnter(()=>{setActivarMenu(false)});
     useIonViewDidEnter(()=>{setActivarMenu(true)});
-    const cargarContribuyente = async () => {
+    const cargarContribuyente = async (modoTrabajo:boolean) => {
         //INDEV:: Obtenemos todos los datos del storage
         let result = getDatosLecturaStorage();
         if(result.contribuyente == "null"){
@@ -122,14 +123,17 @@ const CapturaDeLectura: React.FC = () => {
         //setLoading(false);
         setDatosContribuyente(result);
         //NOTE: aqui mandamos la validacion de la base de datos local
-        if(enLinea){
+        console.error("Modo de trabajo:", modoTrabajo );
+        if(!modoTrabajo){
             extraerLectura(result.idLectura); //NOTE: Desde el API
         }else{
+            console.error("Desde local");
             ExtraerLecturaLocal(parseInt(result.idLectura + "" ));
         }
         setRefreshControl(false);
     }
     const extraerLectura = async (idLectura: any) => {
+        //FIXME: verificando 
         await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
             setPromedioLectura(parseInt(String(promedio)));
@@ -160,7 +164,6 @@ const CapturaDeLectura: React.FC = () => {
                 setConsumo(0);
             })
             .catch((err) => {
-                console.log("aqui esta el error");
                 let errorMessage = err.message + "";
                 if (errorMessage.includes("API")) {
                     setEnbleButtons(true);
@@ -614,9 +617,10 @@ const CapturaDeLectura: React.FC = () => {
         setLoading(false);
     }
     //INDEV: Metodos que usan la base de datos local
-    const VerificarModoTrabajo = () => {
-        console.log("Verificando modo de trabajo",ObtenerModoTrabajo());
-        setEnlinea(ObtenerModoTrabajo());
+    const VerificarModoTrabajo = ():boolean => {
+        let modoTrabajo = ObtenerModoTrabajo();
+        setEnlinea(modoTrabajo);
+        return(modoTrabajo);
     }
     const ExtraerLecturaLocal = async (Padron:number) => {
         let lecturaContrato = await SQLITEObtenerLecturaContrato(Padron);
@@ -676,6 +680,7 @@ const CapturaDeLectura: React.FC = () => {
         await SQLITEObtenerLecturaActual(Padron)
         .then( async ( lectura )=>{
             if(lectura != null){
+                setBtnInactivo(true);
                 //FIXME: validamos si tiene anomalia asignada CORREGIR EL TIPO DE DATO PARA NO GENERAR CONFUCION
                 let anomalia:{id:number, idSuinpac:number , Clave:string, Descripcion:string,AplicaFoto:number} = {
                     AplicaFoto:-1,
@@ -688,7 +693,7 @@ const CapturaDeLectura: React.FC = () => {
                     anomalia =  await SQLITEObtenerAnomalia(lectura.idAnomalia);
                 }
                 //Rellenamos los datos basicos
-                let arregloEvidencia = await SQLITEObtenerEvidencias(lectura.idAnomalia);
+                let arregloEvidencia = await SQLITEObtenerEvidencias(lectura.idbLectura);
                 arregloEvidencia.map(( evidencia:Evidencia, index:number )=>{
                     if(evidencia.Tipo == "Toma")
                         setFotoMedidorPreview(evidencia.DireccionFisica);
@@ -775,8 +780,9 @@ const CapturaDeLectura: React.FC = () => {
                             <IonSelect interface="action-sheet" onIonCancel = {handleCancelAnomalia} value={defaultAnomalia} onIonChange={e => { handleSelectAnomalia(e.detail.value) }}>
                                 {
                                     anomalias.map((item, index) => {
-                                        return <IonSelectOption key={index} value={ enLinea ? item.id : item.item.Clave }>
-                                            {`${ enLinea ? ( item.Clave <= 10 ? formatindex(item.Clave) : item.Clave ) : (item.clave <= 10 ? formatindex(item.clave) : item.clave) } - ${ enLinea ? item.Descripcion : item.descripci_on }`}
+                                        //console.error(JSON.stringify(item));
+                                        return <IonSelectOption key={index} value = { enLinea ? item.id : item.Clave } >
+                                            {`${ !enLinea ? ( item.clave <= 10 ? formatindex(item.clave) : item.clave ) : (item.clave <= 10 ? formatindex(item.Clave) : item.Clave) } - ${ item.Descripcion }`}
                                         </IonSelectOption>
                                     })
                                 }
