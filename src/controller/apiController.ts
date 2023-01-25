@@ -26,6 +26,7 @@ import {
     guardarTareasCortes,
     setNumeroPaginasTareas,
     getContratoMulta,
+    getUsuario,
 } from '../controller/storageController';
 import { DatosLectura, Evidencia, MetaDatos, StructuraEvidencia } from '../Objetos/Interfaces';
 const service = new APIservice();
@@ -57,6 +58,7 @@ const ErrorMulta424 = new Error("Error al procesar la operacion\nFavor de revisa
 const ErrorMulta425 = new Error("Error al procesar la operacion\nFavor de revisar su area recaudadora");
 const ErrorMulta401 = new Error("Error al procesar la operacion\nEl usuario actual no existe o esta dado de baja");
 const ErrorMulta423 = new Error("Error al procesar la operacion\nHubo un error al realizar la multa");
+const ErrorSector = new Error("Los sectores del usuario no se han configuradi");
 export async function Login(user: string, password: string, remerber: boolean) {
     const acceso = {
         usuario: user,
@@ -65,6 +67,7 @@ export async function Login(user: string, password: string, remerber: boolean) {
     try {
         let result = await service.getAuth(acceso);
         //Verificanos si el inicio de session es valido
+        //console.log(result.data.token);
         let sessionValida = result.data.Status;
         if (sessionValida == true) {
             let data = {
@@ -1326,4 +1329,22 @@ export async function EnviarDatoLocalesAPI (evidencia:StructuraEvidencia, metaDa
             break;
     }
     return message;
+}
+export async function ObtenerSectoresConfigurados(){
+    try {
+        let { cliente,token } = obtenerDatosCliente();
+        let idUsuario = String(getUsuario());
+        let datos = {
+            Cliente: parseInt(String(cliente)),
+            Usuario:parseInt(idUsuario)
+        }
+        let resultadoSectores = await service.ObtenerSectoresConfigurados(datos,String(token));
+        if (resultadoSectores.data.Code == 200){
+            return resultadoSectores.data.Mensaje;
+        }else{
+            throw ErrorSector;
+        }
+    }catch( error ){
+        throw conectionError(error);
+    }
 }

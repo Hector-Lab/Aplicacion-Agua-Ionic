@@ -18,7 +18,8 @@ import {
   obtenerContribuyente, obtenerTotalDatosSectores,
   buscarContrato,buscarPorMedidor, configuracionCuotaFija, 
   DescargarPadronAnomalias,DescargarConfiguraciones,
-  DescargarContratosLecturaSector
+  DescargarContratosLecturaSector,
+  ObtenerSectoresConfigurados
 } from '../../controller/apiController';
 import { 
   getUsuario, guardarDatosLectura, cerrarSesion, verifyingSession,
@@ -39,6 +40,7 @@ import {
 import { ContratoAPI,LecturaAnteriorContrato,PadronAguaPotable, Anomalias, DatosLectura, Evidencia, StructuraEvidencia } from '../../Objetos/Interfaces';
 import { obtenerBase64 } from '../../utilities';
 import { Network } from '@capacitor/network';
+import { stringify } from "querystring";
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');
@@ -464,14 +466,17 @@ const FormDatosTomaPage: React.FC = () => {
       let Anomalias:[Anomalias] = await DescargarPadronAnomalias();
       let ConfiguracionesAgua: {Status:boolean,TipoLectura:number,BloquarCampos:number,Code:number} = await DescargarConfiguraciones(); //NOTE: para las lecturas
       let ConfiguracionUsuario = getDatosUsuario();
-      await InsertarSectores();
-      await InsertarAnomalias(Anomalias);
-      await SQLITEInsertarConfiguracionUsuario(parseInt(ConfiguracionUsuario.Cliente),ConfiguracionUsuario.NombreUsuario,ConfiguracionUsuario.Email,ConfiguracionUsuario.Contrasenia);
+      let sectoresConfigurados = await ObtenerSectoresConfigurados();
+      console.log(JSON.stringify(sectoresConfigurados));
+      //await InsertarSectores(); //FIXME: Cambiar por los sectores asignados y activos
+
+      /*await InsertarAnomalias(Anomalias);
+      await SQLITEInsertarConfiguracionUsuario(parseInt(ConfiguracionUsuarioCliente),ConfiguracionUsuario.NombreUsuario,ConfiguracionUsuario.Email,ConfiguracionUsuario.Contrasenia);
       await DescargarPadronSectorAgua(String(ConfiguracionesAgua.BloquarCampos));
       //NOTE: insertamos los datos extra Nombre, Valor, Descripcion       
       await SQLITEInsertarDatosExtra("TipoLectura",String(ConfiguracionesAgua.TipoLectura),"Configuracion para las lecturas de la app DATOS EXTRA SUINPAC"); //NOTE: Para tipo de lectura
       await SQLITEInsertarDatosExtra("BloquarCampos",String(ConfiguracionesAgua.BloquarCampos),"Para bloquear los campos de lectura de la app");
-      setTimeout( async ( )=>{ setDescargando(false); },10000);
+      setTimeout( async ( )=>{ setDescargando(false); },10000);*/
     }).catch(()=>{
       setDescargando(false);
       setMessage("Error al elimnar la base de datos antigua\n favor de eliminar los datos de la aplicacion desde configuraciones del dispositivo")
@@ -914,11 +919,11 @@ const FormDatosTomaPage: React.FC = () => {
           mostrarBotonDescarga ? 
           <IonFab slot="fixed" vertical="top" horizontal="end" edge={true} className = "btnDescargar"  >
             <IonFabButton color = {"danger"} className = "btnDescargar" >
-              <IonIcon icon={cloudDownload}></IonIcon>
+              <IonIcon icon={ cloudDownload }></IonIcon>
             </IonFabButton>
             <IonFabList>
               <IonFabButton color = {"primary"} >
-                <IonIcon icon = { cloudDownload} onClick = {()=>{setVerificarDescarga(true)}} ></IonIcon>
+                <IonIcon icon = { cloudDownload } onClick = {()=>{setVerificarDescarga(true)}} ></IonIcon>
               </IonFabButton>
               <IonFabButton color = {"success"} >
                 <IonIcon icon = {cloudUpload} onClick = { enviarLecturarRegistradas } > </IonIcon>

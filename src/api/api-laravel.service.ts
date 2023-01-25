@@ -358,5 +358,12 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ContratosSector`,data,{headers});
     }
+    ObtenerSectoresConfigurados( data:object,token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ObtenerSectoresConfigurados`,data,{headers});
+    }
 }
 
