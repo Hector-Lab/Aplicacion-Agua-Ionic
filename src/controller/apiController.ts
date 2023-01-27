@@ -28,7 +28,7 @@ import {
     getContratoMulta,
     getUsuario,
 } from '../controller/storageController';
-import { DatosLectura, Evidencia, MetaDatos, StructuraEvidencia } from '../Objetos/Interfaces';
+import { DatosLectura, MetaDatos, StructuraEvidencia, Sector } from '../Objetos/Interfaces';
 const service = new APIservice();
 const date = new Date();
 //INDEV: Errores del sistema
@@ -1333,14 +1333,20 @@ export async function EnviarDatoLocalesAPI (evidencia:StructuraEvidencia, metaDa
 export async function ObtenerSectoresConfigurados(){
     try {
         let { cliente,token } = obtenerDatosCliente();
-        let idUsuario = String(getUsuario());
+        let idUsuario = String(getIdUsuario());
         let datos = {
             Cliente: parseInt(String(cliente)),
             Usuario:parseInt(idUsuario)
         }
         let resultadoSectores = await service.ObtenerSectoresConfigurados(datos,String(token));
+        let arregloSectores = new Array<Sector>();
+        console.error(JSON.stringify(resultadoSectores));
         if (resultadoSectores.data.Code == 200){
-            return resultadoSectores.data.Mensaje;
+            //NOTE: damos formato a los datos obtenidos
+            resultadoSectores.data.Mensaje.map((sector:Sector,index:number)=>{
+                arregloSectores.push(sector);
+            })
+            return arregloSectores;
         }else{
             throw ErrorSector;
         }

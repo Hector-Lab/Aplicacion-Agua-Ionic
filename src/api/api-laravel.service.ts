@@ -363,7 +363,7 @@ export class APIservice {
             'Content-type': 'application/json',
             'Authorization': 'Bearer' + token
         }
-        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ObtenerSectoresConfigurados`,data,{headers});
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ObtenerSectoresConfigurados`,data,{headers});
     }
 }
 

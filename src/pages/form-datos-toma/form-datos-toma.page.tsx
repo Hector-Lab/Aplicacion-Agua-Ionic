@@ -37,10 +37,9 @@ import {
   SQLITEGuardarPadronAgua,SQLITEGuardarLecturaAnteriorContrato, SQLITEInsertarSector,SQLITEObtenerEvidencias,SQLITEObtenerGeoreferencia,
   SQLITEObtenerListaLecturas, SQLITEObtenerContratoVigente,SQLITEBorrarLecturasLocales, SQLITEBorrarDatosPadron
 } from '../../controller/DBControler';
-import { ContratoAPI,LecturaAnteriorContrato,PadronAguaPotable, Anomalias, DatosLectura, Evidencia, StructuraEvidencia } from '../../Objetos/Interfaces';
+import { ContratoAPI,LecturaAnteriorContrato,PadronAguaPotable, Anomalias, DatosLectura, Evidencia, StructuraEvidencia, Sector } from '../../Objetos/Interfaces';
 import { obtenerBase64 } from '../../utilities';
 import { Network } from '@capacitor/network';
-import { stringify } from "querystring";
 const FormDatosTomaPage: React.FC = () => {
   const history = useHistory();
   const [user, setUser] = useState('');
@@ -101,7 +100,14 @@ const FormDatosTomaPage: React.FC = () => {
     }];
   const [activarMenu,setActivarMenu] = useState(true);
   const isSessionValid = async () => {
-    VerificarModoTrabajo();
+    if(!VerificarModoTrabajo()){
+      console.log("Estamos en linea");
+      prepararPantalla()
+    }
+    else{
+      console.log("Estomos en local");
+      PrepararPantallaLocal();
+    }
     let valid = verifyingSession();
     setTokenExpired(!valid);
     setBlock(!valid);
@@ -115,10 +121,9 @@ const FormDatosTomaPage: React.FC = () => {
   useEffect(() => { isSessionValid() }, []);
   useEffect(
     () => {
-      if(!enLinea)
-        tokenExpired ? logOut(tokenExpired) : prepararPantalla()
-      else
-        PrepararPantallaLocal();
+      if( tokenExpired ){
+        logOut(tokenExpired)
+      }
     }
     ,[tokenExpired])
   const logOut = (valid: boolean) => {
@@ -461,39 +466,35 @@ const FormDatosTomaPage: React.FC = () => {
   const DescargarRecursos = async () =>{
     setDescargando(true);
     setEstadoDescarga("Eliminando historial antiguo...");
-    await EliminarBaseAnterior()
+    await SQLITETruncarTablas()
     .then( async ()=>{
       let Anomalias:[Anomalias] = await DescargarPadronAnomalias();
       let ConfiguracionesAgua: {Status:boolean,TipoLectura:number,BloquarCampos:number,Code:number} = await DescargarConfiguraciones(); //NOTE: para las lecturas
       let ConfiguracionUsuario = getDatosUsuario();
       let sectoresConfigurados = await ObtenerSectoresConfigurados();
-      console.log(JSON.stringify(sectoresConfigurados));
-      //await InsertarSectores(); //FIXME: Cambiar por los sectores asignados y activos
+      await InsertarSectores(sectoresConfigurados);
 
-      /*await InsertarAnomalias(Anomalias);
-      await SQLITEInsertarConfiguracionUsuario(parseInt(ConfiguracionUsuarioCliente),ConfiguracionUsuario.NombreUsuario,ConfiguracionUsuario.Email,ConfiguracionUsuario.Contrasenia);
+      await InsertarAnomalias(Anomalias);
+      await SQLITEInsertarConfiguracionUsuario(parseInt(ConfiguracionUsuario.Cliente),ConfiguracionUsuario.NombreUsuario,ConfiguracionUsuario.Email,ConfiguracionUsuario.Contrasenia);
       await DescargarPadronSectorAgua(String(ConfiguracionesAgua.BloquarCampos));
       //NOTE: insertamos los datos extra Nombre, Valor, Descripcion       
       await SQLITEInsertarDatosExtra("TipoLectura",String(ConfiguracionesAgua.TipoLectura),"Configuracion para las lecturas de la app DATOS EXTRA SUINPAC"); //NOTE: Para tipo de lectura
       await SQLITEInsertarDatosExtra("BloquarCampos",String(ConfiguracionesAgua.BloquarCampos),"Para bloquear los campos de lectura de la app");
-      setTimeout( async ( )=>{ setDescargando(false); },10000);*/
-    }).catch(()=>{
+      setTimeout( async ( )=>{ setDescargando(false); },10000);
+    }).catch((error)=>{
+      console.error(JSON.stringify(error));
       setDescargando(false);
       setMessage("Error al elimnar la base de datos antigua\n favor de eliminar los datos de la aplicacion desde configuraciones del dispositivo")
     });
   }
-  const EliminarBaseAnterior = async ( ) =>{
-    //NOTE: Eliminamos tablas
-    await SQLITETruncarTablas();
-  }
-  const InsertarSectores = async () =>{
+  const InsertarSectores = async ( sectoresLocal:Array<Sector> ) =>{
     //NOTE: Es para ver si funciona la base de datos
     setEstadoDescarga("Insertando Sectores...");
     try {
-      if(sectores != null && sectores.length > 0){
-        sectores.map((sectores,index)=>{
-          setEstadoDescarga(`${sectores.Sector}`)
-          SQLITEInsertarSector(sectores.id,sectores.Sector);
+      if(sectoresLocal != null && sectoresLocal.length > 0){
+        sectoresLocal.map((sct,index)=>{
+          setEstadoDescarga(`${sct.Sector}`)
+          SQLITEInsertarSector(sct.id,sct.Sector);
         });
       }  
     }catch( error ){
@@ -649,8 +650,17 @@ const FormDatosTomaPage: React.FC = () => {
     let modoTrabajo = ObtenerModoTrabajo();
     setEnlinea(modoTrabajo);
     if(enLinea != modoTrabajo){
+      if(!modoTrabajo){
+        console.log("Estamos en linea");
+        prepararPantalla();
+      }
+      else{
+        console.log("Estomos en local");
+        PrepararPantallaLocal();
+      }
       setLecuras([]);
     }
+    return modoTrabajo;
   }
   function zeroFill( number:string,width:number = 9){
     while(number.length < width){
