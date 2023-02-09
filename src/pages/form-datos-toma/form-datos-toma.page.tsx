@@ -28,8 +28,8 @@ import {
   getPaginasBusqueda, setPunteroBusqueda,getCuentasPapas,getDatosUsuario,
   ObtenerModoTrabajo 
 } from '../../controller/storageController';
-import { searchCircle, arrowForwardOutline, arrowBackOutline, cloudDownload, cloudUpload,warningOutline } from 'ionicons/icons';
-import { DEBBUG } from '../../constantes/constantes';
+import { searchCircle, arrowForwardOutline, arrowBackOutline, cloudDownload, cloudUpload,warningOutline, returnUpBack } from 'ionicons/icons';
+import { DEBBUG,TIPOTOMA } from '../../constantes/constantes';
 import { isPlatform} from '@ionic/react';
 import { 
   SQLITEInsertarDatosExtra,SQLITEObtenerPadronPagina,SQLITEObtenerTotalContratosPadron,SQLITEObtenerContratosFiltroContrato,
@@ -105,7 +105,7 @@ const FormDatosTomaPage: React.FC = () => {
       prepararPantalla()
     }
     else{
-      console.log("Estomos en local");
+      console.log("Estomos en local test");
       PrepararPantallaLocal();
     }
     let valid = verifyingSession();
@@ -301,8 +301,7 @@ const FormDatosTomaPage: React.FC = () => {
       })
       .finally(() => { setLoading(false) })
   }
-  const handleSector = (sector: string) => {
-    alert(`Sector Seleccionado: ${sector}`);
+  const handleSector = (sector: string) => {    
     setIdSector(sector);
     setLoading(true);
     if(enLinea){
@@ -480,11 +479,14 @@ const FormDatosTomaPage: React.FC = () => {
       //NOTE: insertamos los datos extra Nombre, Valor, Descripcion       
       await SQLITEInsertarDatosExtra("TipoLectura",String(ConfiguracionesAgua.TipoLectura),"Configuracion para las lecturas de la app DATOS EXTRA SUINPAC"); //NOTE: Para tipo de lectura
       await SQLITEInsertarDatosExtra("BloquarCampos",String(ConfiguracionesAgua.BloquarCampos),"Para bloquear los campos de lectura de la app");
-      setTimeout( async ( )=>{ setDescargando(false); },10000);
+      setHideAlertbuttons(true);
+      setMessage("Descarga Completa");
+      //setTimeout( async ( )=>{ setDescargando(false); },10000);
     }).catch((error)=>{
       console.error(JSON.stringify(error));
+      setMessage(`Error al descargar el padron\n${JSON.stringify(error)}`)
+    }).finally(()=>{
       setDescargando(false);
-      setMessage("Error al elimnar la base de datos antigua\n favor de eliminar los datos de la aplicacion desde configuraciones del dispositivo")
     });
   }
   const InsertarSectores = async ( sectoresLocal:Array<Sector> ) =>{
@@ -492,10 +494,10 @@ const FormDatosTomaPage: React.FC = () => {
     setEstadoDescarga("Insertando Sectores...");
     try {
       if(sectoresLocal != null && sectoresLocal.length > 0){
-        sectoresLocal.map((sct,index)=>{
-          setEstadoDescarga(`${sct.Sector}`)
-          SQLITEInsertarSector(sct.id,sct.Sector);
-        });
+        for(let indexSectores:number = 0; indexSectores < sectoresLocal.length; indexSectores++ ){
+          setEstadoDescarga(`${sectoresLocal[indexSectores].Sector}`)
+          SQLITEInsertarSector(sectoresLocal[indexSectores].id,sectoresLocal[indexSectores].Sector);          
+        }
       }  
     }catch( error ){
       setEstadoDescarga(`Erorr al realizar descarga de los sectores:\n${ error.message}`);
@@ -507,9 +509,9 @@ const FormDatosTomaPage: React.FC = () => {
   const InsertarAnomalias = async (Anomalias:[{id:number,clave:string,descripci_on:string,AplicaFoto:number}]) =>{
     try{
       setEstadoDescarga("Insertando Anomalias...");
-      Anomalias.map( async (Anomalia,index)=>{
-        await SQLITEInsertarAnomalias(Anomalia.id,Anomalia.clave,Anomalia.descripci_on,Anomalia.AplicaFoto);
-      });
+      for(let indexAnomalia:number = 0;indexAnomalia < Anomalias.length; indexAnomalia++ ){
+        await SQLITEInsertarAnomalias(Anomalias[indexAnomalia].id,Anomalias[indexAnomalia].clave,Anomalias[indexAnomalia].descripci_on,Anomalias[indexAnomalia].AplicaFoto);
+      }
     }catch(error){
       setEstadoDescarga(`Erorr al realizar descarga de las anomalias:\n${ error.message}`);
       setTimeout(()=>{
@@ -518,7 +520,22 @@ const FormDatosTomaPage: React.FC = () => {
     }
   }
   const DescargarPadronSectorAgua = async (BloquarCampos:string) => {
-    sectores.map( async (Sector:{id:number,Sector:string},index)=>{
+    //NOTE: cambiar el map por for
+    for(let indexSector:number = 0; indexSector < sectores.length; indexSector++){
+      let listaContratos:[ContratoAPI] = await DescargarContratosLecturaSector(String(sectores[indexSector].id));
+      setEstadoDescarga(`Descargando contratos del sector: ${sectores[indexSector].Sector}`);
+      for(let indexContratos:number = 0; indexContratos < listaContratos.length; indexContratos++ ){
+        let padronAgua = ObtenerDatosPadron(listaContratos[indexContratos],sectores[indexSector].id);
+        let lecturaActual = ObtenerDatosLecturaAnterior(listaContratos[indexContratos],BloquarCampos);
+        //NOTE: Obtenemos el promedio actual del contrato
+        if(padronAgua != null)
+          await SQLITEGuardarPadronAgua(padronAgua);
+        if(lecturaActual != null)
+          await SQLITEGuardarLecturaAnteriorContrato(lecturaActual);
+      }
+    }
+
+    /*sectores.map( async (Sector:{id:number,Sector:string},index)=>{ REVIEW: no respeta la espera 
       let listaContratos:[ContratoAPI] = await DescargarContratosLecturaSector(String(Sector.id));
       listaContratos.map( async (contrato,index) => {
         setEstadoDescarga(`Descargando contratos del sector: ${Sector.Sector}`);
@@ -530,7 +547,8 @@ const FormDatosTomaPage: React.FC = () => {
         if(lecturaActual != null)
           await SQLITEGuardarLecturaAnteriorContrato(lecturaActual);
       })
-    });
+    });*/
+    return 
   }
   const ObtenerDatosPadron = ( Contrato:ContratoAPI,Sector:number ):PadronAguaPotable|null => {
     if(Contrato != null ){
@@ -601,8 +619,10 @@ const FormDatosTomaPage: React.FC = () => {
     })
   }
   const calcularPaginadoLocal = async (idSector:number) => {
+    console.log("Buscando sector en local: "+idSector);
     await SQLITEObtenerTotalContratosPadron(idSector)
-    .then((totalContratos:number)=>{  
+    .then((totalContratos:number)=>{
+      console.log(JSON.stringify(totalContratos));
       if(totalContratos > 0){
         let paginas = totalContratos / 20;
         let residuo = paginas % 1;
@@ -625,8 +645,9 @@ const FormDatosTomaPage: React.FC = () => {
       }
     })
     .catch((error)=>{
-      setLoading(false);
       console.log("Error en el error: " + error.message);
+    }).finally(()=>{
+      setLoading(false);
     })
   }
   const obtenerPadronContratosLocal = async (idSector:number) => {
@@ -645,16 +666,14 @@ const FormDatosTomaPage: React.FC = () => {
     const status = await Network.getStatus();
     setMostrarBotonDescarga(status.connectionType === "wifi");
   }
-  const VerificarModoTrabajo = async () => {
-    //let promedioDoceMesesContrato = await obtenerPromedioContrato(146794);
+  const VerificarModoTrabajo = () => {
     let modoTrabajo = ObtenerModoTrabajo();
     setEnlinea(modoTrabajo);
     if(enLinea != modoTrabajo){
       if(!modoTrabajo){
         console.log("Estamos en linea");
         prepararPantalla();
-      }
-      else{
+      }else{
         console.log("Estomos en local");
         PrepararPantallaLocal();
       }
@@ -861,13 +880,12 @@ const FormDatosTomaPage: React.FC = () => {
             <IonList >
               {
 
-                lecturas.map(function (item, index) {
-                  //console.error(JSON.stringify(item));
+                lecturas.map(function (item, index) {                  
                   let papas = getCuentasPapas();
                   //console.error("Estatus: ",item.Estatus,"Metodo de cobro:",parseInt( !enLinea ? item.M_etodoCobro : item.MetodoCobro ));
-                  let arrayData = functionValidarLectura(parseInt(item.Estatus),parseInt( !enLinea ? item.M_etodoCobro : item.MetodoCobro ));
-                  let cuentaPapa = String(papas).includes(!enLinea ? item.id : item.Padron);
-                  console.error((!enLinea ? item.id : item.Padron)," comparando desarollo ");
+                  let arrayData = functionValidarLectura(parseInt(item.Estatus),parseInt( !enLinea ? item.M_etodoCobro : parseInt(item.MetodoCobro) ));
+                  console.log("Datos en el contraro:", parseInt(item.MetodoCobro ),JSON.stringify(arrayData),"Contrato:",item.ContratoVigente);
+                  let cuentaPapa = String(papas).includes(!enLinea ? item.id : String(item.Padron));
                   if(cuentaPapa){
                     arrayData[0] += "Desarrollo";  
                   }
@@ -876,8 +894,8 @@ const FormDatosTomaPage: React.FC = () => {
                       <IonList>
                         <IonLabel>{item.Contribuyente}</IonLabel>
                         <p>Contrato: {item.ContratoVigente},
-                           Medidor: {item.Medidor}, 
-                           Toma: {item.Toma}
+                           Medidor: {item.Medidor},  
+                           Toma: { !enLinea ? item.Toma : TIPOTOMA[item.Toma-1] }
                            &nbsp;&nbsp;&nbsp;&nbsp;
                            {
                              (cuentaPapa || arrayData[1]) ? <IonNote style ={{fontsize: 20}} color="danger">{arrayData[0]}</IonNote> :""

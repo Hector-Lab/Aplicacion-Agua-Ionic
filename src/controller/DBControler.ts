@@ -66,11 +66,15 @@ export async function SQLITEInsertarConfiguracionUsuario( idUsuario: number,Nomb
     //await db.close();
 }
 export async function SQLITEGuardarPadronAgua(Padron:PadronAguaPotable) {
-    let db = await RecuperacConexion();
-    await db.open();
-    let resultInsertPadron:capSQLiteChanges = await db.run(ConstructorPadronAguaPotable(Padron));
-    //await db.close();
-    return resultInsertPadron.changes?.changes;
+    try{
+        let db = await RecuperacConexion();
+        await db.open();
+        let resultInsertPadron:capSQLiteChanges = await db.run(ConstructorPadronAguaPotable(Padron));
+        //await db.close();
+        return resultInsertPadron.changes?.changes;
+    }catch(error){
+        console.error(JSON.stringify(error));
+    }
 }
 export async function SQLITEGuardarLecturaAnteriorContrato(LecturaAnterior:LecturaAnteriorContrato){
     let db = await RecuperacConexion();
@@ -423,6 +427,7 @@ function ConstructorConfiguracionUsuario( idUsuario: number,NombreUsuario: strin
     return `INSERT INTO ConfiguracionUsuario (id,idUsuario,NombreUsuario,Email,Contrasenia) VALUES (NULL,${idUsuario},"${NombreUsuario}","${Email}","${Contrasenia}")`;
 }
 function ConstructorPadronAguaPotable( Padron:PadronAguaPotable ):string {
+    //NOTE: remplazamos las comillas
     return `INSERT INTO Padron (id,ContratoVigente ,Contribuyente , Estatus,MetodoCobro, Medidor, Toma, Padron,idSector) VALUES (NULL,"${Padron.ContratoVigente}","${Padron.Contribuyente}","${Padron.Estatus}","${Padron.MetodoCobro}","${Padron.Medidor}","${Padron.Toma}","${Padron.Padron}","${Padron.idSector}")`;
 }
 function ContructorPadronAguaPotableLecturaAnterior(LecturaAnteriorio:LecturaAnteriorContrato){

@@ -1269,15 +1269,14 @@ export async function DescargarConfiguraciones(){
 export async function DescargarContratosLecturaSector( Sector:string ){
     try{
         let { cliente,token } = obtenerDatosCliente();
-        let mes:number = date.getMonth();
-        let anio:number = date.getFullYear();
         let datosSolicitados = {
             'Cliente':cliente,
             'Sector': Sector,
-            'Mes': mes == 0 ? 12 : mes,
-            'Anio': mes == 0 ? ( anio - 1 ) : anio,
+            //'Mes': mes == 0 ? 12 : mes,
+            //'Anio': mes == 0 ? ( anio - 1 ) : anio,
         };
         let rawContratos = await service.ObtenerContractosSector(datosSolicitados,String(token));
+        console.error(JSON.stringify(rawContratos));
         if(rawContratos.data.Status){
             return rawContratos.data.Mensaje;
         }else{

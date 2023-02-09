@@ -356,7 +356,7 @@ export class APIservice {
             'Content-type': 'application/json',
             'Authorization': 'Bearer' + token
         }
-        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ContratosSector`,data,{headers});
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ContratosSector`,data,{headers,timeout:20000});
     }
     ObtenerSectoresConfigurados( data:object,token:string ){
         let headers = {

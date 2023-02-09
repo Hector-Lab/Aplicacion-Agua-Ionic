@@ -132,8 +132,7 @@ const CapturaDeLectura: React.FC = () => {
         }
         setRefreshControl(false);
     }
-    const extraerLectura = async (idLectura: any) => {
-        //FIXME: verificando 
+    const extraerLectura = async (idLectura: any) => { 
         await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
             setPromedioLectura(parseInt(String(promedio)));
@@ -148,9 +147,17 @@ const CapturaDeLectura: React.FC = () => {
                     //FIXED: hay un bug para los contraros sin lecturas y estatus de letura 1
                     let data = parseInt(result.Mensaje[0]['A_no']);
                     let mesLectura = parseInt(result.Mensaje[0].Mes);
-                    //NOTE: si todo es NaN seleccionamos la fecha actual
                     isNaN(data) ? data = fecha.getFullYear() : data = data;
                     isNaN( mesLectura ) ? mesLectura = fecha.getMonth() : mesLectura = mesLectura;
+                    //NOTE: verificamos el caso de la lectura
+                    console.log("Mes de Lectura:" ,mesLectura ,"Mes Actual:",fecha.getMonth(),"Comparacion de los meses",Math.abs(mesLectura - fecha.getMonth()));
+                    console.log("Año de lectura:",data,"Mes Actual:",fecha.getFullYear(),"Comparacion de los anios");
+                    mesLectura = (Math.abs(mesLectura - fecha.getMonth()) > 1) ? fecha.getMonth() : mesLectura;
+                    if(data != fecha.getFullYear()){
+                        mesLectura = fecha.getMonth();
+                        data = fecha.getFullYear();
+                    }
+                    
                     setMesLectura(mesLectura);
                     setAnioLectura(data);
                     cargarFechas(data, result.ValorLectura[0].Valor, mesLectura);
@@ -782,7 +789,7 @@ const CapturaDeLectura: React.FC = () => {
                                     anomalias.map((item, index) => {
                                         //console.error(JSON.stringify(item));
                                         return <IonSelectOption key={index} value = { enLinea ? item.id : item.Clave } >
-                                            {`${ !enLinea ? ( item.clave <= 10 ? formatindex(item.clave) : item.clave ) : (item.clave <= 10 ? formatindex(item.Clave) : item.Clave) } - ${ item.Descripcion }`}
+                                            {`${ !enLinea ? ( item.clave <= 10 ? formatindex(item.clave) : item.clave ) : (item.clave <= 10 ? formatindex(item.Clave) : item.Clave) } - ${ !enLinea ? item.descripci_on : item.Descripcion }`}
                                         </IonSelectOption>
                                     })
                                 }
