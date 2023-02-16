@@ -342,21 +342,21 @@ export class APIservice {
             'Content-type': 'application/json',
             'Authorization': 'Bearer' + token
         }
-        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/PadronAguaAnomalias`,data,{headers});
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/PadronAguaAnomalias`,data,{headers});
     }
     ObtenerConfiguracionAgua( data:object,token:string ){
         let headers = {
             'Content-type': 'application/json',
             'Authorization': 'Bearer' + token
         }
-        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ObtenerConfiguracionesAgua`,data,{headers});
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ObtenerConfiguracionesAgua`,data,{headers});
     }
     ObtenerContractosSector( data:object,token:string ){
         let headers = {
             'Content-type': 'application/json',
             'Authorization': 'Bearer' + token
         }
-        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ContratosSector`,data,{headers,timeout:20000});
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ContratosSector`,data,{headers,timeout:20000});
     }
     ObtenerSectoresConfigurados( data:object,token:string ){
         let headers = {
@@ -366,4 +366,3 @@ export class APIservice {
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ObtenerSectoresConfigurados`,data,{headers});
     }
 }
-

@@ -1,7 +1,8 @@
 import { capSQLiteChanges, capSQLiteResult, DBSQLiteValues, SQLiteDBConnection } from '@capacitor-community/sqlite';
+import { resolve } from 'node:path';
 import { sqlite,existingConn } from '../App';
 import { DBNAME,QUERYTABLES } from '../constantes/constantes';
-import { PadronAguaPotable,LecturaAnteriorContrato,Sector, Anomalias, DatosExtra, DatosLectura,MetaDatos, StructuraEvidencia, Evidencia} from '../Objetos/Interfaces';
+import { PadronAguaPotable,LecturaAnteriorContrato,Sector, Anomalias, DatosExtra, DatosLectura,MetaDatos, StructuraEvidencia, Evidencia, ConfiguracionUsuario} from '../Objetos/Interfaces';
 
 //INDEV: Verificadores
 export async function CrearTablas(){
@@ -9,18 +10,62 @@ export async function CrearTablas(){
     db.open();
     let result: any = await db.execute(QUERYTABLES);
     console.log(JSON.stringify(result))
-    db.close();
+    //db.close();
 }
-export async function VerificarTablas(){
-    let db = await RecuperacConexion();
-    await db.open();
-    let sa: DBSQLiteValues = await db.getTableList();
-    sa.values?.map((value,index)=>{
-        console.log(value);
-    })
-    await db.close();
+export async function VerificarTablas():Promise<boolean>{
+    try{
+        let db = await RecuperacConexion();
+        await db.open();
+        let sa: DBSQLiteValues = await db.getTableList();
+        let totalTablas: number = 0;
+        sa.values?.map((value,index)=>{
+            totalTablas++;
+        });
+        return Promise.resolve(totalTablas == 9);
+    }catch( error ){
+        return Promise.reject( error );
+    }
 }
-
+export async function VerificarDatosUsuario():Promise<boolean>{
+    try{
+        let db = await RecuperacConexion();
+        let conexionAbierta:capSQLiteResult = await db.isDBOpen();
+        if (!conexionAbierta.result){
+            await db.open();
+        }
+        let datosUsuario:DBSQLiteValues = await db.query('SELECT * FROM ConfiguracionUsuario');
+        let usuarioActual:ConfiguracionUsuario = {
+            Contrasenia:"",
+            Email:"",
+            NombreUsuario:"",
+            id:-1,
+            idUsuario:-1
+        };
+        datosUsuario.values?.map((usuario:ConfiguracionUsuario, indice: number)=>{ usuarioActual = usuario; });
+        console.log(JSON.stringify(datosUsuario));
+        return Promise.resolve(usuarioActual.idUsuario != -1 && usuarioActual.NombreUsuario.trim().length > 0);    
+    }catch(error){
+        return Promise.reject(error);
+    }
+}
+export async function VerificarPadron():Promise<boolean> {
+    try{
+        let db = await RecuperacConexion();
+        let conexionAbierta:capSQLiteResult = await db.isDBOpen();
+        if(!conexionAbierta.result){
+            await db.open();
+        }
+        let totalDatos:number = -1;
+        let resultado:DBSQLiteValues = await db.query("SELECT count(ContratoVigente) as TotalDatos FROM Padron");
+        resultado.values?.map(( total:{TotalDatos:number}, indexPadron:number ) => {
+            totalDatos = total.TotalDatos;
+        });
+        console.log(JSON.stringify(resultado));
+        return Promise.resolve(totalDatos > 0);
+    }catch(error){
+        return Promise.reject(error);
+    }
+}
 //SECCION: Seccion de operaciones
 export async function SQLITETruncarTablas():Promise<void> {
     try{
@@ -174,7 +219,6 @@ export async function SQLITEBorrarDatosPadron( Padron:number ):Promise<boolean>{
         return Promise.reject(error);
     }
 }
-
 //SECCION: Seccion de lectura
 export async function SQLITEObtenerListaBaseDatos():Promise<void>{
     /*try{
@@ -413,6 +457,20 @@ export async function SQLITEObtenerContratoVigente(idPadron:number):Promise<stri
         return Promise.resolve(contratoVigente);
     }catch(error){
         return Promise.reject(error);
+    }
+}
+export async function SQLITEValidarLecturaActual(idPadron:number):Promise<string>{
+    try{    
+        let db = await RecuperacConexion();
+        let datosLectura = "";
+        await db.open();
+        let validarContrato:DBSQLiteValues = await db.query(`SELECT MesCaptua,AnioCaptua FROM DatosLectura WHERE Padron = ${idPadron}`);
+        validarContrato.values?.map((datos:{MesCaptua:string,AnioCaptua:string},index:number)=>{
+            datosLectura = `Contrato con lectura:\nMes: ${datos.MesCaptua}\n:Año: ${datos.AnioCaptua}`;
+        });
+        return Promise.resolve(datosLectura);
+    }catch( error ){
+        return Promise.reject(`Error al obtener datos del dispositivo: ${error.message}`);
     }
 }
 //INDEV: Funciones internar

@@ -101,18 +101,17 @@ const FormDatosTomaPage: React.FC = () => {
   const [activarMenu,setActivarMenu] = useState(true);
   const isSessionValid = async () => {
     if(!VerificarModoTrabajo()){
-      console.log("Estamos en linea");
-      prepararPantalla()
+      prepararPantalla();
+      setHideAlertbuttons(true);
+      let valid = verifyingSession();
+      setTokenExpired(!valid);
+      setBlock(!valid);
+      let nombreCorto = getClienteNombreCorto();
+      setNombreCliente(String(nombreCorto));
     }
     else{
-      console.log("Estomos en local test");
       PrepararPantallaLocal();
     }
-    let valid = verifyingSession();
-    setTokenExpired(!valid);
-    setBlock(!valid);
-    let nombreCorto = getClienteNombreCorto();
-    setNombreCliente(String(nombreCorto));
     Network.addListener('networkStatusChange',status => {
       setMostrarBotonDescarga(status.connectionType === "wifi");
     });
@@ -174,7 +173,8 @@ const FormDatosTomaPage: React.FC = () => {
       .then(result => setSectores(result))
       .catch(err => {
         let errorMessage = String(err.message);
-        let sessionValid = errorMessage.includes("Sesion no valida");
+        //FIXME: cambiar por el texto --> 
+        let sessionValid = errorMessage.includes('La sesion del usuario a caducado');
         setTokenExpired(sessionValid)
         //setIdSector("");
         if (!sessionValid) {
@@ -183,8 +183,8 @@ const FormDatosTomaPage: React.FC = () => {
         }
       })
   }
-  useIonViewWillEnter(()=>{ setActivarMenu(true);console.error("Activando menu") });
-  useIonViewWillLeave(()=>{ setActivarMenu(false); console.error("Desactivando menu")});
+  useIonViewWillEnter(()=>{ setActivarMenu(true)});
+  useIonViewWillLeave(()=>{ setActivarMenu(false)});
   //Seccion de metodos en linea
   const buscarPorSector = async (idSector:string) => {
     setBusqueda(false)
@@ -364,10 +364,10 @@ const FormDatosTomaPage: React.FC = () => {
         }
       }).finally(() => { setLoading(false) });
   }
-  const handleCancelFiltro = () =>{
+  const handleCancelFiltro = () => {
     setFiltro(1);
   }
-  const buscarFiltro = () =>{
+  const buscarFiltro = () => {
     setLoading(true);
     setBusqueda(true);
     setLecuras([]);
@@ -383,7 +383,7 @@ const FormDatosTomaPage: React.FC = () => {
       break;
     }
   }
-  const porContrato = async () =>{
+  const porContrato = async () => {
     await buscarContrato(zeroFill(textoBusqueda))
     .then(result =>{
       setLecuras(result);
@@ -401,7 +401,7 @@ const FormDatosTomaPage: React.FC = () => {
      ()=>{setLoading(false);} 
     )
   }
-  const porMedidor = async () =>{ 
+  const porMedidor = async () => { 
     await buscarPorMedidor(zeroFill(textoBusqueda,10))
     .then(result =>{
       setLecuras(result);
@@ -419,7 +419,7 @@ const FormDatosTomaPage: React.FC = () => {
      ()=>{setLoading(false);} 
     )
   }
-  const functionValidarLectura = (estatus: number, cobro:number) =>{
+  const functionValidarLectura = (estatus: number, cobro:number) => {
     let leyendaCobro = "";
     let result = ["",false];
     if(cobro == 1){
@@ -462,7 +462,7 @@ const FormDatosTomaPage: React.FC = () => {
       setPlaceHolder("Buscar por Contrato");
     }
   }
-  const DescargarRecursos = async () =>{
+  const DescargarRecursos = async () => {
     setDescargando(true);
     setEstadoDescarga("Eliminando historial antiguo...");
     await SQLITETruncarTablas()
@@ -489,7 +489,7 @@ const FormDatosTomaPage: React.FC = () => {
       setDescargando(false);
     });
   }
-  const InsertarSectores = async ( sectoresLocal:Array<Sector> ) =>{
+  const InsertarSectores = async ( sectoresLocal:Array<Sector> ) => {
     //NOTE: Es para ver si funciona la base de datos
     setEstadoDescarga("Insertando Sectores...");
     try {
@@ -506,7 +506,7 @@ const FormDatosTomaPage: React.FC = () => {
       },3000)
     }
   }
-  const InsertarAnomalias = async (Anomalias:[{id:number,clave:string,descripci_on:string,AplicaFoto:number}]) =>{
+  const InsertarAnomalias = async (Anomalias:[{id:number,clave:string,descripci_on:string,AplicaFoto:number}]) => {
     try{
       setEstadoDescarga("Insertando Anomalias...");
       for(let indexAnomalia:number = 0;indexAnomalia < Anomalias.length; indexAnomalia++ ){
@@ -534,20 +534,6 @@ const FormDatosTomaPage: React.FC = () => {
           await SQLITEGuardarLecturaAnteriorContrato(lecturaActual);
       }
     }
-
-    /*sectores.map( async (Sector:{id:number,Sector:string},index)=>{ REVIEW: no respeta la espera 
-      let listaContratos:[ContratoAPI] = await DescargarContratosLecturaSector(String(Sector.id));
-      listaContratos.map( async (contrato,index) => {
-        setEstadoDescarga(`Descargando contratos del sector: ${Sector.Sector}`);
-        let padronAgua = ObtenerDatosPadron(contrato,Sector.id);
-        let lecturaActual = ObtenerDatosLecturaAnterior(contrato,BloquarCampos);
-        //NOTE: Obtenemos el promedio actual del contrato
-        if(padronAgua != null)
-          await SQLITEGuardarPadronAgua(padronAgua);
-        if(lecturaActual != null)
-          await SQLITEGuardarLecturaAnteriorContrato(lecturaActual);
-      })
-    });*/
     return 
   }
   const ObtenerDatosPadron = ( Contrato:ContratoAPI,Sector:number ):PadronAguaPotable|null => {
@@ -567,7 +553,7 @@ const FormDatosTomaPage: React.FC = () => {
     }
     return null;
   }
-  const ObtenerDatosLecturaAnterior = ( Contrato:ContratoAPI,BloquarCampos:string ):LecturaAnteriorContrato|null =>{
+  const ObtenerDatosLecturaAnterior = ( Contrato:ContratoAPI,BloquarCampos:string ):LecturaAnteriorContrato|null => {
     if( Contrato != null ){
       let LecturaAnterior:LecturaAnteriorContrato = {
         A_no:Contrato.A_no,
@@ -590,8 +576,7 @@ const FormDatosTomaPage: React.FC = () => {
     return null;
   }
   //INDEV: Seccion de metodos para usar base de datos local
-  const PrepararPantallaLocal = async () =>{
-    console.log("Usando modo local!!");
+  const PrepararPantallaLocal = async () => {
     let storageUser = getUsuario();
     setUser(storageUser + "");
     setSectores(await SQLITEObtenerListaSectores());
@@ -619,10 +604,8 @@ const FormDatosTomaPage: React.FC = () => {
     })
   }
   const calcularPaginadoLocal = async (idSector:number) => {
-    console.log("Buscando sector en local: "+idSector);
     await SQLITEObtenerTotalContratosPadron(idSector)
     .then((totalContratos:number)=>{
-      console.log(JSON.stringify(totalContratos));
       if(totalContratos > 0){
         let paginas = totalContratos / 20;
         let residuo = paginas % 1;
@@ -671,10 +654,8 @@ const FormDatosTomaPage: React.FC = () => {
     setEnlinea(modoTrabajo);
     if(enLinea != modoTrabajo){
       if(!modoTrabajo){
-        console.log("Estamos en linea");
         prepararPantalla();
       }else{
-        console.log("Estomos en local");
         PrepararPantallaLocal();
       }
       setLecuras([]);
@@ -687,23 +668,22 @@ const FormDatosTomaPage: React.FC = () => {
     }
     return number;
   }
-  const enviarLecturarRegistradas = async () =>{
+  const enviarLecturarRegistradas = async () => {
     //REVIEW: al que le toque esto es se puede mejorar
     setMsjSubiendo("Buscando Lecturas...");
     setLoading(true);
     try{
       //NOTE: Extraer la lectura
       await SQLITEObtenerListaLecturas()
-      .then(( listaLecturas:Array<DatosLectura> )=>{
+      .then( async ( listaLecturas:Array<DatosLectura> )=>{
         //NOTE: recorremos los lecturas 
-        listaLecturas.map(  async ( lectura:DatosLectura,index:number )=>{
-          //NOTE: obtenemos el contrato vigente
-          let labelContratoVigente =  await SQLITEObtenerContratoVigente(lectura.idbLectura);
+        for(let indexLectura = 0; indexLectura < listaLecturas.length; indexLectura++ ){
+          let labelContratoVigente =  await SQLITEObtenerContratoVigente( listaLecturas[indexLectura].idbLectura );
           setMsjSubiendo(`Enviado lectura del contrato: ${labelContratoVigente}`);
-          let evidencias = await SQLITEObtenerEvidencias(lectura.idbLectura);
-          let coordenadas = await SQLITEObtenerGeoreferencia(lectura.idbLectura); 
+          let evidencias = await SQLITEObtenerEvidencias(listaLecturas[indexLectura].idbLectura);
+          let coordenadas = await SQLITEObtenerGeoreferencia(listaLecturas[indexLectura].idbLectura); 
           let listaEvidencia = await codificarEvidencia(evidencias);
-          await EnviarDatoLocalesAPI(listaEvidencia,coordenadas,lectura)
+          await EnviarDatoLocalesAPI(listaEvidencia,coordenadas,listaLecturas[indexLectura])
           .then( async ( Padron )=>{
             //NOTE: Borramos los datos del telefono para evitar fallos en la realidad
             console.error("Lectura del contrato: ", Padron , " Enviada !!");
@@ -717,8 +697,7 @@ const FormDatosTomaPage: React.FC = () => {
             setHideAlertbuttons(true);
             setMessage(error.message)
           });
-
-        })
+        }
         setLoading(false);
       })
       .catch(( error )=>{
@@ -762,7 +741,7 @@ const FormDatosTomaPage: React.FC = () => {
       }
     })
   }
-  const EliminarLecturasGuardadas = async () =>{
+  const EliminarLecturasGuardadas = async () => {
     setLoading(true);
     await SQLITEBorrarLecturasLocales()
     .then((respuesta:string)=>{ 
@@ -776,7 +755,6 @@ const FormDatosTomaPage: React.FC = () => {
   const eliminarEvidenciasLectura = async ( listaEvidencias:Evidencia[] ) => {
     //NOTE: verificamos que la imagen exista
     for(let indexEvidecia = 0; indexEvidecia < listaEvidencias.length; indexEvidecia ++ ){
-      console.log("Borrando evidencia:",listaEvidencias[indexEvidecia].DireccionFisica);
       await Filesystem.deleteFile(
         {
           path:listaEvidencias[indexEvidecia].DireccionFisica,
@@ -788,7 +766,7 @@ const FormDatosTomaPage: React.FC = () => {
     <IonPage onFocus = {VerificarModoTrabajo} >
       {
         activarMenu ? 
-        <MenuLeft />: <></>
+        <MenuLeft /> : <></>
       }
       <IonHeader>
         <IonToolbar color="danger" >
@@ -884,7 +862,6 @@ const FormDatosTomaPage: React.FC = () => {
                   let papas = getCuentasPapas();
                   //console.error("Estatus: ",item.Estatus,"Metodo de cobro:",parseInt( !enLinea ? item.M_etodoCobro : item.MetodoCobro ));
                   let arrayData = functionValidarLectura(parseInt(item.Estatus),parseInt( !enLinea ? item.M_etodoCobro : parseInt(item.MetodoCobro) ));
-                  console.log("Datos en el contraro:", parseInt(item.MetodoCobro ),JSON.stringify(arrayData),"Contrato:",item.ContratoVigente);
                   let cuentaPapa = String(papas).includes(!enLinea ? item.id : String(item.Padron));
                   if(cuentaPapa){
                     arrayData[0] += "Desarrollo";  

@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { IonAlert,IonButton,IonButtons,IonCard,IonCardContent,IonCardHeader,IonCol,IonContent,IonDatetime,IonGrid,IonHeader,IonIcon,IonImg,IonInput,IonItem,IonLabel,IonLoading,IonMenuButton,IonPage,IonRow,IonSelect,IonSelectOption,IonTitle,IonToolbar,IonChip,useIonViewWillEnter,useIonViewDidEnter,IonRippleEffect,IonBadge } from '@ionic/react'
-import { saveOutline, pencil, chevronBackCircleOutline, contractOutline } from 'ionicons/icons';
+import { saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
 import './captura-de-lectura.page.css';
 import MenuLeft from '../../components/left-menu';
-import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija } from '../../controller/apiController';
+import { extraerDatosLectura, guardarCaptura, obtenerPromedioConsumo, guardarCuotaFija } from '../../controller/apiController';
 import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
-import { ObtenerModoTrabajo, getDatosLecturaStorage, verifyingSession, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
-import { SQLITEObtenerAnomaliasAgua, SQLITEObtenerDatoExtra, SQLITEObtenerLecturaContrato, SQLITEInsertarEvidencia, SQLITEInsertarLecturaActual,SQLITEInsertatGeoreferencia, SQLITEObtenerLecturaActual, SQLITEObtenerEvidencias, SQLITEObtenerGeoreferencia, SQLITEBorrarLecturaActual, SQLITEObtenerAnomalia} from '../../controller/DBControler';
-import { Evidencia,DatosExtra, TotalDatosLecturas, StructuraEvidencia, DatosLectura, MetaDatos, Anomalias } from '../../Objetos/Interfaces';
-import { TIPOTOMA } from '../../constantes/constantes';
+import { ObtenerModoTrabajo, getDatosLecturaStorage, verifyingSession, setContribuyenteBuscado } from '../../controller/storageController';
+import { SQLITEObtenerAnomaliasAgua, SQLITEObtenerDatoExtra, SQLITEObtenerLecturaContrato, SQLITEInsertarEvidencia, SQLITEInsertarLecturaActual,SQLITEInsertatGeoreferencia, SQLITEObtenerLecturaActual, SQLITEObtenerEvidencias,SQLITEValidarLecturaActual, SQLITEObtenerAnomalia} from '../../controller/DBControler';
+import { Evidencia,TotalDatosLecturas, StructuraEvidencia, DatosLectura, MetaDatos } from '../../Objetos/Interfaces';
 import { useHistory } from 'react-router';
 import './captura-de-lectura.page.css';
 import foto from '../../assets/icon/sinFoto.jpg';
@@ -81,7 +80,6 @@ const CapturaDeLectura: React.FC = () => {
     const fecha = new Date();
     const isSessionValid = () => {
         let resultadoModoTrabajo = VerificarModoTrabajo();
-
         let valid = verifyingSession();
         logOut(valid,resultadoModoTrabajo);
     }
@@ -95,13 +93,19 @@ const CapturaDeLectura: React.FC = () => {
     useEffect(() => { console.log(promedioLectura) }, [promedioLectura])
     const logOut = (valid: boolean, modo:boolean) => {
         if (!valid) {
-            setTipoMessage("Sesión no valida");
-            setMessage("Inicie sesión por favor\nRegresando...");
-            setTimeout(() => {
-                setTipoMessage("ERROR");
-                setMessage('');
-                history.replace("/home");
-            }, 2500)
+            if(!modo){
+                setTipoMessage("Sesión no valida");
+                setMessage("Inicie sesión por favor\nRegresando...");
+                setTimeout(() => {
+                    setTipoMessage("ERROR");
+                    setMessage('');
+                    history.replace("/home");
+                }, 2500)
+            }else{
+                setLoading(true);
+                cargarContribuyente(modo);
+                setDefaultLectura(0);
+            }
         } else {
             setLoading(true);
             cargarContribuyente(modo);
@@ -116,11 +120,7 @@ const CapturaDeLectura: React.FC = () => {
         if(result.contribuyente == "null"){
             result.contribuyente = "";
         }
-        //setTimeout(()=>{
         await VerificarLecturaDB(result.idLectura == null ? -1 : parseInt(result.idLectura));
-        ///SQLITEBorrarLecturaActual(result.idLectura == null ? -1 : parseInt(result.idLectura));
-        //},7000);
-        //setLoading(false);
         setDatosContribuyente(result);
         //NOTE: aqui mandamos la validacion de la base de datos local
         console.error("Modo de trabajo:", modoTrabajo );
@@ -149,9 +149,6 @@ const CapturaDeLectura: React.FC = () => {
                     let mesLectura = parseInt(result.Mensaje[0].Mes);
                     isNaN(data) ? data = fecha.getFullYear() : data = data;
                     isNaN( mesLectura ) ? mesLectura = fecha.getMonth() : mesLectura = mesLectura;
-                    //NOTE: verificamos el caso de la lectura
-                    console.log("Mes de Lectura:" ,mesLectura ,"Mes Actual:",fecha.getMonth(),"Comparacion de los meses",Math.abs(mesLectura - fecha.getMonth()));
-                    console.log("Año de lectura:",data,"Mes Actual:",fecha.getFullYear(),"Comparacion de los anios");
                     mesLectura = (Math.abs(mesLectura - fecha.getMonth()) > 1) ? fecha.getMonth() : mesLectura;
                     if(data != fecha.getFullYear()){
                         mesLectura = fecha.getMonth();
@@ -179,7 +176,7 @@ const CapturaDeLectura: React.FC = () => {
             })
             .finally(() => { setLoading(false) });
         }).catch((error)=>{
-
+            
         }).finally(()=>{setLoading(false)})
         //Fin de extraer Consumo promedio del contribuyente
     }
@@ -190,6 +187,7 @@ const CapturaDeLectura: React.FC = () => {
             setIndexMes(result[0].Meses[mesActual].id);
             setlistaMeses(result[0].Meses);
             setListaAnios(result[1].Anios);
+            //console.log(JSON.stringify(result[1].Anios));
             // Se debe separar por casos
             switch (tipoLectura) {
                 case '1':
@@ -415,6 +413,7 @@ const CapturaDeLectura: React.FC = () => {
         })
     }
     const handleSelectAnomalia = (seleccionAnomalia: number) => {
+        console.log("Anomalia selecionado:", seleccionAnomalia);
         setSeleccionAnomalia(seleccionAnomalia);
         setDefaultAnomalia(seleccionAnomalia);
         setConsumo(promedioLectura);
@@ -609,15 +608,21 @@ const CapturaDeLectura: React.FC = () => {
     }
     const handleGuardarLecturaLocal = async (DatosCrudos:TotalDatosLecturas, Evidencias:StructuraEvidencia ) => {
         try {
-            console.log("Guardando lectura en local...");
-            let DatosLectura = ObtenerSQLITEObjectoLectura(DatosCrudos);
-            let GeolocalicacionDatos = ObtenerSQLITEObjetoCoordenadas(DatosCrudos);
-            if( DatosLectura != null && GeolocalicacionDatos != null ){
-                await SQLITEInsertarLecturaActual(DatosLectura);
-                await SQLITEInsertatGeoreferencia(GeolocalicacionDatos);
-                await SQLITEInsertarEvidencia(Evidencias,DatosLectura.idbLectura);
-            }
-            setMessage(`Lectura guardada en el dispositivo`);
+            SQLITEValidarLecturaActual(DatosCrudos.idToma).then( async ( mensajeValidacion:string )=>{
+                if(mensajeValidacion?.length === 0){
+                    console.log("Guardando lectura en local...");
+                    let DatosLectura = ObtenerSQLITEObjectoLectura(DatosCrudos);
+                    let GeolocalicacionDatos = ObtenerSQLITEObjetoCoordenadas(DatosCrudos);
+                    if( DatosLectura != null && GeolocalicacionDatos != null ){
+                        await SQLITEInsertarLecturaActual(DatosLectura);
+                        await SQLITEInsertatGeoreferencia(GeolocalicacionDatos);
+                        await SQLITEInsertarEvidencia(Evidencias,DatosLectura.idbLectura);
+                    }
+                    setMessage(`Lectura guardada en el dispositivo`);
+                }else{
+                    setMessage(mensajeValidacion)
+                }
+            });
         }catch( error ){
             setMessage(`Error al guardar la lectura:\n${error.message}`);
         }
@@ -632,18 +637,28 @@ const CapturaDeLectura: React.FC = () => {
     const ExtraerLecturaLocal = async (Padron:number) => {
         let lecturaContrato = await SQLITEObtenerLecturaContrato(Padron);
         let anomalias = await SQLITEObtenerAnomaliasAgua();
+        console.log(JSON.stringify(anomalias));
         let tipoLectura = await SQLITEObtenerDatoExtra("TipoLectura");
+        let mesLecturaValido = lecturaContrato.Mes;
+        let anioLecturaValido = lecturaContrato.A_no;
         //FIXME: falta el promedio del consumo
         setFija(lecturaContrato.MetodoCobro === 1);
         setToma(lecturaContrato.TipoToma);
         setMunicipio(lecturaContrato.Municipio);
         setLocalidad(lecturaContrato.Localidad);
         setDireccion(lecturaContrato.Direccion);
-        let mesLecturaLocal = isNaN( lecturaContrato.Mes  ) ? fecha.getMonth() : lecturaContrato.Mes;
-        let Anio = isNaN(lecturaContrato.A_no) ? fecha.getFullYear() :  lecturaContrato.A_no;
-        setMesLectura(mesLectura);
-        setAnioLectura(Anio);
-        cargarFechas(lecturaContrato.A_no, "1" , mesLecturaLocal);
+        mesLecturaValido = isNaN( lecturaContrato.Mes  ) ? fecha.getMonth() : lecturaContrato.Mes;
+        anioLecturaValido = isNaN(lecturaContrato.A_no) ? fecha.getFullYear() :  lecturaContrato.A_no;
+        //INDEV: Verificamos los dato
+        mesLecturaValido = (Math.abs(mesLecturaValido - fecha.getMonth()) > 1 ? fecha.getMonth() : mesLecturaValido );
+        //mesLectura = (Math.abs(mesLectura - fecha.getMonth()) > 1) ? fecha.getMonth() : mesLectura;
+        if(anioLectura != fecha.getFullYear()){
+            mesLecturaValido = fecha.getMonth();
+            anioLecturaValido = fecha.getFullYear();
+        }
+        setMesLectura(mesLecturaValido);
+        setAnioLectura(anioLecturaValido);
+        cargarFechas(anioLecturaValido, "1" , mesLecturaValido);
         setLecturaAnterior(lecturaContrato != null ? lecturaContrato.LecturaActual : 0 );
         setBloquearcampos(lecturaContrato.BloquearCampos == "1");
         setConsumo(0);
@@ -788,7 +803,7 @@ const CapturaDeLectura: React.FC = () => {
                                 {
                                     anomalias.map((item, index) => {
                                         //console.error(JSON.stringify(item));
-                                        return <IonSelectOption key={index} value = { enLinea ? item.id : item.Clave } >
+                                        return <IonSelectOption key={index} value = { enLinea ? item.idSuinpac : item.Clave } >
                                             {`${ !enLinea ? ( item.clave <= 10 ? formatindex(item.clave) : item.clave ) : (item.clave <= 10 ? formatindex(item.Clave) : item.Clave) } - ${ !enLinea ? item.descripci_on : item.Descripcion }`}
                                         </IonSelectOption>
                                     })

@@ -36,7 +36,9 @@ export function guardarDatosCliente(basicData: { usuario: string, idUsuario: Num
     localStorage.setItem("@Storage:usuario", basicData.usuario);
     localStorage.setItem("@Storage:idUsuario", String(basicData.idUsuario));
     localStorage.setItem("@Storage:cliente", String(basicData.cliente));
+    //REVIEW: verificando el token
     localStorage.setItem("@Storage::userToken", basicData.token);
+    //localStorage.setItem("@Storage::userToken","eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXBpLnNlcnZpY2lvZW5saW5lYS5teFwvYXBpXC9hdXRoXC9sb2dpbiIsImlhdCI6MTY3NDQ5NzQxNSwiZXhwIjoxNjc0NTAxMDE1LCJuYmYiOjE2NzQ0OTc0MTUsImp0aSI6Im1paElmYlZ6cWlHN3hGUEMiLCJzdWIiOjM2NjcsInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.KYQR_2fDwq4GiBM6Su3o8fs1nevOMCWr1Cgj7n4zGJ4");
     localStorage.setItem("@Storage:recordarUsuario", String(basicData.recordar));
     localStorage.setItem("@Storage:userName", basicData.userName);
     console.log(basicData.userName)

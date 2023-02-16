@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS Padron (${AUTOINCREMENT},ContratoVigente TEXT,Contrib
 CREATE TABLE IF NOT EXISTS Anomalias (${AUTOINCREMENT}, idSuinpac INTEGER , Clave TEXT, Descripcion TEXT,AplicaFoto INTEGER);
 CREATE TABLE IF NOT EXISTS MetaDatos (${AUTOINCREMENT},idUsuario INTEGER ,Latitud TEXT, Longitud TEXT, Ruta INTEGER, idblectura INTEGER);
 CREATE TABLE IF NOT EXISTS Evidencia (${AUTOINCREMENT},idPadron INTEGER, DireccionFisica TEXT, Tipo TEXT);
-CREATE TABLE IF NOT EXISTS LecturaAnterior(${AUTOINCREMENT},idPadron INTEGER,iA_no INTEGER, Direccion TEXT,LecturaActual INTEGER, LecturaAnterior INTEGER, Localidad TEXT, MetodoCobro INTEGER, Mes INTEGER,Municipio TEXT, TipoToma INTEGER, Toma TEXT, BloquearCampos INTEGER, ValorLectura INTEGER,Promedio INTEGER);
+CREATE TABLE IF NOT EXISTS LecturaAnterior(${AUTOINCREMENT},idPadron INTEGER,A_no INTEGER, Direccion TEXT,LecturaActual INTEGER, LecturaAnterior INTEGER, Localidad TEXT, MetodoCobro INTEGER, Mes INTEGER,Municipio TEXT, TipoToma INTEGER, Toma TEXT, BloquearCampos INTEGER, ValorLectura INTEGER,Promedio INTEGER);
 CREATE TABLE IF NOT EXISTS ConfiguracionUsuario(${AUTOINCREMENT},idUsuario INTEGER, NombreUsuario TEXT, Email TEXT, Contrasenia TEXT);
 CREATE TABLE IF NOT EXISTS DatosExtra (${AUTOINCREMENT},Nombre TEXT, Valor TEXT, Descripcion TEXT );`;
 export const TIPOTOMA = 

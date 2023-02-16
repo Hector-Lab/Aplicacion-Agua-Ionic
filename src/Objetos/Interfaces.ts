@@ -130,3 +130,10 @@ export interface StructuraEvidencia {
     Fachada: string,
     Calle: string
 }
+export interface ConfiguracionUsuario {
+    id: number
+    idUsuario: number,
+    NombreUsuario: string,
+    Email:string,
+    Contrasenia:string
+}
