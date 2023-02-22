@@ -212,7 +212,7 @@ const ListaContratoReportes : React.FC = () => {
                 </IonRow>
                 <IonRow>
                     <IonCol size="12" > 
-                        <IonButton color="danger" expand="block" onClick={ realizarBusqueda } ><IonIcon icon={searchCircle} color="light" size="large" ></IonIcon></IonButton>
+                        <IonButton color="danger" expand="block" onClick={ realizarBusqueda } > Buscar Toma <IonIcon icon={searchCircle} color="light" size="large" slot = "end" ></IonIcon></IonButton>
                     </IonCol>
                 </IonRow>
               </IonGrid>

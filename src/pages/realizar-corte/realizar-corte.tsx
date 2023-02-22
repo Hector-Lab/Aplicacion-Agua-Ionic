@@ -1,12 +1,11 @@
-import { IonAlert, IonApp, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonPicker, IonRippleEffect, IonRow, IonSelect, IonSelectOption, IonText, IonTextarea, IonTitle, IonToolbar, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
+import { IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonImg, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonPicker, IonRippleEffect, IonRow, IonSelect, IonSelectOption, IonText, IonTextarea, IonTitle, IonToolbar, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
 import { checkmarkCircle, chevronBackCircleOutline, contractOutline, pencil, saveOutline, triangle } from "ionicons/icons";
 import { useEffect,useState } from 'react';
 import MenuLeft from '../../components/left-menu';
 import { obtenerDatosCorte, EnviarCorte } from '../../controller/apiController';
-import { getIdUsuario } from '../../controller/storageController';
 import { useTakePhoto, obtenerBase64, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
-import { camera } from 'ionicons/icons';
 import './realizar-corte.css';
+import foto from '../../assets/icon/sinFoto.jpg';
 import { useHistory } from 'react-router';
 
 const RealizarCorte: React.FC = () => {
@@ -35,7 +34,7 @@ const RealizarCorte: React.FC = () => {
     const [ errorCarga, setErrorCarga ] = useState(false);
     const [ errorCampos, setErrorCampos ] = useState(false);
     const [pressentToast, dismissToast] = useIonToast();
-    const sinFoto = "https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=";
+    
 
 
      //INDEV: Bloque de fotos para tomas
@@ -302,7 +301,7 @@ const RealizarCorte: React.FC = () => {
             }
             <IonHeader>
                 <IonToolbar color="danger" >
-                    <IonTitle>Cortar toma</IonTitle>
+                    <IonTitle>Cortar Toma</IonTitle>
                     <IonButtons slot="start" className="btnMenu">
                         <IonMenuButton ></IonMenuButton>
                     </IonButtons>
@@ -352,21 +351,21 @@ const RealizarCorte: React.FC = () => {
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Toma </IonLabel>
                                         <IonCard onClick = { FotoToma } className = { errorImagenes.includes("T,") ? "errorInput" : "clearInput" }  >
-                                            <IonImg className="imagenViwer"  src = { fotoTomaPreview != "" ? fotoTomaPreview : sinFoto } ></IonImg>
+                                            <IonImg className="imagenViwer"  src = { fotoTomaPreview != "" ? fotoTomaPreview : foto } ></IonImg>
                                             <IonRippleEffect></IonRippleEffect>
                                         </IonCard>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Facha </IonLabel>
                                         <IonCard onClick = { FotoFachada } className = { errorImagenes.includes("F,") ? "errorInput" : "clearInput" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Calle </IonLabel>
                                         <IonCard onClick = { FotoCalle } className = { errorImagenes.includes("C,") ? "errorInput" : "clearInput" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
@@ -391,13 +390,13 @@ const RealizarCorte: React.FC = () => {
                             <IonGrid>
                                 <IonRow>
                                     <IonCol size="6" className = "center" >
-                                        <IonButton color="secondary" onClick = {regresar}>
+                                        <IonButton expand = "block" color="secondary" onClick = {regresar}>
                                         <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                             Regresar
                                         </IonButton>
                                     </IonCol>
                                     <IonCol size="6" className = "center" >
-                                        <IonButton disabled = {bloquearCorte} color="danger" onClick={validarCampos}>
+                                        <IonButton expand = "block" disabled = {bloquearCorte} color="danger" onClick={validarCampos}>
                                             Guardar
                                             <IonIcon icon={saveOutline} slot="end"></IonIcon>
                                         </IonButton>

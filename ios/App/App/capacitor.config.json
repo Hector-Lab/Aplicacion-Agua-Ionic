@@ -1,13 +1,21 @@
 {
-  "appId": "io.suinpac.aguados",
-  "appName": "Lectura de agua V3",
-  "bundledWebRuntime": false,
-  "npmClient": "npm",
-  "webDir": "build",
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 0
-    }
-  },
-  "cordova": {}
+	"appId": "io.suinpac.aguados",
+	"appName": "Lectura de agua V3",
+	"bundledWebRuntime": false,
+	"npmClient": "npm",
+	"webDir": "build",
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 1000
+		},
+		"CapacitorSQLite": {
+			"androidIsEncryption": false,
+			"androidBiometric": {
+				"biometricAuth": false,
+				"biometricTitle": "Biometric login for capacitor sqlite",
+				"biometricSubTitle": "Log in using your biometric"
+			}
+		}
+	},
+	"cordova": {}
 }

@@ -1,4 +1,4 @@
-import { lockClosed } from "ionicons/icons";
+import { lockClosed, returnUpBackOutline } from "ionicons/icons";
 
 //controlador del LocalStorage
 export function restoreUser() {
@@ -36,7 +36,9 @@ export function guardarDatosCliente(basicData: { usuario: string, idUsuario: Num
     localStorage.setItem("@Storage:usuario", basicData.usuario);
     localStorage.setItem("@Storage:idUsuario", String(basicData.idUsuario));
     localStorage.setItem("@Storage:cliente", String(basicData.cliente));
+    //REVIEW: verificando el token
     localStorage.setItem("@Storage::userToken", basicData.token);
+    //localStorage.setItem("@Storage::userToken","eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXBpLnNlcnZpY2lvZW5saW5lYS5teFwvYXBpXC9hdXRoXC9sb2dpbiIsImlhdCI6MTY3NDQ5NzQxNSwiZXhwIjoxNjc0NTAxMDE1LCJuYmYiOjE2NzQ0OTc0MTUsImp0aSI6Im1paElmYlZ6cWlHN3hGUEMiLCJzdWIiOjM2NjcsInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.KYQR_2fDwq4GiBM6Su3o8fs1nevOMCWr1Cgj7n4zGJ4");
     localStorage.setItem("@Storage:recordarUsuario", String(basicData.recordar));
     localStorage.setItem("@Storage:userName", basicData.userName);
     console.log(basicData.userName)
@@ -300,4 +302,48 @@ export function setIdConfiguracion( idConfiguracionCorte:string ){
 }
 export function getIdConfiguracion( ){
     return localStorage.getItem("@Storage:configuracionCorte");
+}
+export function guardarTareasCortes( listaTareas:string ){
+    localStorage.setItem("@Storage:listaTareas",listaTareas);
+}
+export function guardarIndexTareas( index:string ){
+    localStorage.setItem("@Storage:indexTareas",index);
+}
+export function getIndexTareas(){
+    return localStorage.getItem("@Storage:indexTareas");
+}
+export function getTareasCortes( listaTareas:string ){
+    return localStorage.getItem("@Storage:listaTareas");
+}
+export function setNumeroPaginasTareas( totalPaginas:string ){
+    localStorage.setItem("@Storage:totalPaginasTareas",totalPaginas);
+}
+export function getNumeroPaginasTareas(){
+    let datos =  localStorage.getItem("@Storage:totalPaginasTareas")
+    return (datos == null || datos == "") ? 0 : parseInt(datos) ;
+}
+export function setContratoMulta( idPadron:string ){
+    localStorage.setItem("@Storage:multaContrato",idPadron);
+}
+export function getContratoMulta(  ){
+    return localStorage.getItem("@Storage:multaContrato");
+}
+export function getDatosUsuario( ):{ Cliente: string, NombreUsuario:string,Email: string,Contrasenia: string } {
+    let datosUsuario = {
+        Cliente: String(obtnerCliente()),
+        NombreUsuario: String(getUsuario()),
+        Email: "",
+        Contrasenia: String(localStorage.getItem("@Storage:contraseniaX"))
+    };
+    return datosUsuario;
+}
+export function ActivarModoOffline() {
+    localStorage.setItem("@Storage:ModoTrabajo","1");
+}
+export function DesactivarModoOffline(){
+    localStorage.setItem("@Storage:ModoTrabajo","0");
+}
+export function ObtenerModoTrabajo():boolean{
+    let modoTrabajo = localStorage.getItem("@Storage:ModoTrabajo");
+    return ( modoTrabajo !== null &&  modoTrabajo !== "0" );
 }

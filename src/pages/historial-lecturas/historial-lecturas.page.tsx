@@ -31,7 +31,7 @@ import {
 } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import MenuLeft from '../../components/left-menu';
-import { contractOutline, eyeOutline } from 'ionicons/icons';
+import { contractOutline, eyeOutline, searchCircle } from 'ionicons/icons';
 import { historialFechas, historialLecturas} from '../../controller/apiController';
 import { guardarDatosEditarLectura, verifyingSession, cerrarSesion, setFechasHistorialLectura, getFechasHistorialLectura } from '../../controller/storageController';
 import { useHistory } from 'react-router-dom'
@@ -90,7 +90,7 @@ const HistorialLecturas: React.FC = () => {
             }
             <IonHeader>
                 <IonToolbar color="danger" >
-                    <IonTitle>Mis lecturas</IonTitle>
+                    <IonTitle> Lecturas </IonTitle>
                     <IonButtons slot="start" className="btnMenu">
                         <IonMenuButton ></IonMenuButton>
                     </IonButtons>
@@ -99,13 +99,11 @@ const HistorialLecturas: React.FC = () => {
             <IonContent>
                 <IonCard>
                     <IonCardHeader >
-                        <IonTitle className = "center" > Historial de lecturas </IonTitle>
-                        <br />
                         <IonRow className = "bordeFecha" >
-                            <IonCol size = "6" className = "labelCalendario" >
+                            <IonCol className = "labelCalendario" >
                                 <IonText > Seleccione el año: </IonText>
                             </IonCol>    
-                            <IonCol size="6" className = "ion-activatable ripple-parent">
+                            <IonCol className = "ion-activatable ripple-parent">
                                 <div >
                                     <IonSelect onIonCancel = { ()=>{setAnioSeleccionado(11)} }  interface = "action-sheet" value={ anioSeleccionado } onIonChange = {e=>{setAnioSeleccionado(e.detail.value)}} >
                                         {
@@ -119,7 +117,7 @@ const HistorialLecturas: React.FC = () => {
                             </IonCol>
                         </IonRow>
                         <IonRow className = "bordeFecha" >
-                            <IonCol size="6" class="labelCalendario">
+                            <IonCol class="labelCalendario">
                                 <IonText> Seleccione mes: </IonText>
                             </IonCol>
                             <IonCol>
@@ -136,7 +134,10 @@ const HistorialLecturas: React.FC = () => {
                         </IonRow>
                         <IonRow>
                             <IonCol className = "center margintop" >
-                                <IonButton color="danger" expand = "block" onClick = { extraerHistorial } > <IonText> Buscar Cortes </IonText> <IonRippleEffect></IonRippleEffect> </IonButton>
+                                <IonButton color="danger" expand = "block" onClick = { extraerHistorial } >
+                                    <IonText> Mostrar Historial </IonText> <IonRippleEffect></IonRippleEffect>
+                                    <IonIcon icon={searchCircle} size="large" slot = "end" ></IonIcon>
+                                </IonButton>
                             </IonCol>
                         </IonRow>
                     </IonCardHeader>

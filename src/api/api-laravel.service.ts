@@ -322,5 +322,47 @@ export class APIservice {
         }
         return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/BuscarCortePorMedidor`,data,{headers});
     }
+    //FIXED:
+    MultarContratoAPI( data:object, token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/MultarToma`,data,{headers});
+    }
+    ObtenerContratosLecturaSector( data:object,token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/test/ContratosSector`,data,{headers});
+    }
+    ObtenerPadronAnomalias( data:object,token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/PadronAguaAnomalias`,data,{headers});
+    }
+    ObtenerConfiguracionAgua( data:object,token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ObtenerConfiguracionesAgua`,data,{headers});
+    }
+    ObtenerContractosSector( data:object,token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ContratosSector`,data,{headers,timeout:20000});
+    }
+    ObtenerSectoresConfigurados( data:object,token:string ){
+        let headers = {
+            'Content-type': 'application/json',
+            'Authorization': 'Bearer' + token
+        }
+        return axios.post(`https://api.servicioenlinea.mx/api-movil/AppAgua/ObtenerSectoresConfigurados`,data,{headers});
+    }
 }
-

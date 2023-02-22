@@ -1,11 +1,15 @@
-import { IonAlert, IonButton, IonCard, IonCheckbox, IonContent, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonPage, IonTitle, IonToolbar, useIonViewWillEnter } from '@ionic/react';
+import { 
+  IonAlert,IonButton, IonCard, 
+  IonCheckbox, IonContent, IonHeader, 
+  IonImg, IonInput,IonItem, 
+  IonLabel, IonLoading,IonPage, 
+  IonTitle, IonToolbar, useIonViewWillEnter } from '@ionic/react';
 import { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom'
-import { Plugins } from '@capacitor/core'
 import './Home.css';
 import { Login, obtenerLogo, solicitarPermisos, } from '../controller/apiController';
-import { restoreUser,clearState } from '../controller/storageController';
-const { SplashScreen } = Plugins
+import { restoreUser,clearState, ActivarModoOffline,DesactivarModoOffline } from '../controller/storageController';
+import { CrearTablas, VerificarTablas,VerificarDatosUsuario,VerificarPadron } from '../controller/DBControler';
 const Home: React.FC = () => {
   const history = useHistory();
   const [User, setUserName] = useState('');
@@ -13,8 +17,22 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [remember, setRemember] = useState(false);
+  const [ activarMensajeOffLine, setActivarMensajeOffLine ] = useState(Boolean);
+  const [ mensajeOffline, setMensajeOffline ] = useState(String);
+  const botonesAlerta = [
+    {
+        text: "Activar", handler: () => {
+          modoOffLine();
+        }
+    },
+    {
+        text: "Cancelar", handler: () =>{
+          setActivarMensajeOffLine(false);
+        }
+    }];
   useEffect(() => {
-    SplashScreen.hide();
+    //SplashScreen.hide();
+    CreatTablasDB();
     handleRequestPermissions();
     recordarCredenciales();
   }, [])
@@ -31,7 +49,7 @@ const Home: React.FC = () => {
     setLoading(true)
     validateUserData();
   }
-  const validateUserData = async () => {    
+  const validateUserData = async () => {
     if (User != "" && passwors != "" && User != null && passwors != null) {
       try {
         setTimeout(() => {
@@ -45,7 +63,13 @@ const Home: React.FC = () => {
             history.replace('./form-datos-toma.page');
           })
           .catch((err) => {
-            setMessage(err.message);
+            let mensaje = String(err.message);
+            if(mensaje.includes("Error al intentar comunicarse con la API")){
+              setMensajeOffline("Acceso a internet no disponible\n¿ Usar modo local ?");
+              setActivarMensajeOffLine(true);
+            }else{
+              setMessage(err.message);
+            }
           })
           .finally(() => { setLoading(false) })
       } catch (err) {
@@ -60,6 +84,40 @@ const Home: React.FC = () => {
   const handleRequestPermissions = async () => {
     await solicitarPermisos().then((result) => {
       console.log(result)
+    })
+  }
+  const CreatTablasDB = async () =>{
+    await CrearTablas();
+    await VerificarTablas();
+  }
+  const modoOffLine = async () => {
+    //NOTE: verificamos que Existan datos en la base y sean validos por el usuario
+    await VerificarDatosUsuario().then(
+      async ( usuarioValido )=>{
+        //NOTE: Verificamos que el padron tenga datos
+        if(usuarioValido){
+          VerificarPadron().then(
+            async ( padronValido )=>{
+              if( padronValido ){
+                ActivarModoOffline();
+                setActivarMensajeOffLine(false);
+                history.replace('./form-datos-toma.page');
+              }else{
+                DesactivarModoOffline();
+                setMessage("No existen datos en el dispositivos\nFavor de conectar a una red WIFI");
+              }
+            }
+          ).catch(( error )=>{
+            console.error(JSON.stringify(error));
+          })
+        }else{
+          DesactivarModoOffline();
+          setMessage("No existen datos en el dispositivos\nFavor de conectar a una red WIFI");
+        }
+      }
+    )
+    .catch(( error )=>{
+      console.error(JSON.stringify(error));
     })
   }
   return (
@@ -98,6 +156,14 @@ const Home: React.FC = () => {
           message={message}
           isOpen={message.length > 0}
           onDidDismiss={() => { setMessage('') }}
+        />
+        <IonAlert 
+          cssClass = "my-custom-class"
+          header = {"Sin Conexión"}
+          message = {mensajeOffline}
+          isOpen = { activarMensajeOffLine }
+          buttons = { botonesAlerta }
+          onDidDismiss = { ()=> {setActivarMensajeOffLine( false )} }
         />
       </IonContent>
     </IonPage>

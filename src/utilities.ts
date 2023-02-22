@@ -1,23 +1,29 @@
-import { useCamera, } from '@capacitor-community/react-hooks/camera';
-import { CameraResultType, CameraSource} from '@capacitor/core';
-import { callCordovaPlugin } from '@ionic-native/core/decorators/common';
-import { Geolocation, Geoposition } from '@ionic-native/geolocation';
+import { useCamera, } from '@capacitor-community/camera-react';
+import { Camera,CameraSource,CameraResultType } from '@capacitor/camera';
+import { Geolocation } from '@ionic-native/geolocation';
 let calidad = 50;
 //NOTE: para fotos de fachada y calle
 let alto = 500; // 1280
 let ancho = 400; // 800 
 //NOTE: para la foto de la toma
-
+/* 
+ * resultType: 'Uri',
+   source: 'PHOTOS',
+   quality: calidad,
+   height: alto,
+   width: ancho
+ */
 
 export function useTakePhoto( ) {
   const { getPhoto } = useCamera();
   const takePhoto = async () => {
-    const cameraPhoto = await getPhoto({
-      resultType: CameraResultType.Uri,
-      source: CameraSource.Camera,
-      quality: calidad,
-      height: alto,
-      width: ancho
+    const cameraPhoto = await getPhoto({ 
+      resultType:CameraResultType.Uri,
+      source:CameraSource.Camera,
+      allowEditing:false,
+      quality:calidad,
+      height:alto,
+      width:ancho
     });
     return cameraPhoto;
   }
@@ -34,8 +40,8 @@ export function modificarTamanio ( reducir:boolean ){
 }
 
 export async function generarFechas(anio: number) {
-  let result = new Array;
-  let listaMeses = new Array;
+  let result = new Array();
+  let listaMeses = new Array();
   listaMeses = [
     {
       id: 1,
@@ -82,7 +88,7 @@ export async function generarFechas(anio: number) {
   return result;
 }
 export function generarAniosPosterior(anio: number) {
-  let listaAnios = new Array;
+  let listaAnios = new Array();
   let anioActual = new Date().getFullYear() + 1;
   let idAnio = 1;
   for (let anios = anio; anios <= anioActual; anios++) {
@@ -103,7 +109,7 @@ async function leerArchivo(path: string) {
 }
 async function convertBase64(blobFile: Blob) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader;
+    const reader = new FileReader();
     reader.onerror = reject;
     reader.onloadend = () => {
       let baseSplit  = reader.result;/* ?.toString().split(',')[1] */
@@ -113,7 +119,7 @@ async function convertBase64(blobFile: Blob) {
   })
 }
 export function generarAnios(defaultAnio: number) {
-  let listaAnios = new Array;
+  let listaAnios = new Array();
   let menorAnio = (defaultAnio - 10);
   let anioMaximo = (defaultAnio + 3);
   let idAnio = 1;

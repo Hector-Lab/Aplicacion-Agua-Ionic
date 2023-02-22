@@ -1,13 +1,14 @@
-import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCheckbox, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonItem, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonText, IonTextarea, IonTitle, IonToolbar, IonIcon, useIonViewWillEnter } from '@ionic/react'
+import { useIonToast,IonAlert, IonButton, IonButtons, IonCard, IonCol, IonContent, IonGrid, IonHeader, IonImg, IonInput, IonLabel, IonLoading, IonMenuButton, IonPage, IonRippleEffect, IonRow, IonTextarea, IonTitle, IonToolbar, IonIcon, useIonViewWillEnter } from '@ionic/react'
 import { useEffect, useState } from 'react'
 import LeftMenu from '../../components/left-menu';
-import { crearReporte, guardarReporteV2 } from '../../controller/apiController';
+import {  guardarReporteV2 } from '../../controller/apiController';
 import { verifyingSession, cerrarSesion, getContratoReporte } from '../../controller/storageController';
 import { useTakePhoto, obtenerBase64, obtenerCoordenadas } from '../../utilities';
 import { useHistory } from 'react-router';
 import './reportes.page.css';
 import { checkmarkCircle, chevronBackCircleOutline, saveOutline } from 'ionicons/icons';
 import MenuLeft from '../../components/left-menu';
+import foto from '../../assets/icon/sinFoto.jpg';
 
 const Reportes: React.FC = () => {
     const history = useHistory();
@@ -18,7 +19,6 @@ const Reportes: React.FC = () => {
     const [ tokenExpired, setTokenExpired ] = useState(false);
     const [ connectionError, setConnectionError ] = useState(false);
     const [ contrato,setContrato ] = useState(String);
-    const [ fallaAdministrativa, setFallaAdministrativa ] = useState(false);
     const [ arregloFotos, setArregloFotos ] = useState<string[]>([]);
     const [ fotoActiva, setFotoActiva ] = useState('');
     const [ indexFoto, setIndexFoto ] = useState(Number);
@@ -32,7 +32,6 @@ const Reportes: React.FC = () => {
     const [numero, setNumero] = useState(String);
     const [ descripcion, setDescripcion ] = useState( String );
     const [activarMenu,setActivarMenu] = useState(false);
-    const sinFoto = "https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=";
 
      //INDEV: Bloque de fotos para tomas
      const [ fotoMedidorEncode, setFotoMedidorEncode ] =  useState(String);
@@ -75,37 +74,6 @@ const Reportes: React.FC = () => {
             }, 2500)
         }
     }
-    /*const handleBtnCrearReporte = async () => {
-        setLoading(true);
-        let data = {
-            colonia: colonia,
-            calle: calle,
-            numero: numero,
-            descripcion: descripcion,
-            contrato: contrato,
-            fallaAdministrativa: fallaAdministrativa ? 1 : 0,
-        }
-        await crearReporte(data)
-            .then((result) => {
-                setConnectionError(false);
-                limpiarPantalla();
-                setTipoMensaje("Mensaje");
-                setMessage(result);
-            }).catch((err) => {
-                setTipoMensaje("ERROR");
-                let messageError = String(err.message);
-                setConnectionError(messageError.includes("API"));
-                let sessionExpired = messageError.includes("Sesion no valida");
-                setTokenExpired(sessionExpired);
-                if (!sessionExpired) {
-                    setMessage(messageError);
-                } else {
-                    console.log("El token ya expiro")
-                }
-            }).finally(() => {
-                setLoading(false);
-            })
-    }*/
     const handleAbrirCamera = async (tipoFoto: number) => {
         setLoading(true);
         await takePhoto()
@@ -140,8 +108,8 @@ const Reportes: React.FC = () => {
         }).finally(() => { setLoading(false) })
     }
     const borrarFotoEvidencia = () => {
-        let fotosTemporal = new Array;
-        let fotosEncoded = new Array;
+        let fotosTemporal = new Array();
+        let fotosEncoded = new Array();
         arregloFotos.map((item, index) => {
             if (index != indexFoto) {
                 fotosTemporal.push(item);
@@ -171,27 +139,27 @@ const Reportes: React.FC = () => {
         setMessage("");
         setErrorUI("");
         let error = "";
-        if( calle.trim().length == 0 ){
+        if( calle.trim().length === 0 ){
             error += "Cl,";
         }
-        if( colonia.trim().length == 0 ){
+        if( colonia.trim().length === 0 ){
             error += "C,";
         }
-        if( numero.trim().length == 0 ){
+        if( numero.trim().length === 0 ){
             error += "N,";
         }
-        if ( descripcion.trim().length == 0 ){
+        if ( descripcion.trim().length === 0 ){
             error += "D,";
         }
         //NOTE: aqui ingresamos lar reglas para las imagenes
-        if(fotoMedidorEncode.length == 0)
+        if(fotoMedidorEncode.length === 0)
             error += "FM,"
-        if(fotoFachadaEncode.length == 0)
+        if(fotoFachadaEncode.length === 0)
             error += "FF,"
-        if(fotoCallePreview.length == 0)
+        if(fotoCallePreview.length === 0)
             error += "FC,";
         //NOTE: validamos que los datos no esten en 0
-        error.length == 0 ? enviarReporte() : lanzarMensaje("Mensaje","Favor de ingresar los campos requeridos", error);
+        error.length === 0 ? enviarReporte() : lanzarMensaje("Mensaje","Favor de ingresar los campos requeridos", error);
     }
     const enviarReporte = async () =>{
         //NOTE: Recolectamos los datos
@@ -289,34 +257,19 @@ const Reportes: React.FC = () => {
                     <br></br>
                     <IonGrid className = {'centerInput ' + ( ErrorUI.includes("C,") ? "errorInput" : "" )} >
                         <IonRow>
-                            <IonCol size='2' className = 'centerItems' >
-                                <IonLabel className = {'inputLabel'} > Colonia: </IonLabel>
-                            </IonCol>
-                            <IonCol size='10' >
-                                <IonInput value={colonia} onIonChange = { text => { setColonia(String(text.detail.value))} } ></IonInput>
-                            </IonCol>
+                            <IonInput placeholder = "Colonia"  value={colonia} onIonChange = { text => { setColonia(String(text.detail.value))} } ></IonInput>
                         </IonRow>
                     </IonGrid>
                     <br></br>
                     <IonGrid className = {'centerInput ' + ( ErrorUI.includes("Cl,") ? "errorInput" : "" ) } >
                         <IonRow>
-                            <IonCol size='2' className = 'centerItems' >
-                                <IonLabel className='inputLabel' > Calle: </IonLabel>
-                            </IonCol>
-                            <IonCol size='10' >
-                                <IonInput value={calle} onIonChange = { text => { setCalle( String(text.detail.value) )}} >  </IonInput>
-                            </IonCol>
+                            <IonInput placeholder = "Calle" value={calle} onIonChange = { text => { setCalle( String(text.detail.value) )}} >  </IonInput>
                         </IonRow>
                     </IonGrid>
                     <br></br>
                     <IonGrid className = {'centerInput ' + ( ErrorUI.includes("N,") ? "errorInput" : "" ) } >
                         <IonRow>
-                            <IonCol size='2' className = 'centerItems' >
-                                <IonLabel className='inputLabel' > Numero: </IonLabel>
-                            </IonCol>
-                            <IonCol size='10' >
-                                <IonInput value = { numero } onIonChange = { text => {setNumero( String(text.detail.value))}} >  </IonInput>
-                            </IonCol>
+                            <IonInput placeholder = "Numero" value = { numero } onIonChange = { text => {setNumero( String(text.detail.value))}} >  </IonInput>
                         </IonRow>
                     </IonGrid>
                     <br/><br/>
@@ -325,21 +278,21 @@ const Reportes: React.FC = () => {
                                     <IonCol size="4" className="center"  >
                                         <IonLabel> Toma </IonLabel>
                                         <IonCard onClick = { FotoToma } className = { ErrorUI.includes("FM,") ? "errorInput" : "clearInput" } >
-                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
+                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : foto } ></IonImg>
                                             <IonRippleEffect></IonRippleEffect>
                                         </IonCard>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Facha </IonLabel>
                                         <IonCard onClick = { FotoFachada } className = { ErrorUI.includes("FF,") ? "errorInput" : "clearInput" }  >
-                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Calle </IonLabel>
                                         <IonCard onClick = { FotoCalle } className = { ErrorUI.includes("FC,") ? "errorInput" : "clearInput" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
@@ -360,12 +313,15 @@ const Reportes: React.FC = () => {
                     <IonGrid>
                         <IonRow>
                             <IonCol size='6' >
-                                <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
-                                <IonButton color='secondary' expand='block' onClick={ btnRegresar }> Regresar </IonButton>
+                                <IonButton color='secondary' expand='block' onClick={ btnRegresar }>
+                                    <IonIcon icon={chevronBackCircleOutline} slot= "start" ></IonIcon>
+                                     Regresar 
+                                     </IonButton>
                             </IonCol>
                             <IonCol size='6' >
-                                <IonButton color='danger' expand='block' onClick={ validarDatos }> Guardar</IonButton>
-                                <IonIcon icon={saveOutline} slot="end"></IonIcon>
+                                <IonButton color='danger' expand='block' onClick={ validarDatos }>
+                                    <IonIcon icon={saveOutline} slot="end"></IonIcon>
+                                    Guardar</IonButton>
                             </IonCol>
                         </IonRow>
                     </IonGrid>

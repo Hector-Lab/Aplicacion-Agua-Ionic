@@ -1,43 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-    IonAlert,
-    IonButton,
-    IonButtons,
-    IonCard,
-    IonCardContent,
-    IonCardHeader,
-    IonCol,
-    IonContent,
-    IonDatetime,
-    IonGrid,
-    IonHeader,
-    IonIcon,
-    IonImg,
-    IonInput,
-    IonItem,
-    IonLabel,
-    IonLoading,
-    IonMenuButton,
-    IonPage,
-    IonRow,
-    IonSelect,
-    IonSelectOption,
-    IonTitle,
-    IonToolbar,
-    useIonToast,
-    IonChip,
-    useIonViewWillEnter,
-    useIonViewDidEnter,
-    IonRippleEffect
-} from '@ionic/react'
-import { camera, checkmarkCircle, saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
+import { IonAlert,IonButton,IonButtons,IonCard,IonCardContent,IonCardHeader,IonCol,IonContent,IonDatetime,IonGrid,IonHeader,IonIcon,IonImg,IonInput,IonItem,IonLabel,IonLoading,IonMenuButton,IonPage,IonRow,IonSelect,IonSelectOption,IonTitle,IonToolbar,IonChip,useIonViewWillEnter,useIonViewDidEnter,IonRippleEffect,IonBadge } from '@ionic/react'
+import { saveOutline, pencil, chevronBackCircleOutline } from 'ionicons/icons';
 import './captura-de-lectura.page.css';
 import MenuLeft from '../../components/left-menu';
-import { extraerDatosLectura, guardarCaptura, obtenerSiguienteIndice, obtenerPromedioConsumo, guardarCuotaFija, ConfiguracionEvidencias} from '../../controller/apiController';
+import { extraerDatosLectura, guardarCaptura, obtenerPromedioConsumo, guardarCuotaFija } from '../../controller/apiController';
 import { useTakePhoto, generarFechas, obtenerBase64, generarAniosPosterior, generarAnios, obtenerCoordenadas,asignarCalidad,modificarTamanio } from '../../utilities';
-import { getDatosLecturaStorage, verifyingSession, contribuyenteBuscado, setContribuyenteBuscado, setPuntero, setNumeroPaginas, deleteContratos } from '../../controller/storageController';
+import { ObtenerModoTrabajo, getDatosLecturaStorage, verifyingSession, setContribuyenteBuscado } from '../../controller/storageController';
+import { SQLITEObtenerAnomaliasAgua, SQLITEObtenerDatoExtra, SQLITEObtenerLecturaContrato, SQLITEInsertarEvidencia, SQLITEInsertarLecturaActual,SQLITEInsertatGeoreferencia, SQLITEObtenerLecturaActual, SQLITEObtenerEvidencias,SQLITEValidarLecturaActual, SQLITEObtenerAnomalia} from '../../controller/DBControler';
+import { Evidencia,TotalDatosLecturas, StructuraEvidencia, DatosLectura, MetaDatos } from '../../Objetos/Interfaces';
 import { useHistory } from 'react-router';
 import './captura-de-lectura.page.css';
+import foto from '../../assets/icon/sinFoto.jpg';
 const CapturaDeLectura: React.FC = () => {
     const history = useHistory();
     const [datosContribuyente, setDatosContribuyente] = useState(Object);
@@ -46,7 +19,6 @@ const CapturaDeLectura: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [anomalias, setAnomalias] = useState<any[]>([])
     const [consumo, setConsumo] = useState(Number);
-    const [pressentToast, dismissToast] = useIonToast();
     const [listaMeses, setlistaMeses] = useState<any[]>([]);
     const [mesDefautl, setMesDefault] = useState('');
     const [indexMes, setIndexMes] = useState(Number);
@@ -77,8 +49,6 @@ const CapturaDeLectura: React.FC = () => {
     const [consumoMinimo,setConsumoMinimo] = useState(20);
     const [activarMenu,setActivarMenu] = useState(true);
     const [ fija, setFija ] = useState(false);
-    const sinFoto = "https://media.istockphoto.com/vectors/vector-camera-icon-with-photo-button-on-a-white-background-vector-id1270930870?k=20&m=1270930870&s=170667a&w=0&h=kG9xDNMeLFQJeDrg-ik-HkvaHcOy2HjZe8xaDMB-dk0=";
-
     //INDEV: Bloque de fotos para tomas
     const [ fotoMedidorEncode, setFotoMedidorEncode ] =  useState(String);
     const [ fotoMedidorPreview, setFotoMedidorPreview ] = useState(String);
@@ -90,7 +60,11 @@ const CapturaDeLectura: React.FC = () => {
     const [ fotoCallePreview, setFotoCallePreview ] = useState(String);
     //NOTE: Error de las fotos
     const [ errorFotoUI, setErrorFotosU ] = useState("");
-
+    const [ enLinea, setEnlinea ] = useState(false);
+    //NOTE: Hooks
+    const [ fotoTomaLocal,setFotoTomaLocal ] = useState(String);
+    const [ fotoFachadaLocal,setFotoFachadaLocal ] = useState(String);
+    const [ fotoCalleLocal,setFotoCalleLocal ] = useState(String);
 
     const alertButtons = [
         {
@@ -105,8 +79,9 @@ const CapturaDeLectura: React.FC = () => {
         }];
     const fecha = new Date();
     const isSessionValid = () => {
+        let resultadoModoTrabajo = VerificarModoTrabajo();
         let valid = verifyingSession();
-        logOut(valid)
+        logOut(valid,resultadoModoTrabajo);
     }
     useEffect(() => { isSessionValid(); }, [refreshControl])
     useEffect(() => {
@@ -116,33 +91,48 @@ const CapturaDeLectura: React.FC = () => {
         }
     }, [defaultLectura])
     useEffect(() => { console.log(promedioLectura) }, [promedioLectura])
-    const logOut = (valid: boolean) => {
+    const logOut = (valid: boolean, modo:boolean) => {
         if (!valid) {
-            setTipoMessage("Sesión no valida");
-            setMessage("Inicie sesión por favor\nRegresando...");
-            setTimeout(() => {
-                setTipoMessage("ERROR");
-                setMessage('');
-                history.replace("/home");
-            }, 2500)
+            if(!modo){
+                setTipoMessage("Sesión no valida");
+                setMessage("Inicie sesión por favor\nRegresando...");
+                setTimeout(() => {
+                    setTipoMessage("ERROR");
+                    setMessage('');
+                    history.replace("/home");
+                }, 2500)
+            }else{
+                setLoading(true);
+                cargarContribuyente(modo);
+                setDefaultLectura(0);
+            }
         } else {
             setLoading(true);
-            cargarContribuyente();
+            cargarContribuyente(modo);
             setDefaultLectura(0);
         }
     }
     useIonViewWillEnter(()=>{setActivarMenu(false)});
     useIonViewDidEnter(()=>{setActivarMenu(true)});
-    const cargarContribuyente = async () => {
+    const cargarContribuyente = async (modoTrabajo:boolean) => {
+        //INDEV:: Obtenemos todos los datos del storage
         let result = getDatosLecturaStorage();
         if(result.contribuyente == "null"){
             result.contribuyente = "";
         }
+        await VerificarLecturaDB(result.idLectura == null ? -1 : parseInt(result.idLectura));
         setDatosContribuyente(result);
-        extraerLectura(result.idLectura);
+        //NOTE: aqui mandamos la validacion de la base de datos local
+        console.error("Modo de trabajo:", modoTrabajo );
+        if(!modoTrabajo){
+            extraerLectura(result.idLectura); //NOTE: Desde el API
+        }else{
+            console.error("Desde local");
+            ExtraerLecturaLocal(parseInt(result.idLectura + "" ));
+        }
         setRefreshControl(false);
     }
-    const extraerLectura = async (idLectura: any) => {
+    const extraerLectura = async (idLectura: any) => { 
         await obtenerPromedioConsumo().then( async (promedio)=>{
             promedio = parseFloat(promedio).toFixed(2);
             setPromedioLectura(parseInt(String(promedio)));
@@ -157,9 +147,14 @@ const CapturaDeLectura: React.FC = () => {
                     //FIXED: hay un bug para los contraros sin lecturas y estatus de letura 1
                     let data = parseInt(result.Mensaje[0]['A_no']);
                     let mesLectura = parseInt(result.Mensaje[0].Mes);
-                    //NOTE: si todo es NaN seleccionamos la fecha actual
                     isNaN(data) ? data = fecha.getFullYear() : data = data;
                     isNaN( mesLectura ) ? mesLectura = fecha.getMonth() : mesLectura = mesLectura;
+                    mesLectura = (Math.abs(mesLectura - fecha.getMonth()) > 1) ? fecha.getMonth() : mesLectura;
+                    if(data != fecha.getFullYear()){
+                        mesLectura = fecha.getMonth();
+                        data = fecha.getFullYear();
+                    }
+                    
                     setMesLectura(mesLectura);
                     setAnioLectura(data);
                     cargarFechas(data, result.ValorLectura[0].Valor, mesLectura);
@@ -173,7 +168,6 @@ const CapturaDeLectura: React.FC = () => {
                 setConsumo(0);
             })
             .catch((err) => {
-                console.log("aqui esta el error");
                 let errorMessage = err.message + "";
                 if (errorMessage.includes("API")) {
                     setEnbleButtons(true);
@@ -182,7 +176,7 @@ const CapturaDeLectura: React.FC = () => {
             })
             .finally(() => { setLoading(false) });
         }).catch((error)=>{
-
+            
         }).finally(()=>{setLoading(false)})
         //Fin de extraer Consumo promedio del contribuyente
     }
@@ -193,6 +187,7 @@ const CapturaDeLectura: React.FC = () => {
             setIndexMes(result[0].Meses[mesActual].id);
             setlistaMeses(result[0].Meses);
             setListaAnios(result[1].Anios);
+            //console.log(JSON.stringify(result[1].Anios));
             // Se debe separar por casos
             switch (tipoLectura) {
                 case '1':
@@ -292,51 +287,6 @@ const CapturaDeLectura: React.FC = () => {
             setLecturaAnterior(0);
         }
     }
-    const siguienteLectura = async () => {
-        await obtenerSiguienteIndice(datosContribuyente.idLectura)
-            .then((result) => {
-                if (result) {
-                    /*setTipoMessage("Mensaje");
-                    setMessage("Lectura guardada\nPasando a siguiente lectura...");
-                    setTimeout(() => {
-                        setLoading(false);
-                        //Limpiando Componentes
-                        setActivarGaleria(false)
-                        setDefaultLectura(0)
-                        setFotoActiva('');
-                        setFotosCodificadas([]);
-                        setFotosEvidencia([]);
-                        setIndexFoto(0);
-                        setSeleccionAnomalia(-1)
-                        setDefaultAnomalia(-1)
-                        setRefreshControl(true);
-                        handleCancelAnomalia();
-                    }, 1000);*/
-                    setTipoMessage("Mensaje");
-                    setMessage("Final de los datos en la pagina\nRegresado...");
-                    setPuntero(0);
-                    setNumeroPaginas(0);
-                    deleteContratos();
-                    setTimeout(() => {
-                        history.replace("/form-datos-toma.page");
-                    }, 2500);
-                } else {
-                    setTipoMessage("Mensaje");
-                    setMessage("Final de los datos en la pagina\nRegresado...");
-                    setPuntero(0);
-                    setNumeroPaginas(0);
-                    deleteContratos();
-                    setTimeout(() => {
-                        history.replace("/form-datos-toma.page");
-                    }, 2500);
-                }
-
-            }).catch(err => {
-                setMessage(err.message);
-            }).finally(() => {
-                setLoading(false);
-            })
-    }
     const mensajeConsumoCero = async () => {
         //let value = contribuyenteBuscado();
         /*if (!value) {
@@ -363,7 +313,7 @@ const CapturaDeLectura: React.FC = () => {
         }, 2500);
     }
     //Manejadores de la interfaz
-    const handleBtnGuardar = async ( fotos:any  ) => {
+    const handleBtnGuardar = async ( fotos:StructuraEvidencia  ) => {
         try {
             setLoading(true);
             setTimeout(() => {
@@ -372,41 +322,45 @@ const CapturaDeLectura: React.FC = () => {
                 }
             }, 20000);
             let mes = fecha.getMonth() + 1;
-                let anio = fecha.getFullYear();
-                let coords = await obtenerCoordenadas();
-                let validarConsumo = procesoConsumo(); // Falta la validacion del consumo
-                //NOTE: Verificamos la cuotafija
-                if( !fija ){
-                    let datosCapturados = {
-                        route: anio + "" + mes + "/",
-                        lecturaAnterior:  lecturaAnterior,
-                        lecturaActual: bloqueoAnomalias ? lecturaAnterior : lecturaActual,
-                        consumoFinal: validarConsumo,
-                        mesCaptura: indexMes,
-                        anhioCaptura: anioActual,
-                        fechaCaptura: fecha,
-                        anomalia: seleccionAnomalia == 0 ? "" : seleccionAnomalia,
-                        tipoCoordenada: 1,
-                        arregloFotos: fotos,
-                        comparaMes: comparaMes,
-                        comparaAnio: comparaAnio,
-                        lectura: 1,
-                        arrayAnios: listaAnios,
-                        indexAnio: indexAnioActual,
-                        mesLectura: mesLectura,
-                        nCliente: datosContribuyente.nCliente,
-                        token: datosContribuyente.token,
-                        idUsuario: datosContribuyente.idUsuario,
-                        idToma: datosContribuyente.idLectura,
-                        Latidude:  String(coords.latitude) ,
-                        Longitude: String(coords.longitude),
-                    }
-                    await guardarCaptura(datosCapturados)
-                        .then((result) => { mensajeConsumoCero(); })
-                        .catch((err) => { setLoading(false); setMessage(err.message) });
-                }else{
-                    guardarDatosCuotaFija(validarConsumo,coords,fotos);
+            let anio = fecha.getFullYear();
+            let coords = await obtenerCoordenadas();
+            let validarConsumo = procesoConsumo(); // Falta la validacion del consumo
+            //NOTE: Verificamos la cuotafija
+            if( !fija ){
+                let datosCapturados:TotalDatosLecturas = {
+                    route: anio + "" + mes + "/",
+                    lecturaAnterior:  lecturaAnterior,
+                    lecturaActual: bloqueoAnomalias ? lecturaAnterior : lecturaActual,
+                    consumoFinal: validarConsumo,
+                    mesCaptura: indexMes,
+                    anhioCaptura: anioActual,
+                    fechaCaptura: fecha.toString(),
+                    anomalia: String(seleccionAnomalia == 0 ? "" : seleccionAnomalia),
+                    tipoCoordenada: 1,
+                    arregloFotos: fotos,
+                    comparaMes: comparaMes,
+                    comparaAnio: comparaAnio,
+                    lectura: 1,
+                    arrayAnios: listaAnios,
+                    indexAnio: indexAnioActual,
+                    mesLectura: mesLectura,
+                    nCliente: datosContribuyente.nCliente,
+                    token: datosContribuyente.token,
+                    idUsuario: datosContribuyente.idUsuario,
+                    idToma: datosContribuyente.idLectura,
+                    Latidude:  String(coords.latitude) ,
+                    Longitude: String(coords.longitude),
                 }
+                if(!enLinea){
+                    await guardarCaptura(datosCapturados)
+                    .then((result) => { mensajeConsumoCero(); })
+                    .catch((err) => { setLoading(false); setMessage(err.message) });
+                }else{
+                    handleGuardarLecturaLocal(datosCapturados,fotos);
+                }
+            }else{
+                guardarDatosCuotaFija(validarConsumo,coords,fotos);
+            }
         } catch (err) {
             console.log(err);
             setLoading(false);
@@ -459,6 +413,7 @@ const CapturaDeLectura: React.FC = () => {
         })
     }
     const handleSelectAnomalia = (seleccionAnomalia: number) => {
+        console.log("Anomalia selecionado:", seleccionAnomalia);
         setSeleccionAnomalia(seleccionAnomalia);
         setDefaultAnomalia(seleccionAnomalia);
         setConsumo(promedioLectura);
@@ -495,17 +450,39 @@ const CapturaDeLectura: React.FC = () => {
         //NOTE: asugnamos la calidad de la camara
         asignarCalidad( tipoFoto == 1 ? 50 : 20 );
         modificarTamanio(  tipoFoto != 1 );
-        await takePhoto() 
+            //NOTE: Para la que se usa en la API
+            await takePhoto() 
             .then(async (result) => {
                 setLoading(true);
-                agregarImagenEncode(result.webPath + "", tipoFoto);
+                if(!enLinea)
+                    agregarImagenEncode(result.webPath + "", tipoFoto);
+                else
+                    agregarImagenEncodeLocal(result.webPath + "", tipoFoto);
             })
             .catch((err) => {
                 let errorType = err.message + "";
                 if (errorType.includes("denied")) {
                     setMessage("La aplicación no tiene permisos para usar la cámara")
                 }
-            }).finally(() => { setLoading(false) })
+            }).finally(() => { setLoading(false) });
+        
+    }
+    const agregarImagenEncodeLocal = async (direccion:string,tipoFoto:number) =>{
+        switch(tipoFoto){
+            case 1:
+                setFotoTomaLocal(direccion);
+                setFotoMedidorPreview(direccion);
+                break;
+            case 2:
+                setFotoFachadaLocal(direccion);
+                setFotoFachadaPreview(direccion);
+                break;
+            case 3:
+                console.log("Foto de la Calle: " + direccion );
+                setFotoCalleLocal(direccion);
+                setFotoCallePreview(direccion);
+                break;
+        }
     }
     //llamada al metodo de convercion
     const agregarImagenEncode = async (imgDir: string, tipoFoto:number) => {
@@ -611,6 +588,8 @@ const CapturaDeLectura: React.FC = () => {
         if( fotoCalleEncode.length == 0 ){
             errorFotos += "FC,";
         }
+        if(enLinea)
+            errorFotos = "";
         if(errorFotos.length != 0){
             setMessage("¡Favor de capturar las evidencias!");
             setTipoMessage("Mensaje");
@@ -619,16 +598,149 @@ const CapturaDeLectura: React.FC = () => {
         }else{
             //NOTE: se forma el json para el envio de las imagenes
             setErrorFotosU("");
-            let jsonImagenes = {
-                "Toma": fotoMedidorEncode,
-                "Fachada": fotoFachadaEncode,
-                "Calle": fotoCalleEncode
+            let jsonImagenes:StructuraEvidencia = {
+                Toma: (!enLinea) ? fotoMedidorEncode : fotoTomaLocal,
+                Fachada:(!enLinea) ? fotoFachadaEncode : fotoFachadaLocal,
+                Calle:(!enLinea) ? fotoCalleEncode : fotoCalleLocal
             }
             handleBtnGuardar(jsonImagenes);
         }
     }
+    const handleGuardarLecturaLocal = async (DatosCrudos:TotalDatosLecturas, Evidencias:StructuraEvidencia ) => {
+        try {
+            SQLITEValidarLecturaActual(DatosCrudos.idToma).then( async ( mensajeValidacion:string )=>{
+                if(mensajeValidacion?.length === 0){
+                    console.log("Guardando lectura en local...");
+                    let DatosLectura = ObtenerSQLITEObjectoLectura(DatosCrudos);
+                    let GeolocalicacionDatos = ObtenerSQLITEObjetoCoordenadas(DatosCrudos);
+                    if( DatosLectura != null && GeolocalicacionDatos != null ){
+                        await SQLITEInsertarLecturaActual(DatosLectura);
+                        await SQLITEInsertatGeoreferencia(GeolocalicacionDatos);
+                        await SQLITEInsertarEvidencia(Evidencias,DatosLectura.idbLectura);
+                    }
+                    setMessage(`Lectura guardada en el dispositivo`);
+                }else{
+                    setMessage(mensajeValidacion)
+                }
+            });
+        }catch( error ){
+            setMessage(`Error al guardar la lectura:\n${error.message}`);
+        }
+        setLoading(false);
+    }
+    //INDEV: Metodos que usan la base de datos local
+    const VerificarModoTrabajo = ():boolean => {
+        let modoTrabajo = ObtenerModoTrabajo();
+        setEnlinea(modoTrabajo);
+        return(modoTrabajo);
+    }
+    const ExtraerLecturaLocal = async (Padron:number) => {
+        let lecturaContrato = await SQLITEObtenerLecturaContrato(Padron);
+        let anomalias = await SQLITEObtenerAnomaliasAgua();
+        console.log(JSON.stringify(anomalias));
+        let tipoLectura = await SQLITEObtenerDatoExtra("TipoLectura");
+        let mesLecturaValido = lecturaContrato.Mes;
+        let anioLecturaValido = lecturaContrato.A_no;
+        //FIXME: falta el promedio del consumo
+        setFija(lecturaContrato.MetodoCobro === 1);
+        setToma(lecturaContrato.TipoToma);
+        setMunicipio(lecturaContrato.Municipio);
+        setLocalidad(lecturaContrato.Localidad);
+        setDireccion(lecturaContrato.Direccion);
+        mesLecturaValido = isNaN( lecturaContrato.Mes  ) ? fecha.getMonth() : lecturaContrato.Mes;
+        anioLecturaValido = isNaN(lecturaContrato.A_no) ? fecha.getFullYear() :  lecturaContrato.A_no;
+        //INDEV: Verificamos los dato
+        mesLecturaValido = (Math.abs(mesLecturaValido - fecha.getMonth()) > 1 ? fecha.getMonth() : mesLecturaValido );
+        //mesLectura = (Math.abs(mesLectura - fecha.getMonth()) > 1) ? fecha.getMonth() : mesLectura;
+        if(anioLectura != fecha.getFullYear()){
+            mesLecturaValido = fecha.getMonth();
+            anioLecturaValido = fecha.getFullYear();
+        }
+        setMesLectura(mesLecturaValido);
+        setAnioLectura(anioLecturaValido);
+        cargarFechas(anioLecturaValido, "1" , mesLecturaValido);
+        setLecturaAnterior(lecturaContrato != null ? lecturaContrato.LecturaActual : 0 );
+        setBloquearcampos(lecturaContrato.BloquearCampos == "1");
+        setConsumo(0);
+        setAnomalias(anomalias);
+        setTipoLectura(parseInt(tipoLectura.Valor));
+        setPromedioLectura(lecturaContrato.Promedio);
+        setLoading(false);
+    }
+    //INDEV: Expltando datos
+    const ObtenerSQLITEObjectoLectura = (DatosCrudos:TotalDatosLecturas):DatosLectura => {
+        let LecturaActual:DatosLectura = {
+            id:0,
+            idbLectura: DatosCrudos.idToma,
+            LecturaAnterior: DatosCrudos.lecturaAnterior,
+            LecturaActual: DatosCrudos.lecturaActual,
+            PresentaAnomalia: DatosCrudos.anomalia == "" ? 0 : 1,
+            Consumo: DatosCrudos.consumoFinal,
+            MesCaptua: DatosCrudos.mesCaptura,
+            AnioCaptua: DatosCrudos.anhioCaptura,
+            idAnomalia:parseInt(DatosCrudos.anomalia),
+            TipoCoordenada: 1,
+            Lectura: 1,
+            Cliente: DatosCrudos.nCliente,
+            Padron: DatosCrudos.idToma
+        };
+        return LecturaActual;
+    }
+    const ObtenerSQLITEObjetoCoordenadas = (DatosCrudos:TotalDatosLecturas):MetaDatos => {
+        let metaDatos: MetaDatos = {
+        id: 0 ,
+        idUsuario: DatosCrudos.idUsuario,
+        Latitud: String(DatosCrudos.Latidude) ,
+        Longitud: DatosCrudos.Longitude,
+        Ruta: DatosCrudos.route,
+        idblectura: DatosCrudos.idToma
+       }
+       return metaDatos;
+    }
+    //INDEV: Obtenemos los datos de sqlite para verificar la lectura
+    const VerificarLecturaDB = async (Padron: number ) => {
+        await SQLITEObtenerLecturaActual(Padron)
+        .then( async ( lectura )=>{
+            if(lectura != null){
+                setBtnInactivo(true);
+                //FIXME: validamos si tiene anomalia asignada CORREGIR EL TIPO DE DATO PARA NO GENERAR CONFUCION
+                let anomalia:{id:number, idSuinpac:number , Clave:string, Descripcion:string,AplicaFoto:number} = {
+                    AplicaFoto:-1,
+                    Clave:"-1",
+                    Descripcion:"No Aplica",
+                    id:-1,
+                    idSuinpac:-1
+                }; 
+                if(!isNaN(lectura.idAnomalia)){
+                    anomalia =  await SQLITEObtenerAnomalia(lectura.idAnomalia);
+                }
+                //Rellenamos los datos basicos
+                let arregloEvidencia = await SQLITEObtenerEvidencias(lectura.idbLectura);
+                arregloEvidencia.map(( evidencia:Evidencia, index:number )=>{
+                    if(evidencia.Tipo == "Toma")
+                        setFotoMedidorPreview(evidencia.DireccionFisica);
+                    if(evidencia.Tipo == "Facha")
+                        setFotoFachadaPreview(evidencia.DireccionFisica);
+                    if( evidencia.Tipo == "Calle" )
+                        setFotoCallePreview(evidencia.DireccionFisica);
+                }); 
+                setDefaultAnomalia(lectura.idAnomalia);
+                setDefaultLectura(lectura.LecturaActual);
+                setConsumo(lectura.Consumo);
+                setMessage(`
+                El contrato ya cuenta con una lectura registrada en el dispositivo:
+                Lectura Actual: ${lectura.LecturaActual}
+                Consumo Actual: ${lectura.Consumo}
+                Anomalia:${JSON.stringify(anomalia.Descripcion)}`);
+            }
+        })
+        .catch(( error )=>{
+            console.log("Error al obtener datos de la db:" + JSON.stringify(error));
+        })
+        setLoading(false);
+    }
     return (
-        <IonPage>
+        <IonPage onFocus = {VerificarModoTrabajo} >
       {
         activarMenu ? 
         <MenuLeft />: <></>
@@ -636,6 +748,7 @@ const CapturaDeLectura: React.FC = () => {
             <IonHeader>
                 <IonToolbar color="danger" >
                     <IonTitle>Captura de lectura</IonTitle>
+                    <IonBadge className = "estadoConexion" slot="end" color = { enLinea ? "medium" : "success" } >{ enLinea ? "Local" : "En linea" }</IonBadge>
                     <IonButtons slot="start" className="btnMenu">
                         <IonMenuButton ></IonMenuButton>
                     </IonButtons>
@@ -689,8 +802,9 @@ const CapturaDeLectura: React.FC = () => {
                             <IonSelect interface="action-sheet" onIonCancel = {handleCancelAnomalia} value={defaultAnomalia} onIonChange={e => { handleSelectAnomalia(e.detail.value) }}>
                                 {
                                     anomalias.map((item, index) => {
-                                        return <IonSelectOption key={index} value={item.id}>
-                                            {`${item.clave <= 10 ? formatindex(item.clave) : item.clave} - ${item.descripci_on}`}
+                                        //console.error(JSON.stringify(item));
+                                        return <IonSelectOption key={index} value = { enLinea ? item.idSuinpac : item.Clave } >
+                                            {`${ !enLinea ? ( item.clave <= 10 ? formatindex(item.clave) : item.clave ) : (item.clave <= 10 ? formatindex(item.Clave) : item.Clave) } - ${ !enLinea ? item.descripci_on : item.Descripcion }`}
                                         </IonSelectOption>
                                     })
                                 }
@@ -702,21 +816,21 @@ const CapturaDeLectura: React.FC = () => {
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Toma </IonLabel>
                                         <IonCard onClick = { FotoToma } className = { errorFotoUI.includes("FM,") ? "cardError" : "" } >
-                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : sinFoto } ></IonImg>
+                                            <IonImg className="imagenViwer"  src = { fotoMedidorPreview != "" ? fotoMedidorPreview : foto }></IonImg>
                                             <IonRippleEffect></IonRippleEffect>
                                         </IonCard>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Facha </IonLabel>
                                         <IonCard onClick = { FotoFachada } className = { errorFotoUI.includes("FF,") ? "cardError" : "" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoFachadaPreview != "" ? fotoFachadaPreview : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
                                     <IonCol size="4" className="center" >
                                         <IonLabel> Calle </IonLabel>
                                         <IonCard onClick = { FotoCalle } className = { errorFotoUI.includes("FC,") ? "cardError" : "" } >
-                                            <IonImg className="imagenViwer"  src ={ fotoCalleEncode != "" ? fotoCalleEncode : sinFoto } >  </IonImg>
+                                            <IonImg className="imagenViwer"  src ={ fotoCallePreview != "" ? fotoCallePreview : foto } >  </IonImg>
                                         </IonCard>
                                         <IonRippleEffect></IonRippleEffect>
                                     </IonCol>
@@ -747,13 +861,13 @@ const CapturaDeLectura: React.FC = () => {
                             <IonGrid>
                                 <IonRow>
                                     <IonCol size="6">
-                                        <IonButton color="secondary" onClick = {btnRegresar}>
+                                        <IonButton expand = "block" color="secondary" onClick = {btnRegresar}>
                                             <IonIcon icon={chevronBackCircleOutline} slot="start"></IonIcon>
                                             Regresar
                                         </IonButton>
                                     </IonCol>
                                     <IonCol size="6">
-                                        <IonButton color="danger" onClick={validarFotosTomadas} disabled={btnInactivo}>
+                                        <IonButton expand = "block" color="danger" onClick={validarFotosTomadas} disabled={btnInactivo}>
                                             Guardar
                                             <IonIcon icon={saveOutline} slot="end"></IonIcon>
                                         </IonButton>

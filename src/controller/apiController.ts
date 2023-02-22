@@ -21,13 +21,19 @@ import {
     getContratoCorte,
     getIdUsuario,
     setIdConfiguracion,
-    getIdConfiguracion
+    getIdConfiguracion, 
+    guardarIndexTareas,
+    guardarTareasCortes,
+    setNumeroPaginasTareas,
+    getContratoMulta,
+    getUsuario,
 } from '../controller/storageController';
+import { DatosLectura, MetaDatos, StructuraEvidencia, Sector } from '../Objetos/Interfaces';
 const service = new APIservice();
 const date = new Date();
 //INDEV: Errores del sistema
 const netwokError = new Error("Error al intentar comunicarse con la API. Verifique que su dispositivo se encuentre conectado a la red");
-const sesionNotValidError = new Error("Sesion no valida");
+const sesionNotValidError = new Error("La sesion del usuario a caducado");
 const failedLoginError = new Error("Usuario y/o contraseña incorrectos");
 const userNotValidError = new Error("No puedes iniciar sesión con este usuario");
 const lecturaCodeError = new Error('Consulte con su administrador que el código de lecturas de agua se encuentre en el rango de 1-3');
@@ -47,6 +53,12 @@ const PermissionsError = new Error("Para poder hacer uso de todas las funciones 
 const errorCarga = new Error("Error al obtener los datos del contrato 403");
 const errorImagenes = new Error("Corte realizado\nHubo un error al subir las imagenes");
 const ErrorInsertar = new Error("Error al insertar el registro");
+const ErrorMulta404 = new Error("Error al procesar la operacion\nOperacion no soportada");
+const ErrorMulta424 = new Error("Error al procesar la operacion\nFavor de revisar su caja de cobro");
+const ErrorMulta425 = new Error("Error al procesar la operacion\nFavor de revisar su area recaudadora");
+const ErrorMulta401 = new Error("Error al procesar la operacion\nEl usuario actual no existe o esta dado de baja");
+const ErrorMulta423 = new Error("Error al procesar la operacion\nHubo un error al realizar la multa");
+const ErrorSector = new Error("Los sectores del usuario no se han configuradi");
 export async function Login(user: string, password: string, remerber: boolean) {
     const acceso = {
         usuario: user,
@@ -55,6 +67,7 @@ export async function Login(user: string, password: string, remerber: boolean) {
     try {
         let result = await service.getAuth(acceso);
         //Verificanos si el inicio de session es valido
+        //console.log(result.data.token);
         let sessionValida = result.data.Status;
         if (sessionValida == true) {
             let data = {
@@ -172,10 +185,10 @@ export async function extraerDatosLectura(keyLectura: string) {
             idLectura: keyLectura
         }
         let result = await service.extraesDatosLectura(datos, basicData.token + "");
-        console.log(result);
+        console.log(JSON.stringify(result));
         let tipoLectura = result.data.ValorLectura[0].Valor;
         if (tipoLectura != '1' && tipoLectura != '2' && tipoLectura != '3') {
-            throw lecturaCodeError
+            throw lecturaCodeError;
         } else {
             return result.data;
         }
@@ -567,7 +580,7 @@ export async function obtenerTotalDatosSectores(sector: string) {
         throw conectionError(error);
     }
 }
-export async function lecturasPorSectorPage(sector: string, offset: number,) {
+export async function lecturasPorSectorPage(sector: string, offset: number) {
     try {
         let basicData = obtenerDatosCliente();
         let mes = date.getMonth() + 1;
@@ -580,7 +593,7 @@ export async function lecturasPorSectorPage(sector: string, offset: number,) {
             Offset: offset
         }
         let result = await service.buscarLecturasPorSector(datosConsulta, basicData.token + "");
-        let mensaje = result.data.mensaje;        
+        let mensaje = result.data.mensaje;
         setCuentasPapas(result.data.Papas);
         guardarContratos(JSON.stringify(mensaje));
         if (mensaje.legth === 0 || mensaje === "No se encontraron registros") {
@@ -596,7 +609,7 @@ export async function obtenerPromedioConsumo() {
     try {
         let { idLectura, token, nCliente } = getDatosLecturaStorage();
         let datos = {
-            idLectura: idLectura,
+            idLectura: idLectura, //NOTE: id del padron de agua potable
             nCliente: nCliente,
         }
         let result = await service.extraerPromedioContribuyente(datos, String(token));
@@ -604,6 +617,22 @@ export async function obtenerPromedioConsumo() {
         data = Math.round(data);
         return data;
     } catch (error) {
+        throw conectionError(error);
+    }
+}
+export async function obtenerPromedioContrato(Padron:number):Promise<number> {
+    try {
+        let { token, cliente } = obtenerDatosCliente();
+        let datos = {
+            idLectura: Padron,
+            nCliente: cliente,
+        }
+        let result = await service.extraerPromedioContribuyente(datos, String(token));
+        let data:number = result.data.Mensaje;
+        data = Math.round(data);
+        return Promise.resolve(data);
+    } catch (error) {
+        console.log(JSON.stringify(error));
         throw conectionError(error);
     }
 }
@@ -890,10 +919,10 @@ export async function guardarCuotaFija(data:any){
     }
 
 }
-export async function obtenerDatosCorte(){
+export async function obtenerDatosCorte(esmulta = false){
     try {
         let { cliente,token } = obtenerDatosCliente(); 
-        let padron = getContratoCorte();
+        let padron = esmulta ? getContratoMulta() : getContratoCorte();
         let Usuario = getIdUsuario();
         let datos = {
             'Padron': padron,
@@ -1107,6 +1136,16 @@ export async function ObtenerListaCortes(  ){
             Configuracion:id
         }
         let result = await service.ObtenerListaTareas(datos, String(token));
+        console.log(result.data);
+        if(result.data.Status){
+            //NOTE: lo enviamos al storage
+            guardarTareasCortes(result.data.Tareas);
+            guardarIndexTareas("1");
+            let paginas = (result.data.Tareas.length / 4);
+            let resuido = (parseFloat(result.data.Tareas.length)%(parseFloat("5")));
+            setNumeroPaginasTareas( resuido > 0 ? ((paginas+1)+"") : ((paginas)+"") );
+            
+        }
         return result.data.Tareas;
     }catch( error ){
         throw conectionError(error);
@@ -1144,6 +1183,172 @@ export async function BuscarMedidorCorte( indicio:string ) {
         }
         let result = await service.BuscarMedidorCorte(datos,String(token));
         return result.data.Datos;
+    }catch( error ){
+        throw conectionError(error);
+    }
+}
+export async function MultarToma(padron:number,total:number,Observacion:string,coords:any,Evidencia:any){
+    try{
+        let { cliente,token,idUsuario } = obtenerDatosCliente();
+        let datos = {
+            Usuario: idUsuario,
+            Padron:padron,
+            Cliente:cliente,
+            Debug:0,
+            Total:total,
+            Observacion:Observacion,
+            Cordenadas: coords,
+            Evidencia:Evidencia
+        }
+        let result = await service.MultarContratoAPI(datos,String(token));
+        console.log(result.data);
+        if(result.data.Status){
+            return true;
+        }else if (result.data.Code == 404){
+            throw ErrorMulta404;
+        }else if (result.data.Code == 424){
+            throw ErrorMulta424;
+        }else if (result.data.Code == 425){
+            throw ErrorMulta425;
+        }else if (result.data.Code == 401){
+            throw ErrorMulta401;
+        }else if( result.data.Code == 423){
+            throw ErrorMulta423;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function DescargarSectoresLecturistas(sector: string) {
+    try{
+        let Fecha = new Date();
+        let { cliente,token } = obtenerDatosCliente();
+        let datos = {
+            Cliente:cliente,
+            Sector:sector,
+            Mes:Fecha.getMonth(),
+            Anio:Fecha.getFullYear()
+        }
+        let result =  await service.ObtenerContratosLecturaSector(datos,String(token));
+        if(result.data.Code == 200){
+            console.log(result.data.Mensaje);
+        }
+
+    }catch( error ){
+        throw conectionError(error);
+    }
+}
+export async function DescargarPadronAnomalias(  ){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let headers = {
+            Cliente: cliente
+        }
+        let APIResult = await service.ObtenerPadronAnomalias(headers,String(token));
+        if(APIResult.data.Status){
+            return APIResult.data.Datos;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function DescargarConfiguraciones(){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let headers = {
+            Cliente:cliente
+        }
+        let APIResult = await service.ObtenerConfiguracionAgua(headers,String(token));
+        if(APIResult.data.Status){
+            return APIResult.data;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function DescargarContratosLecturaSector( Sector:string ){
+    try{
+        let { cliente,token } = obtenerDatosCliente();
+        let datosSolicitados = {
+            'Cliente':cliente,
+            'Sector': Sector,
+            //'Mes': mes == 0 ? 12 : mes,
+            //'Anio': mes == 0 ? ( anio - 1 ) : anio,
+        };
+        let rawContratos = await service.ObtenerContractosSector(datosSolicitados,String(token));
+        console.error(JSON.stringify(rawContratos));
+        if(rawContratos.data.Status){
+            return rawContratos.data.Mensaje;
+        }else{
+            throw noRowSelect;
+        }
+    }catch(error){
+        throw conectionError(error);
+    }
+}
+export async function EnviarDatoLocalesAPI (evidencia:StructuraEvidencia, metaDatos:MetaDatos, datosLectura:DatosLectura ):Promise<number>{
+    let { cliente,idUsuario,token } = obtenerDatosCliente();
+    const lecturaActual = {
+        idToma: String(datosLectura.idbLectura),
+        cliente: cliente,
+        lecturaAnterior: datosLectura.LecturaAnterior,
+        lecturaActual: datosLectura.LecturaActual,
+        consumoFinal: datosLectura.Consumo,
+        mesCaptura: datosLectura.MesCaptua,
+        anhioCaptura: datosLectura.AnioCaptua,
+        fechaCaptura: date.toString(),
+        anomalia: (isNaN(datosLectura.idAnomalia) ? "" : String(datosLectura.idAnomalia) ) ,
+        idUsuario: idUsuario,
+        latitud: metaDatos.Latitud,
+        longitud: metaDatos.Longitud,
+        tipoCoordenada: 1,
+        fotos: [],
+        arregloFotos: evidencia,
+        ruta: metaDatos.Ruta
+    };
+    //console.error("Datos: ", JSON.stringify(lecturaActual));
+    let result = await service.guardarDatosLecturaV2(lecturaActual, String(token) );
+    console.log(JSON.stringify(result));
+    let code = result.data.Mensaje;
+    let message = -1;
+    switch (code) {
+        case 200:
+            message = datosLectura.idbLectura;
+            break;
+        case 224:
+            throw new Error("No se pudo realizar el registro");
+            break;
+        case 223:
+            throw API223;
+        case 400:
+            throw new Error("El mes ya fue capturado");
+            break;
+        default:
+            throw APIError;
+            break;
+    }
+    return message;
+}
+export async function ObtenerSectoresConfigurados(){
+    try {
+        let { cliente,token } = obtenerDatosCliente();
+        let idUsuario = String(getIdUsuario());
+        let datos = {
+            Cliente: parseInt(String(cliente)),
+            Usuario:parseInt(idUsuario)
+        }
+        let resultadoSectores = await service.ObtenerSectoresConfigurados(datos,String(token));
+        let arregloSectores = new Array<Sector>();
+        console.error(JSON.stringify(resultadoSectores));
+        if (resultadoSectores.data.Code == 200){
+            //NOTE: damos formato a los datos obtenidos
+            resultadoSectores.data.Mensaje.map((sector:Sector,index:number)=>{
+                arregloSectores.push(sector);
+            })
+            return arregloSectores;
+        }else{
+            throw ErrorSector;
+        }
     }catch( error ){
         throw conectionError(error);
     }
